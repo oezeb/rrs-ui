@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
-import {  Box } from '@mui/material';
+import {  Box, Button, Popover } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import EventSeatIcon from '@mui/icons-material/EventSeat';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import { Period, Reservation, Room, RoomType } from './types';
 import { time, fetch_periods } from './util';
+import { DatePicker } from '@mui/x-date-pickers';
 
 interface PeriodsViewProps {
     periods: Period[];
-    start: dayjs.Dayjs;
-    end: dayjs.Dayjs;
+    start: Dayjs;
+    end: Dayjs;
 }
 
 function PeriodsView(props: PeriodsViewProps) {
@@ -17,8 +18,8 @@ function PeriodsView(props: PeriodsViewProps) {
     const totalDuration = end.diff(start, 'second');
     const view = (
         key: any,
-        start: dayjs.Dayjs,
-        end: dayjs.Dayjs,
+        start: Dayjs,
+        end: Dayjs,
         is_break: boolean,
     ) => {
         const height = 100 * end.diff(start, 'second') / totalDuration;
@@ -49,10 +50,85 @@ function PeriodsView(props: PeriodsViewProps) {
     return (<Box height="100%" width="100%">{views}</Box>);
 }
 
+function ReservationView(props: { resv: Reservation, totalDuration: number }) {
+    const { resv, totalDuration } = props;
+    const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+
+    const open = Boolean(anchorEl);
+    const height = 100 * resv.end_time.diff(resv.start_time, 'second') / totalDuration;
+        return (
+            <Box
+                key={resv.resv_id}
+                display="flex"
+                height={`calc(${height}% - 1px)`}
+                borderTop="1px dotted rgba(0,0,0,.1)"
+                bgcolor="lightgreen"
+                overflow="hidden"
+                whiteSpace="nowrap"
+            >
+                <Button 
+                    variant='text' 
+                    onClick={handleClick}
+                    fullWidth
+                    sx={{
+                        color: 'text.secondary',
+                        textTransform: 'none',
+                        justifyContent: 'flex-start',
+                    }}
+                >
+                    {resv.title}
+                </Button>
+                <Popover
+                    open={open}
+                    anchorEl={anchorEl}
+                    onClose={handleClose}
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'right',
+                    }}
+                    transformOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left',
+                    }}
+                >
+                    <Box 
+                        borderBottom="5px solid darkgreen"
+                        p="0 1em 0 1em"
+                        bgcolor="lightgreen"
+                    >
+                        <Typography 
+                            variant="h6" 
+                            component="div"
+                            color="darkgreen"
+                        >
+                            {resv.title}
+                        </Typography>
+                        <Typography variant="body2">
+                            {resv.name}
+                        </Typography>
+                        <Typography variant="body2">
+                            {resv.start_time.format('HH:mm')} - {resv.end_time.format('HH:mm')}
+                        </Typography>
+                    </Box>
+                </Popover>
+
+            </Box>
+        );
+    };
+
+
 interface ReservationViewProps {
     reservations: Reservation[];
-    start: dayjs.Dayjs;
-    end: dayjs.Dayjs;
+    start: Dayjs;
+    end: Dayjs;
 }
 
 function ReservationsView(props: ReservationViewProps) {
@@ -60,8 +136,8 @@ function ReservationsView(props: ReservationViewProps) {
     const totalDuration = end.diff(start, 'second');
     const view = (
         key: any,
-        start: dayjs.Dayjs,
-        end: dayjs.Dayjs,
+        start: Dayjs,
+        end: Dayjs,
         is_break: boolean,
     ) => {
         const height = 100 * end.diff(start, 'second') / totalDuration;
@@ -83,7 +159,7 @@ function ReservationsView(props: ReservationViewProps) {
         if (i > 0 && reservations[i - 1].end_time.isBefore(resv.start_time)) {
             views.push(view(`break-${i}`, reservations[i - 1].end_time, resv.start_time, true));
         }
-        views.push(view(resv.resv_id, resv.start_time, resv.end_time, false));
+        views.push(<ReservationView resv={resv} totalDuration={totalDuration} />);
         if (i === reservations.length - 1 && resv.end_time.isBefore(end)) {
             views.push(view(`break-${i + 1}`, resv.end_time, end, true));
         }
@@ -116,7 +192,7 @@ function RoomView(props: RoomViewProps) {
         );
     }, [room.room_id]);
 
-    let start: dayjs.Dayjs|null=null, end: dayjs.Dayjs|null=null;
+    let start: Dayjs|null=null, end: Dayjs|null=null;
     if (periods.length > 0 && reservations.length > 0) {
         if (periods[0].start_time.isBefore(reservations[0].start_time)) {
             start = periods[0].start_time;
@@ -216,6 +292,7 @@ function RoomsView(props: RoomsViewProps) {
 export function RoomsByTypeView() {
     const [periods, setPeriods] = useState<Period[]>([]);
     const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
+    const [value, setValue] = useState<Dayjs | null>(dayjs());
 
     useEffect(() => {
         fetch_periods().then((periods) => {
@@ -229,8 +306,27 @@ export function RoomsByTypeView() {
         );
     }, []);
 
+    // align dattepicker component at the right side
     return (
         <Box>
+            <Box
+                display="flex"
+                justifyContent="flex-end"
+            >
+                <Typography 
+                    variant="h6" component="h2"
+                    margin="auto"
+                    marginRight={0}
+                >
+                    日期：
+                </Typography>
+                <DatePicker
+                    value={value}
+                    onChange={(newValue) => {
+                        setValue(newValue);
+                    }}
+                />
+            </Box>
             {roomTypes.map((type) => {
                 return <RoomsView key={type.type} type={type} periods={periods} />
             })}
