@@ -1,10 +1,47 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import {
+  createBrowserRouter,
+  RouterProvider,
+} from "react-router-dom";
+
+import './index.css';
+import HomeZh from './zh/Home';
+import LoginZh from './zh/Login';
+import RegisterZh from './zh/Register';
+import HomeEn from './en/Home';
+import LoginEn from './en/Login';
+import RegisterEn from './en/Register';
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <HomeZh />,
+  },
+  {
+    path: "/login",
+    element: <LoginZh />,
+  },
+  {
+    path: "/register",
+    element: <RegisterZh />,
+  },
+  {
+    path: "/en",
+    element: <HomeEn />,
+  },
+  {
+    path: "/en/login",
+    element: <LoginEn />,
+  },
+  {
+    path: "/en/register",
+    element: <RegisterEn />,
+  },
+]);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -12,7 +49,7 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <App />
+      <RouterProvider router={router} />
     </LocalizationProvider>
   </React.StrictMode>
 );

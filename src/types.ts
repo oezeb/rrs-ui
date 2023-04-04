@@ -1,5 +1,9 @@
 import dayjs from "dayjs";
 
+export interface Dict {
+    [key: string]: any;
+}
+
 export interface Period {
     period_id: number;
     start_time: dayjs.Dayjs;

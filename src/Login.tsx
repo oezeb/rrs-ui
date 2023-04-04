@@ -3,16 +3,44 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import { Link } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 
-function Login() {
+import Template from './templates/Auth';
+import { Dict } from './types';
+
+export interface LoginProps {
+    strings: Dict;
+    /* Required strings:
+        *All strings in `/templates/Auth.tsx`
+        loginTitle
+        loginFailed
+        login
+        register
+        username
+        password
+        invalidUsernameOrPassword
+        noAccount
+    */
+    links: Dict;
+    /* Required links:
+        *All links in `/templates/Auth.tsx`
+        home
+        register
+    */
+}
+
+function Login(props: LoginProps) {
+    const { strings, links } = props;
     const [errorMessge, setErrorMessge] = React.useState("");
+    const navigate = useNavigate();
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
         const username = data.get('username');
         const password = data.get('password');
 
-        fetch("/api/login", {
+        fetch("/api/auth/login", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -26,21 +54,28 @@ function Login() {
             if (res.status === 200) {
                 setErrorMessge("");
                 res.json().then((data) => {
-                    const token = data.get("token");
-                    localStorage.setItem("token", token);
-                    //TODO: redirect to home page
+                    if ("token" in data) {
+                        localStorage.setItem("token", data.token);
+                        navigate(links.home, { replace: true });
+                    } else {
+                        setErrorMessge(strings.loginFailed);
+                    }
                 });
             } else {
-                setErrorMessge("用户名或密码错误");
+                setErrorMessge(strings.invalidUsernameOrPassword);
             }
         })
         .catch((err) => {
             // console.log(err);
-            setErrorMessge("登录失败");
+            setErrorMessge(strings.loginFailed);
         });
     };
 
     return (
+        <Template
+            strings={strings}
+            links={links}
+            mainView={
         <Box 
             sx={{ 
                 width: "100%", height: "65vh", 
@@ -49,7 +84,7 @@ function Login() {
             }}
         >
             <Typography variant="h4" component="h1" gutterBottom>
-                用户登录
+                {strings.loginTitle}
             </Typography>
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
                 <TextField
@@ -57,7 +92,7 @@ function Login() {
                     required
                     fullWidth
                     id="username"
-                    label="用户名"
+                    label={strings.username}
                     name="username"
                     autoFocus
                     error={errorMessge !== ""}
@@ -67,24 +102,26 @@ function Login() {
                     required
                     fullWidth
                     id="password"
-                    label="密码"
+                    label={strings.password}
                     name="password"
                     type="password"
                     error={errorMessge !== ""}
                     helperText={errorMessge}
                 />
                 <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-                    登录
+                    {strings.login}
                 </Button>
                 <Box display="flex">
                     <Typography variant="body2" component="p" gutterBottom
                         margin="auto"
                     >
-                        没有账号？<a href="/register">注册</a>
+                        {strings.noAccount}？<Link to={links.register}>{strings.register}</Link>
                     </Typography>
                 </Box>
             </Box>
         </Box>
+            }
+        />
     )
 }
 
