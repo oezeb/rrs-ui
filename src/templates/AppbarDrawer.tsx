@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMediaQuery, useTheme } from '@mui/material';
 import { Theme, CSSObject } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
@@ -41,30 +41,11 @@ interface Props {
      */
     window?: () => Window;
 
-    user?: User;
-    setUser?: (user: User | undefined) => void;
+    user?: User|null;
+    setUser?: (user: User | undefined | null) => void;
     mainView: React.ReactNode;
     strings: Dict;
-    /* Required strings:
-        title
-        chooseLanguage
-        chineseVersion
-        englishVersion
-        reservations
-        makeReservation
-        notices
-        about
-        info
-        login
-        logout
-    */
     links: Dict;
-    /* Required links:
-        home
-        chineseVersion
-        englishVersion
-        login
-    */
 }
 
 const drawerWidth = 180;
@@ -122,7 +103,7 @@ const LangMenu = (props: { navigate: NavigateFunction, strings: Dict, links: Dic
 
 const UserMenu = (props: { 
     user: User, 
-    setUser: (user: User | undefined) => void,
+    setUser: (user: User | undefined | null) => void,
     navigate: NavigateFunction, 
     strings: Dict, 
     links: Dict
@@ -172,16 +153,19 @@ const UserMenu = (props: {
                         {strings.reservations}
                     </Typography>
                 </MenuItem>
-                <MenuItem onClick={handleClose}>
+                <MenuItem onClick={() => {
+                    handleClose();
+                    navigate(links.profile);
+                }}>
                     <InfoIcon />
                     <Typography variant="body2" sx={{ ml: 2 }}>
                         {strings.info}
                     </Typography>
                 </MenuItem>
-                <MenuItem onClick={() => {
+                <MenuItem onClick={async () => {
                     handleClose();
-                    localStorage.removeItem('token');
-                    setUser(undefined);
+                    await fetch('/api/logout', { method: 'POST' });
+                    setUser(null);
                 }}>
                     <LogoutIcon />
                     <Typography variant="body2" sx={{ ml: 2 }}>
@@ -232,12 +216,32 @@ const openedMixin = (theme: Theme): CSSObject => ({
   );
   
 
-function Main(props: Props) {
+function Template(props: Props) {
     const { window, mainView, user, setUser, strings, links } = props;
     const [open, setOpen] = useState(true);
     const navigate = useNavigate();
     const theme = useTheme();
     const is_mobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+    useEffect(() => {
+        if (setUser) {
+            fetch('/api/user', {
+                method: 'GET',
+                credentials: 'include',
+            })
+            .then(async (res) => {
+                if (res && res.ok) {
+                    setUser(await res.json())
+                } else {
+                    setUser(null);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                setUser(null);
+            });
+        }
+    }, [setUser]);
 
     const toggleDrawer = () => {
         setOpen(oldOpen => !oldOpen);
@@ -245,7 +249,7 @@ function Main(props: Props) {
 
     const container = window !== undefined ? () => window().document.body : undefined;
 
-    const DesktopDrawerItemView = (item: { name: string, icon: React.ReactElement }) => {
+    const DesktopDrawerItemView = (item: { name: string, icon: React.ReactElement, onClick: () => void }) => {
         return (
             <ListItem key={item.name} disablePadding sx={{ display: 'block' }}>
                 <ListItemButton
@@ -254,6 +258,7 @@ function Main(props: Props) {
                         justifyContent: open ? 'initial' : 'center',
                         px: 2.5,
                     }}
+                    onClick={item.onClick}
                 >
                     <ListItemIcon
                         sx={{
@@ -275,10 +280,10 @@ function Main(props: Props) {
         );
     }
 
-    const MobileDrawerItemView = (item: { name: string, icon: React.ReactElement }) => {
+    const MobileDrawerItemView = (item: { name: string, icon: React.ReactElement, onClick: () => void }) => {
         return (
             <ListItem key={item.name} disablePadding sx={{ display: 'block' }}>
-                <ListItemButton>
+                <ListItemButton onClick={item.onClick} >
                     <ListItemIcon>
                         {item.icon}
                     </ListItemIcon>
@@ -361,12 +366,25 @@ function Main(props: Props) {
             >
                 <Toolbar />
                 <List>
-                    { user && <DesktopDrawerItemView 
+                    { user ? <DesktopDrawerItemView 
                         name={strings.makeReservation} 
                         icon={<EventAvailableIcon />} 
-                    /> }
-                    <DesktopDrawerItemView name={strings.notices} icon={<NotificationsIcon />} />
-                    <DesktopDrawerItemView name={strings.about} icon={<InfoIcon />} />
+                        onClick={() => {
+                            navigate(links.reservation);
+                        }}
+                    /> : null}
+                    <DesktopDrawerItemView 
+                        name={strings.notice} 
+                        icon={<NotificationsIcon/>} 
+                        onClick={() => {
+                            navigate(links.notices);
+                        }}
+                    />
+                    <DesktopDrawerItemView 
+                        name={strings.about} 
+                        icon={<InfoIcon />}
+                        onClick={() => {}}
+                    />
                 </List>
             </CustomDrawer>
             <Drawer
@@ -384,21 +402,32 @@ function Main(props: Props) {
                 >
                 <Toolbar />
                 <List>
-                    { user && <MobileDrawerItemView 
+                    { user ? <MobileDrawerItemView 
                         name={strings.makeReservation} 
-                        icon={<EventAvailableIcon />} /> }
-                    <MobileDrawerItemView name={strings.notices} icon={<NotificationsIcon />} />
-                    <MobileDrawerItemView name={strings.about} icon={<InfoIcon />} />
+                        icon={<EventAvailableIcon />}
+                        onClick={() => {}}
+                    /> : null}
+                    <MobileDrawerItemView 
+                        name={strings.notice} 
+                        icon={<NotificationsIcon />} 
+                        onClick={() => {
+                            navigate(links.notices);
+                        }}
+                    />
+                    <MobileDrawerItemView 
+                        name={strings.about} 
+                        icon={<InfoIcon />} 
+                        onClick={() => {}}
+                    />
                 </List>
             </Drawer>
             <Box 
                 component="main"
-                sx={{ flexGrow: 1, p: 3 }}>
-                <Toolbar />
+                sx={{ flexGrow: 1 }}>
                 {mainView}
             </Box>
         </Box>
     );
 }
 
-export default Main;
+export default Template;

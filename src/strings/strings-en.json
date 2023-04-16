@@ -1,11 +1,12 @@
 {
+    "lang_code": "en",
     "title": "Room Reservation",
     "chooseLanguage": "Language",
     "englishVersion": "English",
     "chineseVersion": "中文版",
 
     "makeReservation": "Book",
-    "notices": "Notices",
+    "notice": "Notice",
     "about": "About",
     
     "reservations": "Reservations",
@@ -27,5 +28,19 @@
     "confirmPassword": "Confirm password",
     "fullName": "Name",
     "email": "Email",
-    "alreadyHaveAccount": "Already have an account"
+    "alreadyHaveAccount": "Already have an account",
+
+    "date": "Date",
+
+    "infoNotChanged": "Information not changed",
+    "editSuccess": "Successfully edited",
+    "editFailed": "Edit failed",
+    "newPasswordNotMatch": "New passwords do not match",
+    "changePassword": "Change password",
+    "oldPassword": "Old password",
+    "newPassword": "New password",
+    "confirmNewPassword": "Confirm new password",
+    "submit": "Submit",
+    "userInfo": "User Information",
+    "notLoggedIn_Please": "Not logged in. Please"
 }

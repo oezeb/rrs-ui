@@ -1,56 +1,92 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import reportWebVitals from './reportWebVitals';
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import {
-  createBrowserRouter,
-  RouterProvider,
+  BrowserRouter
 } from "react-router-dom";
 
 import './index.css';
-import HomeZh from './zh/Home';
-import LoginZh from './zh/Login';
-import RegisterZh from './zh/Register';
-import HomeEn from './en/Home';
-import LoginEn from './en/Login';
-import RegisterEn from './en/Register';
+import App from './App';
 
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <HomeZh />,
-  },
-  {
-    path: "/login",
-    element: <LoginZh />,
-  },
-  {
-    path: "/register",
-    element: <RegisterZh />,
-  },
-  {
-    path: "/en",
-    element: <HomeEn />,
-  },
-  {
-    path: "/en/login",
-    element: <LoginEn />,
-  },
-  {
-    path: "/en/register",
-    element: <RegisterEn />,
-  },
-]);
+// const router = createBrowserRouter([
+//   {
+//     path: "/app",
+//     element: <App />,
+//   },
+//   {
+//     path: "/",
+//     element: <Home strings={stringsZh} />,
+//   },
+//   {
+//     path: "/login",
+//     element: <Login strings={stringsZh} />,
+//   },
+//   {
+//     path: "/register",
+//     element: <Register strings={stringsZh} />,
+//   },
+//   {
+//     path: "/notices",
+//     element: <Notices strings={stringsZh} />,
+//   },
+//   {
+//     path: "/notices/:notice_id",
+//     element: <Notices strings={stringsZh} />,
+//   },
+//   {
+//     path: "/profile",
+//     element: <UserProfile strings={stringsZh} />,
+//   },
+//   {
+//     path: "/reservation",
+//     element: <Book strings={stringsZh} />,
+//   },
+//   {
+//     path: "/reservation/:room_id",
+//     element: <Book strings={stringsZh} />,
+//   },
+//   {
+//     path: "/en",
+//     element: <Home strings={stringsEn} />,
+//   },
+//   {
+//     path: "/en/login",
+//     element: <Login strings={stringsEn} />,
+//   },
+//   {
+//     path: "/en/register",
+//     element: <Register strings={stringsEn} />,
+//   },
+//   {
+//     path: "/en/notices",
+//     element: <Notices strings={stringsEn} />,
+//   },
+//   {
+//     path: "/en/notices/:notice_id",
+//     element: <Notices strings={stringsEn} />,
+//   },
+//   {
+//     path: "/en/profile",
+//     element: <UserProfile strings={stringsEn} />,
+//   },
+//   {
+//     path: "/en/reservation",
+//     element: <Book strings={stringsEn} />,
+//   },
+//   {
+//     path: "/en/reservation/:room_id",
+//     element: <Book strings={stringsEn} />,
+//   },
+// ]);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <React.StrictMode>
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <RouterProvider router={router} />
-    </LocalizationProvider>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </React.StrictMode>
 );
 

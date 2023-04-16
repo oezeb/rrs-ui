@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import IconButton from '@mui/material/IconButton';
@@ -13,23 +12,14 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import { NavigateFunction } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import Typography from '@mui/material/Typography/Typography';
 
 import { Dict } from '../types';
 
 interface Props {
     mainView: React.ReactNode;
     strings: Dict;
-    /* Required strings:
-        title
-        chooseLanguage
-        chineseVersion
-        englishVersion
-    */
     links: Dict;
-    /* Required links:
-        chineseVersion
-        englishVersion
-    */
 }
 
 const LangMenu = (props: { navigate: NavigateFunction, strings: Dict, links: Dict }) => {
@@ -84,7 +74,7 @@ const LangMenu = (props: { navigate: NavigateFunction, strings: Dict, links: Dic
 }
 
 
-function Auth(props: Props) {
+function Template(props: Props) {
     const { mainView, strings, links } = props;
     const navigate = useNavigate();
 
@@ -122,4 +112,4 @@ function Auth(props: Props) {
     );
 }
 
-export default Auth;
+export default Template;

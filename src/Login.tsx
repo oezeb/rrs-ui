@@ -3,72 +3,40 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import { Link } from "react-router-dom";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 
-import Template from './templates/Auth';
+import Template from './templates/AppbarOnly';
 import { Dict } from './types';
+import { links as get_links } from "./util";
 
-export interface LoginProps {
-    strings: Dict;
-    /* Required strings:
-        *All strings in `/templates/Auth.tsx`
-        loginTitle
-        loginFailed
-        login
-        register
-        username
-        password
-        invalidUsernameOrPassword
-        noAccount
-    */
-    links: Dict;
-    /* Required links:
-        *All links in `/templates/Auth.tsx`
-        home
-        register
-    */
-}
-
-function Login(props: LoginProps) {
-    const { strings, links } = props;
+function Login({ strings }: { strings: Dict }) {
+    const links = get_links(strings.lang_code, "/login");
     const [errorMessge, setErrorMessge] = React.useState("");
     const navigate = useNavigate();
+    const location = useLocation();
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
         const username = data.get('username');
         const password = data.get('password');
 
-        fetch("/api/auth/login", {
+        const url = "/api/login";
+        fetch(url, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
+                "Authorization": `Basic ${btoa(`${username}:${password}`)}`,
             },
-            body: JSON.stringify({
-                username: username,
-                password: password,
-            }),
         })
-        .then((res) => {
-            if (res.status === 200) {
-                setErrorMessge("");
-                res.json().then((data) => {
-                    if ("token" in data) {
-                        localStorage.setItem("token", data.token);
-                        navigate(links.home, { replace: true });
-                    } else {
-                        setErrorMessge(strings.loginFailed);
-                    }
-                });
-            } else {
-                setErrorMessge(strings.invalidUsernameOrPassword);
-            }
-        })
-        .catch((err) => {
-            // console.log(err);
-            setErrorMessge(strings.loginFailed);
-        });
+            .then((res) => {
+                if (res.status === 200) {
+                    navigate(location.state?.from || links.home);
+                } else if (res.status === 401) {
+                    setErrorMessge(strings.invalidUsernameOrPassword);
+                } else {
+                    setErrorMessge(strings.loginFailed);
+                }
+            })
+            
     };
 
     return (
@@ -120,7 +88,7 @@ function Login(props: LoginProps) {
                 </Box>
             </Box>
         </Box>
-            }
+        }
         />
     )
 }

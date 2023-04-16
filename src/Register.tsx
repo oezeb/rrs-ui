@@ -5,36 +5,12 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { Link, useNavigate } from "react-router-dom";
 
-import Template from './templates/Auth';
+import Template from './templates/AppbarOnly';
 import { Dict } from './types';
+import { links as get_links } from "./util";
 
-export interface RegisterProps {
-    strings: Dict;
-    /* Required strings:
-        *All strings from `/templates/Auth.tsx`
-        registerTitle
-        registerFailed
-        login
-        register
-        username
-        password
-        passwordsNotMatch
-        usernameAlreadyExists
-        confirmPassword
-        fullName
-        email
-        alreadyHaveAccount
-    */
-    links: Dict;
-    /* Required links:
-        *All links from `/templates/Auth.tsx`
-        home
-        login
-    */
-}
-
-function Register(props: RegisterProps) {
-    const { strings, links } = props;
+function Register({ strings } : { strings: Dict }) {
+    const links = get_links(strings.lang_code, "/register");
     const [error, setError] = React.useState<{ [key: string]: string }>({});
     const navigate = useNavigate();
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
