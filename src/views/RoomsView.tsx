@@ -3,18 +3,17 @@ import {  Box, Button, Popover, Skeleton } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import EventSeatIcon from '@mui/icons-material/EventSeat';
 import { Dayjs } from 'dayjs';
-import { Dict, Period, Reservation, Room, RoomType, User } from '../types';
-import { time, compareStartEndTime  } from '../util';
+import { time, compareStartEndTime } from '../util';
 import Tooltip from '@mui/material/Tooltip';
 
 interface ResvViewProps {
-    resv: Reservation;
+    resv: Record<string, any>;
 };
 
 function ResvView(props: ResvViewProps) {
     const { resv } = props;
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<Record<string, any> | null>(null);
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
@@ -95,8 +94,8 @@ function ResvView(props: ResvViewProps) {
 };
 
 interface ResvsViewProps {
-    periods: Period[];
-    reservations: Reservation[];
+    periods: Record<string, any>[];
+    reservations: Record<string, any>[];
 };
 
 export  function ResvsView(props: ResvsViewProps) {
@@ -125,7 +124,7 @@ export  function ResvsView(props: ResvsViewProps) {
         return <></>;
     }
 
-    const totalDuration = end.diff(start, 'second');
+    const totalDuration = end?.diff(start, 'second') || 0;
     const height = (start: Dayjs, end: Dayjs) => 100 * end.diff(start, 'second') / totalDuration;
 
     const period_view = (
@@ -149,14 +148,14 @@ export  function ResvsView(props: ResvsViewProps) {
     const period_views: JSX.Element[] = [];
     for (let i = 0; i < periods.length; i++) {
         const period = periods[i];
-        if (i === 0 && start.isBefore(period.start_time)) {
+        if (i === 0 && start?.isBefore(period.start_time)) {
             period_views.push(period_view(`break-${i}`, start, period.start_time, true));
         }
         if (i > 0 && periods[i - 1].end_time.isBefore(period.start_time)) {
             period_views.push(period_view(`break-${i}`, periods[i - 1].end_time, period.start_time, true));
         }
         period_views.push(period_view(period.period_id, period.start_time, period.end_time, false));
-        if (i === periods.length - 1 && period.end_time.isBefore(end)) {
+        if (i === periods.length - 1 && end?.isAfter(period.end_time)) {
             period_views.push(period_view(`break-${i + 1}`, period.end_time, end, true));
         }
     }
@@ -165,7 +164,7 @@ export  function ResvsView(props: ResvsViewProps) {
     const resv_views: JSX.Element[] = [];
     for (let i = 0; i < reservations.length; i++) {
         const resv = reservations[i];
-        if (i === 0 && start.isBefore(resv.start_time)) {
+        if (i === 0 && start?.isBefore(resv.start_time)) {
             pos += height(start, resv.start_time);
         }
         if (i > 0 && reservations[i - 1].end_time.isBefore(resv.start_time)) {
@@ -196,14 +195,14 @@ export  function ResvsView(props: ResvsViewProps) {
 
 interface RoomViewProps {
     date: Dayjs;
-    room: Room;
-    periods: Period[];
+    room: Record<string, any>;
+    periods: Record<string, any>[];
     show_pending: boolean;
 }
 
 export function RoomView(props: RoomViewProps) {
     const { date, room, periods, show_pending } = props;
-    const [reservations, setReservations] = useState<Reservation[]>([]);
+    const [reservations, setReservations] = useState<Record<string, any>[]>([]);
 
     useEffect(() => {
         let url = `/api/time_slots?room_id=${room.room_id}&date=${date.format('YYYY-MM-DD')}`;
@@ -212,7 +211,7 @@ export function RoomView(props: RoomViewProps) {
                 if (show_pending) {
                     fetch(`${url}&status=0`).then((res) => res.json())
                         .then((pending) => {
-                            data = data.concat(pending).map((resv: Dict) => {
+                            data = data.concat(pending).map((resv: Record<string, any>) => {
                                 return {
                                     ...resv,
                                     start_time: time(resv.start_time),
@@ -227,7 +226,7 @@ export function RoomView(props: RoomViewProps) {
                             console.error(err);
                         });
                 } else {
-                    data = data.map((resv: Dict) => {
+                    data = data.map((resv: Record<string, any>) => {
                         return {
                             ...resv,
                             start_time: time(resv.start_time),
@@ -281,13 +280,13 @@ export function RoomView(props: RoomViewProps) {
 
 interface RoomsViewProps {
     date: Dayjs;
-    type: RoomType;
-    periods: Period[];
+    type: Record<string, any>;
+    periods: Record<string, any>[];
 }
 
 function RoomsView(props: RoomsViewProps) {
     const { type, periods, date } = props;
-    const [rooms, setRooms] = useState<Room[]>([]);
+    const [rooms, setRooms] = useState<Record<string, any>[]>([]);
     useEffect(() => {
         let url = `/api/rooms?type=${type.type}`;
         fetch(url).then((res) => res.json())

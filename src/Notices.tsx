@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import Box from '@mui/material/Box';
-import { Notice } from "./types";
 import { List, ListItem, ListItemButton, ListItemText, Skeleton, Typography } from "@mui/material";
 import dayjs from "dayjs";
 import { useNavigate, useParams } from "react-router-dom";
@@ -8,15 +7,24 @@ import ReactMarkdown from 'react-markdown'
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import EditIcon from '@mui/icons-material/Edit';
 
-export function NoticeListView() {
-    const [notices, setNotices] = useState<Notice[]|null>(null);
+function Notices() {
+    const { notice_id } = useParams();
+    if (notice_id) {
+        return <NoticeView />;
+    } else {
+        return <NoticeListView />;
+    }
+}
+
+function NoticeListView() {
+    const [notices, setNotices] = useState<Record<string, any>[]|null>(null);
     let navigate = useNavigate();
 
     useEffect(() => {
         let url = `/api/notices`;
         fetch(url).then((res) => res.json())
             .then((data) => {
-                setNotices(data.map((notice: Notice) => {
+                setNotices(data.map((notice: Record<string, any>) => {
                     return {
                         ...notice,
                         create_time: dayjs(notice.create_time),
@@ -71,9 +79,9 @@ export function NoticeListView() {
     }
 }
 
-export function NoticeView() {
+function NoticeView() {
     const { notice_id } = useParams();
-    const [notice, setNotice] = useState<Notice | null>(null);
+    const [notice, setNotice] = useState<Record<string, any> | null>(null);
 
     useEffect(() => {
         let url = `/api/notices?notice_id=${notice_id}`
@@ -133,3 +141,5 @@ export function NoticeView() {
         </List>
     );
 }
+
+export default Notices;

@@ -1,22 +1,15 @@
 import React from "react";
-import { useAuth } from "./AuthProvider";
 import { compareStartEndTime } from "./util";
 import dayjs, { Dayjs } from "dayjs";
-import { Alert, Table, TableBody, TableCell, TableRow, TableHead, Button, List, ListItem, Box, useTheme, useMediaQuery, Tooltip, Chip, FormControl, InputLabel, Select, SelectChangeEvent, FormControlLabel, Switch, IconButton, ListSubheader, Collapse } from "@mui/material";
-import { Autocomplete, TextField } from "@mui/material";
+import {  Table, TableBody, TableCell, TableRow, TableHead, List, ListItem, Box, useTheme, useMediaQuery, Tooltip, Chip, FormControl, InputLabel, Select, SelectChangeEvent, FormControlLabel, Switch, IconButton, ListSubheader, Collapse } from "@mui/material";
 
-import Paper from '@mui/material/Paper';
-import MenuList from '@mui/material/MenuList';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import Typography from '@mui/material/Typography';
-import Menu from '@mui/material/Menu';
-import CircleIcon from '@mui/icons-material/Circle';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
-import FilterAltSharpIcon from '@mui/icons-material/FilterAltSharp';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -266,11 +259,7 @@ function Reservations() {
             if (status !== null) {
                 url += `&status=${status.status}`;
             }
-            fetch(url, {
-                headers: {
-                    include: 'credentials',
-                },
-            }).then(res => res.json()).then(data => {
+            fetch(url).then(res => res.json()).then(data => {
                 setReservations(data.map((resv: any) => {
                     resv.time_slots = resv.time_slots.map((ts: any) => {
                         ts.start_time = dayjs(ts.start_time);
@@ -371,7 +360,7 @@ function Reservations() {
                     </FormControl>
                 </Box>
                 {/* Table */}
-                <Table stickyHeader>
+                <Table stickyHeader size="small">
                     <TableHead>
                         <TableRow>
                             <TableCell>标题</TableCell>

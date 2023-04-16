@@ -1,4 +1,3 @@
-import { Dict, Period } from "./types";
 import dayjs from "dayjs";
 
 export const email_regex = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
@@ -26,11 +25,11 @@ export const compareStartEndTime = (a: any, b: any) => {
   
 export const defaultLanguage: string = "zh";
 
-const _linksMemo: Dict = {};
+const _linksMemo: Record<string, any> = {};
 export const links = (lang_code: string, baseURL: string) => {
   let key = `${lang_code}${baseURL}`;
   if (!(key in _linksMemo)) {
-    const links: Dict = {};
+    const links: Record<string, any> = {};
     if (lang_code === defaultLanguage) {
         links.home = "/";
         links.login = "/login";
@@ -59,7 +58,7 @@ export const links = (lang_code: string, baseURL: string) => {
   return _linksMemo[key];
 }
 
-let _periodsMemo: Period[]|null = null;
+let _periodsMemo: Record<string, any>[]|null = null;
 export const fetchPeriods = async (no_cache: boolean = true) => {
     if (no_cache || _periodsMemo == null) {
         const res = await fetch('/api/periods');

@@ -9,11 +9,10 @@ import { Box, Button, TextField, Typography } from "@mui/material";
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import { User } from "./types";
 import { email_regex } from "./util";
 
 export interface AuthContextProps {
-    user: User | null;
+    user: Record<string, any> | null;
     update: (callback: (res: Response) => void) => void; // update user info
     login: (username: string, password: string, callback: (res: Response) => void) => void;
     logout: (callback: (res: Response) => void) => void;
@@ -22,10 +21,10 @@ export interface AuthContextProps {
 const AuthContext = React.createContext<AuthContextProps>(null!);
 
 function AuthProvider(props: React.PropsWithChildren<{}>) {
-    const [user, setUser] = React.useState<User | null>(null);
+    const [user, setUser] = React.useState<Record<string, any> | null>(null);
 
     const update = async (callback: (res: Response) => void) => {
-        let res = await fetch("/api/user", { credentials: 'include' });
+        let res = await fetch("/api/user");
         if (res.ok) {
             let user = await res.json();
             setUser(user);
@@ -87,7 +86,6 @@ export function useAuth() {
 }
 
 export function RequireAuth({ children }: { children: React.ReactNode}) {
-    console.log("RequireAuth");
     const { user, loading } = useAuth();
     const location = useLocation();
 

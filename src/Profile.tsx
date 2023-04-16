@@ -1,23 +1,18 @@
 import * as React from "react";
 import Box from '@mui/material/Box';
-import { Alert,  Skeleton, Table, TableBody, TableCell, TableRow, Typography } from "@mui/material";
+import { Skeleton, Table, TableBody, TableCell, TableRow, Typography } from "@mui/material";
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import Snackbar from '@mui/material/Snackbar';
 import { useAuth } from "./AuthProvider";
+import { useSnackbar } from "./SnackbarProvider";
+import { email_regex } from "./util";
 
 function Profile() {
     const [data, setData] = React.useState<Record<string, any>>({});
     const [msg, setMsg] = React.useState<Record<string, any>>({});
-    const [open, setOpen] = React.useState(false); // snackbar
+    const [roleList, setRoleList] = React.useState<Record<string, any>>({}); // 级别
     const { user, update } = useAuth();
-
-    const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
-        if (reason === 'clickaway') {
-          return;
-        }
-        setOpen(false);
-    };
+    const { show } = useSnackbar();
 
     const required_password = data.password || data.new_password || data.confirm_password;
 
@@ -25,7 +20,7 @@ function Profile() {
         event.preventDefault();
         setMsg({});
         if (Object.keys(data).length === 0) {
-            setMsg({ snackbar: { message: "信息未改变", severity: "warning" } });
+            show({ message: "信息未改变", severity: "warning" });
             return;
         }
 
@@ -35,7 +30,7 @@ function Profile() {
                 return;
             }
         } else if (data.email === user?.email) {
-            setMsg({ snackbar: { message: "信息未改变", severity: "warning" } });
+            show({ message: "信息未改变", severity: "warning" });
             return;
         }
 
@@ -51,22 +46,31 @@ function Profile() {
             .then((res) => {
                 if (res.ok) {
                     update(res => {
-                        setMsg({ snackbar: { message: "修改成功", severity: "success" } });
                         setData({});
-                        setOpen(true);
+                        show({ message: "修改成功", severity: "success" });
                     })
                 } else if (res.status === 401) {
                     setMsg({ password: "密码错误" });
                 } else {
-                    setMsg({ snackbar: { message: "修改失败", severity: "error" } });
-                    setOpen(true);
+                    show({ message: "修改失败", severity: "error" });
                 }
             })
             .catch((err) => {
-                setMsg({ snackbar: { message: "修改失败", severity: "error" } });
-                setOpen(true);
+                show({ message: "修改失败", severity: "error" });
             });
     };
+
+    React.useEffect(() => {
+        fetch('/api/user_roles')
+            .then((res) => res.json())
+            .then((data) => {
+                setRoleList(data);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }, []);
+
 
     return (
         <Box component="form" onSubmit={handleSubmit}>
@@ -87,6 +91,14 @@ function Profile() {
                         </TableCell>
                         <TableCell>{user? user.name:<Skeleton />}</TableCell>
                     </TableRow>
+                    {user?.role > 0 &&
+                        <TableRow>
+                            <TableCell>
+                                级别
+                            </TableCell>
+                            <TableCell>{user? roleList[user.role+1]?.label:<Skeleton />}</TableCell>
+                        </TableRow>
+                    }
                     <TableRow>
                         <TableCell>
                             邮箱
@@ -101,6 +113,9 @@ function Profile() {
                                 defaultValue={user?.email}
                                 InputProps={{
                                     disableUnderline: true,
+                                }}
+                                inputProps={{
+                                    pattern: `${email_regex.source}`
                                 }}
                                 onChange={(e) => {
                                     setData({ ...data, email: e.target.value });
@@ -157,11 +172,6 @@ function Profile() {
                 <Button  type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
                     保存
                 </Button>
-                <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
-                    <Alert onClose={handleClose} severity={msg.snackbar?.severity} sx={{ width: '100%' }}>
-                        {msg.snackbar?.message}
-                    </Alert>
-                </Snackbar>
         </Box>
     );
 }

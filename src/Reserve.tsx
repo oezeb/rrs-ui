@@ -1,24 +1,24 @@
 import { useEffect, useState } from "react";
-import { Dict, Period, Reservation, Room, RoomType, User } from "./types";
-import { fetchPeriods, fetchTranslation, links as get_links, time } from "./util";
 import { useNavigate, useParams } from "react-router-dom";
-import Template from "./templates/AppbarDrawer";
-import { Autocomplete, Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Skeleton, Snackbar, TableHead, TextField, Toolbar, Typography } from "@mui/material";
+import { Autocomplete, Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Skeleton, TextField, Typography } from "@mui/material";
 import EventSeatIcon from '@mui/icons-material/EventSeat';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { Alert, Table, TableBody, TableCell, TableRow, Button } from "@mui/material";
+import { Button } from "@mui/material";
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import dayjs, { Dayjs } from "dayjs";
 import weekday from 'dayjs/plugin/weekday';
 import 'dayjs/locale/zh-cn'
-import RoomsView, { ResvsView, RoomView } from "./views/RoomsView";
+
+import { fetchPeriods, time } from "./util";
+import { RoomView } from "./views/RoomsView";
+import { useSnackbar } from "./SnackbarProvider";
 
 dayjs.extend(weekday);
 dayjs.locale('zh-cn');
 
 function Reserve() {
-    const [types, setTypes] = useState<RoomType[]>([]);
+    const [types, setTypes] = useState<Record<string, any>[]>([]);
     let navigate = useNavigate();
     const { room_id } = useParams();
 
@@ -44,13 +44,13 @@ function Reserve() {
 }
 
 interface RoomListViewProps {
-    type: RoomType;
+    type: Record<string, any>;
     navigate: (path: string) => void;
 }
 
 function RoomListView(props: RoomListViewProps) {
     const { type, navigate } = props;
-    const [rooms, setRooms] = useState<Room[] | null>(null);
+    const [rooms, setRooms] = useState<Record<string, any>[] | null>(null);
 
     useEffect(() => {
         let url = `/api/rooms?type=${type.type}`
@@ -115,15 +115,16 @@ function RoomListView(props: RoomListViewProps) {
 }
 
 function RoomBook({ room_id }: { room_id: string }) {
-    const [periods, setPeriods] = useState<Period[]>([]);
-    const [reservations, setReservations] = useState<Reservation[]>([]);
-    const [room, setRoom] = useState<Room | undefined | null>(undefined);
+    const [periods, setPeriods] = useState<Record<string, any>[]>([]);
+    const [reservations, setReservations] = useState<Record<string, any>[]>([]);
+    const [room, setRoom] = useState<Record<string, any> | undefined | null>(undefined);
     const [start, setStart] = useState<Option|null>(null);
     const [end, setEnd] = useState<Option|null>(null);
     const [date, setDate] = useState(dayjs());
     const [dates, setDates] = useState<Dayjs[]>([]);
     const [max_time, setMaxTime] = useState(0);
-    const [msg, SetMsg] = useState<Record<string, any>>({});
+    const { show } = useSnackbar();
+    let navigate = useNavigate();
 
     useEffect(() => {
         fetchPeriods().then((data) => {
@@ -153,7 +154,7 @@ function RoomBook({ room_id }: { room_id: string }) {
         let url = `/api/user/reservation?room_id=${room_id}&date=${date.format('YYYY-MM-DD')}`;
         fetch(url).then((res) => res.json())    
             .then((data) => {
-                setReservations(data.map((resv: Dict) => {
+                setReservations(data.map((resv: Record<string, any>) => {
                     return {
                         ...resv,
                         start_time: time(resv.start_time),
@@ -189,20 +190,10 @@ function RoomBook({ room_id }: { room_id: string }) {
             });
     }, []);
 
-    const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
-        if (reason === 'clickaway') {
-          return;
-        }
-        let _msg = { ...msg };
-        delete _msg.snackbar;
-        SetMsg(_msg);
-    };
-
-    function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        SetMsg({});
         if (!start || !end) {
-            SetMsg({ snackbar: { message: '请选择时间段', severity: 'error' } });
+            show({ message: '请选择时间段', severity: 'error' });
             return;
         }
         let start_time = `${date.format('YYYY-MM-DD')} ${start.time.format('HH:mm')}`;
@@ -215,7 +206,6 @@ function RoomBook({ room_id }: { room_id: string }) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                include: 'credentials',
             },
             body: JSON.stringify({
                 room_id,
@@ -225,17 +215,18 @@ function RoomBook({ room_id }: { room_id: string }) {
             }),
         }).then((res) => {
             if (res.ok) {
-                SetMsg({ snackbar: { message: '预约成功', severity: 'success' } });
+                show({ message: '预约成功', severity: 'success', duration: 2000 });
                 setStart(null);
                 setEnd(null);
-            } else {
                 res.json().then((data) => {
-                    SetMsg({ snackbar: { message: data.message, severity: 'error' } });
+                    navigate(`/reservations/${data.resv_id}`);
                 });
+            } else {
+                show({ message: '预约失败', severity: 'error' });   
             }
         }).catch((err) => {
             console.error(err);
-            SetMsg({ snackbar: { message: '预约失败', severity: 'error' } });
+            show({ message: '预约失败', severity: 'error' });
         });
     }
 
@@ -339,11 +330,6 @@ function RoomBook({ room_id }: { room_id: string }) {
             <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
                 提交
             </Button>
-            <Snackbar open={msg.snackbar !== undefined} autoHideDuration={6000} onClose={handleClose}>
-                <Alert severity={msg.snackbar?.severity} sx={{ width: '100%' }}>
-                    {msg.snackbar?.message}
-                </Alert>
-            </Snackbar>
         </Box>
     );
 }
@@ -358,8 +344,8 @@ const optionEqual = (a: Option, b: Option) => {
 };
 
 interface BookTimeProps {
-    periods: Period[];
-    reservations: Reservation[];
+    periods: Record<string, any>[];
+    reservations: Record<string, any>[];
     max_time: number; // seconds
     start: Option | null;
     setStart: (start: Option | null) => void;
@@ -369,11 +355,11 @@ interface BookTimeProps {
 
 function BookTime(props: BookTimeProps) {
     const { periods, reservations, max_time, start, setStart, end, setEnd } = props;
-    const [filteredPeriods, setFilteredPeriods] = useState<Period[]>([]);
+    const [filteredPeriods, setFilteredPeriods] = useState<Record<string, any>[]>([]);
     const [start_options, setStartOptions] = useState<Option[]>([]);
     const [end_options, setEndOptions] = useState<Option[]>([]);
 
-    const get_options = (periods: Period[], t: "start" | "end") => {
+    const get_options = (periods: Record<string, any>[], t: "start" | "end") => {
         return periods.map((period, i) => {
             return {
                 index: i,

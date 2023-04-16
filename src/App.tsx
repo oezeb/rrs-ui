@@ -28,30 +28,32 @@ import MuiDrawer from '@mui/material/Drawer';
 import styled from '@mui/material/styles/styled';
 
 import AuthProvider, { Login, Register, RequireAuth, useAuth } from "./AuthProvider";
-import { User } from "./types";
 import Home from "./Home";
-import { NoticeView, NoticeListView } from "./Notice";
+import Notices from "./Notices";
 import Profile from "./Profile";
 import Reserve from "./Reserve";
 import Reservations from "./Reservations";
+import SnackbarProvider from "./SnackbarProvider";
 
 function App() {
   return(
     <AuthProvider>
-        <Routes>
-            <Route path="/" element={<Layout />}>
-                <Route index element={<Home />} />
-                <Route path="/notice" element={<NoticeListView />} />
-                <Route path="/notice/:notice_id" element={<NoticeView />} />
-                <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
-                <Route path="/reserve" element={<RequireAuth><Reserve /></RequireAuth>} />
-                <Route path="/reserve/:room_id" element={<RequireAuth><Reserve /></RequireAuth>} />
-                <Route path="/reservations" element={<RequireAuth><Reservations /></RequireAuth>} />
-                <Route path="/reservations/:resv_id" element={<RequireAuth><Reservations /></RequireAuth>} />
-            </Route>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-        </Routes>
+        <SnackbarProvider>
+            <Routes>
+                <Route path="/" element={<Layout />}>
+                    <Route index element={<Home />} />
+                    <Route path="/notice" element={<Notices />} />
+                    <Route path="/notice/:notice_id" element={<Notices />} />
+                    <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
+                    <Route path="/reserve" element={<RequireAuth><Reserve /></RequireAuth>} />
+                    <Route path="/reserve/:room_id" element={<RequireAuth><Reserve /></RequireAuth>} />
+                    <Route path="/reservations" element={<RequireAuth><Reservations /></RequireAuth>} />
+                    <Route path="/reservations/:resv_id" element={<RequireAuth><Reservations /></RequireAuth>} />
+                </Route>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+            </Routes>
+        </SnackbarProvider>
     </AuthProvider>
   )
 }
@@ -116,7 +118,7 @@ const LangMenu = ({ navigate }: { navigate: (path: string) => void }) => {
 }
 
 const UserMenu = (props: { 
-    user: User, 
+    user: Record<string, any>, 
     logout: () => void,
     navigate: (path: string) => void,
 }) => {

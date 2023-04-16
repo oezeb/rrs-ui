@@ -1,15 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import Box from '@mui/material/Box';
 import RoomsView from "./views/RoomsView";
-import { Period, RoomType } from "./types";
 import dayjs, { Dayjs } from "dayjs";
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { time } from "./util";
 
 function Home() {
-    const [periods, setPeriods] = useState<Period[]>([]);
-    const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
+    const [periods, setPeriods] = useState<Record<string, any>[]>([]);
+    const [roomTypes, setRoomTypes] = useState<Record<string, any>[]>([]);
     const [date, setDate] = useState<Dayjs>(dayjs());
     const [prevDate, setPrevDate] = useState<Dayjs>(date);
 
