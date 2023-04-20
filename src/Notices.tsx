@@ -2,23 +2,32 @@ import { useState, useEffect } from "react";
 import Box from '@mui/material/Box';
 import { List, ListItem, ListItemButton, ListItemText, Skeleton, Typography } from "@mui/material";
 import dayjs from "dayjs";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import ReactMarkdown from 'react-markdown'
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import EditIcon from '@mui/icons-material/Edit';
 
 function Notices() {
-    const { notice_id } = useParams();
+    const [searchParams] = useSearchParams();
+    const notice_id = searchParams.get("id");
     if (notice_id) {
-        return <NoticeView />;
+        return <NoticeView notice_id={notice_id} />;
     } else {
-        return <NoticeListView />;
+        return <>
+            <ListItem divider>
+                <ListItemText >
+                    <Typography variant="h5" component="h2" gutterBottom>
+                        通知
+                    </Typography>
+                </ListItemText>
+            </ListItem>
+            <NoticeList />
+        </>;
     }
 }
 
-function NoticeListView() {
+function NoticeList() {
     const [notices, setNotices] = useState<Record<string, any>[]|null>(null);
-    let navigate = useNavigate();
 
     useEffect(() => {
         let url = `/api/notices`;
@@ -39,21 +48,13 @@ function NoticeListView() {
 
     const ListItemSkeleton = () => (
         <ListItem divider dense>
-            <ListItemText>
-                <Typography >
-                    <Skeleton />
-                </Typography>
-            </ListItemText>
+            <ListItemText><Typography ><Skeleton /></Typography></ListItemText>
         </ListItem>
     );
     
     if (notices === null) {
         return (
-        <List>
-            <ListItemSkeleton />
-            <ListItemSkeleton />
-            <ListItemSkeleton />
-        </List>
+        <List><ListItemSkeleton /><ListItemSkeleton /><ListItemSkeleton /></List>
         )
     // } else if (notices.length === 0) {
     //    return view = <p>No Notices, Come Back Later</p>;
@@ -62,9 +63,7 @@ function NoticeListView() {
             <List>
                 {notices?.map((notice) => (
                     <ListItem key={notice.notice_id} dense divider>
-                        <ListItemButton
-                            onClick={() => navigate(`/notice/${notice.notice_id}`)}
-                        >
+                        <ListItemButton component={Link} to={`/notices?id=${notice.notice_id}`}>
                             <ListItemText>
                                 {notice.title}
                             </ListItemText>
@@ -79,8 +78,7 @@ function NoticeListView() {
     }
 }
 
-function NoticeView() {
-    const { notice_id } = useParams();
+function NoticeView({ notice_id }: { notice_id: string }) {
     const [notice, setNotice] = useState<Record<string, any> | null>(null);
 
     useEffect(() => {
@@ -133,9 +131,7 @@ function NoticeView() {
                 <ReactMarkdown children={notice?.content || ""} />
             ) : (
                 <Typography variant="body1" sx={{ mt: 2 }}>
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
+                    <Skeleton /><Skeleton /><Skeleton />
                 </Typography>
             )}
         </List>

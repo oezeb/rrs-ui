@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import { Skeleton, Table, TableBody, TableCell, TableRow, Typography } from "@mui/material";
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import { useAuth } from "./AuthProvider";
+import { useAuth } from "./auth/AuthProvider";
 import { useSnackbar } from "./SnackbarProvider";
 import { email_regex } from "./util";
 
@@ -80,43 +80,26 @@ function Profile() {
             <Table sx={{ mb: 3}}>
                 <TableBody>
                     <TableRow>
-                        <TableCell>
-                            用户名
-                        </TableCell>
+                        <TableCell>用户名</TableCell>
                         <TableCell>{user? user.username:<Skeleton />}</TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell>
-                            姓名
-                        </TableCell>
+                        <TableCell>姓名</TableCell>
                         <TableCell>{user? user.name:<Skeleton />}</TableCell>
                     </TableRow>
                     {user?.role > 0 &&
                         <TableRow>
-                            <TableCell>
-                                级别
-                            </TableCell>
+                            <TableCell>级别</TableCell>
                             <TableCell>{user? roleList[user.role+1]?.label:<Skeleton />}</TableCell>
                         </TableRow>
                     }
                     <TableRow>
+                        <TableCell>邮箱</TableCell>
                         <TableCell>
-                            邮箱
-                        </TableCell>
-                        <TableCell>
-                            <TextField
-                                variant='standard'
-                                id="email"
-                                placeholder="Email"
-                                name="email"
-                                size="small"
-                                defaultValue={user?.email}
-                                InputProps={{
-                                    disableUnderline: true,
-                                }}
-                                inputProps={{
-                                    pattern: `${email_regex.source}`
-                                }}
+                            <TextField variant='standard' id="email" name="email" size="small" 
+                                defaultValue={user?.email} placeholder="Email"
+                                inputProps={{ pattern: `${email_regex.source}` }}
+                                InputProps={{ disableUnderline: true }}
                                 onChange={(e) => {
                                     setData({ ...data, email: e.target.value });
                                 }}
@@ -128,41 +111,29 @@ function Profile() {
             <Typography variant="h5" component="h2" gutterBottom>
                 修改密码
             </Typography>
-                <TextField
-                    variant='standard'
-                    required={required_password}
-                    fullWidth
-                    id="password"
-                    label="原密码"
-                    name="password"
+                <TextField variant='standard' fullWidth id="password" name="password"
                     type="password"
+                    required={required_password}
+                    label="原密码"
                     error={ 'password' in msg }
                     helperText={msg.password}
                     onChange={(e) => {
                         setData({ ...data, password: e.target.value });
                     }}
                 />
-                <TextField
-                    variant='standard'
-                    required={required_password}
-                    fullWidth
-                    id="new_password"
-                    label="新密码"
-                    name="new_password"
+                <TextField variant='standard' fullWidth id="new_password" name="new_password"
                     type="password"
+                    required={required_password}
+                    label="新密码"
                     error={ 'confirm_password' in msg }
                     onChange={(e) => {
                         setData({ ...data, new_password: e.target.value });
                     }}
                 />
-                <TextField
-                    variant='standard'
-                    required={required_password}
-                    fullWidth
-                    id="confirm_password"
-                    label="确认密码"
-                    name="confirm_password"
+                <TextField variant='standard' fullWidth id="confirm_password" name="confirm_password"
                     type="password"
+                    required={required_password}
+                    label="确认密码"
                     error={ 'confirm_password' in msg }
                     helperText={msg.confirm_password}
                     onChange={(e) => {

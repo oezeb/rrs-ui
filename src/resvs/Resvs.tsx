@@ -1,5 +1,5 @@
 import React from "react";
-import { compareStartEndTime } from "./util";
+import { compareStartEndTime } from "../util";
 import dayjs, { Dayjs } from "dayjs";
 import {  Table, TableBody, TableCell, TableRow, TableHead, List, ListItem, Box, useTheme, useMediaQuery, Tooltip, Chip, FormControl, InputLabel, Select, SelectChangeEvent, FormControlLabel, Switch, IconButton, ListSubheader, Collapse } from "@mui/material";
 
@@ -11,7 +11,7 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 // 0: 待审核、1: 审核通过、2: 已取消、3: 审核未通过
 // const statusColors = ["#FFC107", "#00CC66", "#A9A9A9", "#FF5733"];
@@ -45,21 +45,23 @@ function ResvDetailsView({ resv_id, statusList, mobile }: ResvDetailsViewProps) 
      */
     const [resv, setResv] = React.useState<Record<string, any> | null>(null);
     const [room, setRoom] = React.useState<Record<string, any> | null>(null);
-    const [roomStatusList, setRoomStatusList] = React.useState<Record<string, any>[]>([]);
-    const [roomTypeList, setRoomTypeList] = React.useState<Record<string, any>[]>([]);
-    const [secuLevelList, setSecuLevelList] = React.useState<Record<string, any>[]>([]);
+    const [roomStatus, setRoomStatus] = React.useState<Record<number, any>>({});
+    const [roomTypes, setRoomTypes] = React.useState<Record<number, any>>({});
+    const [secuLevels, setSecuLevels] = React.useState<Record<number, any>>({});
     // const [timeOpen, setTimeOpen] = React.useState(false); // time slot dropdown
     const [roomOpen, setRoomOpen] = React.useState(true); // room dropdown
 
     React.useEffect(() => {
-        fetch(`/api/user/reservation?resv_id=${resv_id}&group_by_resv=true`)
+        fetch(`/api/user/reservation?resv_id=${resv_id}`)
             .then(res => res.json())
             .then(data => {
                 setResv({
                     ...data[0],
-                    time_slots: data[0].time_slots.map((ts: Record<string, any>) => ({
-                        start_time: dayjs(ts.start_time),
-                        end_time: dayjs(ts.end_time),
+                    start_time: undefined,
+                    end_time: undefined,
+                    time_slots: data.map((item: any) => ({
+                        start_time: dayjs(item.start_time),
+                        end_time: dayjs(item.end_time),
                     })),
                 });
             });
@@ -81,19 +83,28 @@ function ResvDetailsView({ resv_id, statusList, mobile }: ResvDetailsViewProps) 
         fetch(`/api/room_status`)
             .then(res => res.json())
             .then(data => {
-                setRoomStatusList(data);
+                setRoomStatus(data.reduce((acc: Record<number, any>, item: any) => {
+                    acc[item.status] = item;
+                    return acc;
+                }, {}));
             });
             
         fetch(`/api/room_types`)
             .then(res => res.json())
             .then(data => {
-                setRoomTypeList(data);
+                setRoomTypes(data.reduce((acc: Record<number, any>, item: any) => {
+                    acc[item.type] = item;
+                    return acc;
+                }, {}));
             });
             
         fetch(`/api/resv_secu_levels`)
             .then(res => res.json())
             .then(data => {
-                setSecuLevelList(data);
+                setSecuLevels(data.reduce((acc: Record<number, any>, item: any) => {
+                    acc[item.secu_level] = item;
+                    return acc;
+                }, {}));
             });
     }, []);
 
@@ -127,12 +138,12 @@ function ResvDetailsView({ resv_id, statusList, mobile }: ResvDetailsViewProps) 
                     <ListItemView label="房间" value={room?.name} divider={roomOpen} icon={roomOpen ? <ExpandLess /> : <ExpandMore />} onClick={() => setRoomOpen(!roomOpen)} />
                     <Collapse in={roomOpen} timeout="auto" unmountOnExit>
                         <List sx={{ pl: 4 }}>
-                            <ListItemView label="状态" value={roomStatusList[room?.status]?.label} />
+                            <ListItemView label="状态" value={roomStatus[room?.status]?.label} />
                             <ListItemView label="容量" value={room?.capacity} />
-                            <ListItemView label="类型" value={roomTypeList[room?.type]?.label} />
+                            <ListItemView label="类型" value={roomTypes[room?.type]?.label} />
                         </List>
                     </Collapse>
-                    <ListItemView label="机密程度" value={secuLevelList[resv.secu_level]?.label} />
+                    <ListItemView label="机密程度" value={secuLevels[resv.secu_level]?.label} />
                     <ListItem dense>
                         <ListItemText>
                             <Box sx={{ display: 'flex' }}>
@@ -162,7 +173,6 @@ interface ResvTableProps {
 function ResvTableRow({ resv, statusList, timeFilter, mobile }: ResvTableProps) {
     // 标题 | 房间 | 时间 | 状态
     const [room, setRoom] = React.useState<Record<string, any> | null>(null);
-    let navigate = useNavigate();
     React.useEffect(() => {
         fetch(`/api/rooms?room_id=${resv.room_id}`)
             .then(res => res.json())
@@ -232,7 +242,8 @@ function ResvTableRow({ resv, statusList, timeFilter, mobile }: ResvTableProps) 
             <TableCell>
                 <Tooltip title="查看详情">
                     <IconButton
-                        onClick={() => navigate(`/reservations/${resv.resv_id}`)}
+                        component={Link}
+                        to={`/reservations?id=${resv.resv_id}`}
                         size={mobile? "small": "medium"}
                     >
                         <NavigateNextIcon />
@@ -248,24 +259,36 @@ function Reservations() {
     const [status, setStatus] = React.useState<Record<string, any> | null>(null);
     const [statusOptions, setStatusOptions] = React.useState<Record<string, any>[]>([]);
     const [timeFilter, setTimeFilter] = React.useState<"全部" | "当前" | "历史">("当前");
-    const { resv_id } = useParams();
     const theme = useTheme();
     const is_mobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const [searchParams] = useSearchParams();
+
+    const resv_id = searchParams.get('id');
 
     React.useEffect(() => {
         if (!resv_id) {
-            let url = '/api/user/reservation?group_by_resv=true';
+            let url = '/api/user/reservation';
             let now = dayjs();
             if (status !== null) {
-                url += `&status=${status.status}`;
+                url += `?status=${status.status}`;
             }
             fetch(url).then(res => res.json()).then(data => {
-                setReservations(data.map((resv: any) => {
-                    resv.time_slots = resv.time_slots.map((ts: any) => {
-                        ts.start_time = dayjs(ts.start_time);
-                        ts.end_time = dayjs(ts.end_time);
-                        return ts;
-                    }).sort(compareStartEndTime);
+                let key = (resv_id: number, username: string) => `${resv_id}-${username}`;
+                let resv_dict: Record<string, any> = {};
+                for (let resv of data) {
+                    let _key: string = key(resv.resv_id, resv.username);
+                    if (resv_dict[_key] === undefined) {
+                        resv_dict[_key] = resv;
+                        resv_dict[_key].time_slots = [];
+                    }
+                    resv_dict[_key].time_slots.push({
+                        start_time: dayjs(resv.start_time),
+                        end_time: dayjs(resv.end_time),
+                    });
+                }
+                let resv_list = Object.values(resv_dict);
+                setReservations(resv_list.map((resv: any) => {
+                    resv.time_slots = resv.time_slots.sort(compareStartEndTime);
                     return resv;
                 }).sort((a: any, b: any) => {
                     if (a.time_slots.length === 0 && b.time_slots.length === 0) {
