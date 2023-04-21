@@ -2,6 +2,37 @@ import dayjs from "dayjs";
 
 export const email_regex = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
 
+export const SecuLevel = {
+    public: 0,
+    private: 2,
+};
+
+export const ResvStatus = {
+    pending: 0,
+    confirmed: 1,
+    cancelled: 2,
+    rejected: 3,
+};
+
+export const RoomStatus = {
+    unavailable: 0,
+    available: 1,
+};
+
+export const UserRole = {
+    blocked: -1,
+    restricted: 0,
+    basic: 1,
+    advanced: 2,
+    admin: 3,
+};
+
+export const Setting = {
+    timeWindow: 1,
+    timeLimit: 2,
+    maxDaily: 3,
+};
+
 export const time = (t: string) => {
     const re = /\d+:\d\d?(:\d\d?)?/;
     const res = re.exec(t);
@@ -21,6 +52,21 @@ export const compareStartEndTime = (a: any, b: any) => {
     } else {
         return 0;
     }
+}
+
+export const groupResvTimeSlots = (resvs: Record<string, any>[]) => {
+    return Object.values(resvs.reduce((acc: Record<string, any>, resv: any) => {
+        let _key = `${resv.resv_id}-${resv.username}`;
+        if (acc[_key] === undefined) {
+            acc[_key] = resv;
+            acc[_key].time_slots = [];
+        }
+        acc[_key].time_slots.push({
+            start_time: dayjs(resv.start_time),
+            end_time: dayjs(resv.end_time),
+        });
+        return acc;
+    }, {}));
 }
   
 export const defaultLanguage: string = "zh";
@@ -56,27 +102,6 @@ export const links = (lang_code: string, baseURL: string) => {
     _linksMemo[key] = links;
   }
   return _linksMemo[key];
-}
-
-let _periodsMemo: Record<string, any>[]|null = null;
-export const fetchPeriods = async (no_cache: boolean = true) => {
-    if (no_cache || _periodsMemo == null) {
-        const res = await fetch('/api/periods');
-        const data = await res.json();
-        _periodsMemo = [];
-        data.forEach((period: any) => {
-            const start_time = time(period.start_time);
-            const end_time = time(period.end_time);
-            if (start_time && end_time) {
-                _periodsMemo?.push({
-                    ...period,
-                    start_time: start_time,
-                    end_time: end_time
-                });
-            }
-        });
-    }
-    return _periodsMemo;
 }
 
 const _fetch = async (url: string) => {

@@ -2,6 +2,7 @@ import {  Box } from '@mui/material';
 import { Dayjs } from 'dayjs';
 import Tooltip from '@mui/material/Tooltip';
 import ResvPopover from './ResvPopover';
+import { ResvStatus } from '../util';
 
 interface ResvsViewProps {
     periods: Record<string, any>[];
@@ -118,7 +119,7 @@ const Resvs = ({ reservations, start, end }: ResvsProps) => {
             <Box key={resv.resv_id} position="absolute" top={`${pos}%`}
                 height={`${height(resv.start_time, resv.end_time)}%`}
                 width="100%"
-                bgcolor={resv.status === 0 ? '#FFCF39' : 'lightgreen'}
+                bgcolor={resv.status === ResvStatus.pending ? '#FFCF39' : 'lightgreen'}
             ><ResvPopover resv={resv} /></Box>
         );
         pos += height(resv.start_time, resv.end_time);

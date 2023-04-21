@@ -1,16 +1,14 @@
 import React from "react";
 import { Snackbar, Alert } from "@mui/material";
 
-interface ShowProps {
-    message: string;
-    severity: "success" | "info" | "warning" | "error";
-    duration?: number;
-}
-
 interface SnackbarContextType {
-    show: (props: ShowProps) => void;
-    close: () => void;
-}
+    showSnackbar: ({ message, severity, duration } : {
+        message: string;
+        severity: "success" | "info" | "warning" | "error";
+        duration?: number;
+    }) => void;
+    closeSnackbar: () => void;
+};
 
 const SnackbarContext = React.createContext<SnackbarContextType>(null!);
 
@@ -20,14 +18,18 @@ function SnackbarProvider(props: { children: React.ReactNode }) {
     const [severity, setSeverity] = React.useState<"success" | "info" | "warning" | "error">("success");
     const [duration, setDuration] = React.useState<number|undefined>(undefined);
 
-    const show = (props: ShowProps) => {
-        setMessage(props.message);
-        setSeverity(props.severity);
-        setDuration(props.duration);
+    const showSnackbar = ({ message, severity, duration } : {
+        message: string;
+        severity: "success" | "info" | "warning" | "error";
+        duration?: number;
+    }) => {
+        setMessage(message);
+        setSeverity(severity);
+        setDuration(duration);
         setOpen(true);
     }
 
-    const close = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    const closeSnackbar = (event?: React.SyntheticEvent | Event, reason?: string) => {
         if (reason === 'clickaway') {
             return;
         }
@@ -35,15 +37,14 @@ function SnackbarProvider(props: { children: React.ReactNode }) {
     }
 
     return (
-        <SnackbarContext.Provider value={{ show, close }}>
+        <SnackbarContext.Provider value={{ showSnackbar, closeSnackbar }}>
             {props.children}
             <Snackbar
                 open={open}
                 autoHideDuration={duration}
-                onClose={close}
-                // anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                onClose={closeSnackbar}
             >
-                <Alert onClose={close} severity={severity} sx={{ width: '100%' }}>
+                <Alert onClose={closeSnackbar} severity={severity} sx={{ width: '100%' }}>
                     {message}
                 </Alert>
             </Snackbar>

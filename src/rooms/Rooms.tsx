@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { 
@@ -9,15 +10,48 @@ import {
 import EventSeatIcon from '@mui/icons-material/EventSeat';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
-function RoomList({ type }: { type?: Record<string, any> }) {
+function Rooms() {
+    const [roomTypes, setRoomTypes] = useState<Record<string, any>[]>([]);
+
+    useEffect(() => {
+        fetch(`/api/room_types`)
+            .then(res => res.json())
+            .then(data => {
+                setRoomTypes(data);
+            })
+            .catch(err => {
+                console.log(err);
+            });
+    }, []);
+
+    return (
+        <Box>
+            <ListItem divider dense>
+                <Typography variant="h5" component="h2" gutterBottom>
+                    房间列表
+                </Typography>
+            </ListItem>
+            {roomTypes.map((type) => (
+                <RoomList key={type.type} type={type} link={(room) => `/rooms/${room.room_id}`} />
+            ))}
+        </Box>
+    );
+}
+
+interface RoomListProps {
+    type?: Record<string, any>;
+    link?: (room: Record<string, any>) => string;
+    onClick?: (room: Record<string, any>) => void;
+    disabled?: (room: Record<string, any>) => boolean;
+};
+    
+
+export function RoomList({ type, link, onClick, disabled }: RoomListProps) {
     const [rooms, setRooms] = useState<Record<string, any>[] | null>(null);
 
     useEffect(() => {
         let url = '/api/rooms'
-        if (type) {
-            url += `?type=${type.type}`;
-        }
-
+        url += type ? `?type=${type.type}` : '';
         fetch(url).then((res) => res.json())
             .then((data) => {
                 setRooms(data);
@@ -41,9 +75,10 @@ function RoomList({ type }: { type?: Record<string, any> }) {
                     {rooms.map((room) => (
                         <ListItem key={room.room_id} divider dense>
                             <ListItemButton
-                                component={Link}
-                                disabled={room.status !== 1}
-                                to={`/reservations/new?room_id=${room.room_id}`}
+                                component={link ? Link : 'div'}
+                                to={link?.(room)}
+                                disabled={disabled?.(room)}
+                                onClick={() => onClick?.(room)}
                             >
                                 <ListItemText primary={room.name} />
                                 <ListItemIcon>
@@ -85,4 +120,4 @@ const ListSkeleton = ({count, divider, dense}: ListSkeletonProps) => (
     </List>
 );
 
-export default RoomList;
+export default Rooms;

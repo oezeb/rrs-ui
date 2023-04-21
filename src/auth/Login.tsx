@@ -19,16 +19,16 @@ function Login() {
     let navigate = useNavigate();
     let location = useLocation();
     let auth = useAuth();
-    let { show } = useSnackbar();
+    let { showSnackbar } = useSnackbar();
   
     let from = location.state?.from?.pathname || "/";
 
     React.useEffect(() => {
         if (auth.user) {
-            show({ message: "您已登录", severity: "info", duration: 2000})
+            showSnackbar({ message: "您已登录", severity: "info", duration: 2000})
             navigate(from, { replace: true });
         }
-    }, [auth, from, navigate, show]);
+    }, [auth, from, navigate, showSnackbar]);
   
     function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();

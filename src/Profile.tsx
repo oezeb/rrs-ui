@@ -5,14 +5,14 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import { useAuth } from "./auth/AuthProvider";
 import { useSnackbar } from "./SnackbarProvider";
-import { email_regex } from "./util";
+import { UserRole, email_regex } from "./util";
 
 function Profile() {
     const [data, setData] = React.useState<Record<string, any>>({});
     const [msg, setMsg] = React.useState<Record<string, any>>({});
     const [roleList, setRoleList] = React.useState<Record<string, any>>({}); // 级别
     const { user, update } = useAuth();
-    const { show } = useSnackbar();
+    const { showSnackbar } = useSnackbar();
 
     const required_password = data.password || data.new_password || data.confirm_password;
 
@@ -20,7 +20,7 @@ function Profile() {
         event.preventDefault();
         setMsg({});
         if (Object.keys(data).length === 0) {
-            show({ message: "信息未改变", severity: "warning" });
+            showSnackbar({ message: "信息未改变", severity: "warning" });
             return;
         }
 
@@ -30,7 +30,7 @@ function Profile() {
                 return;
             }
         } else if (data.email === user?.email) {
-            show({ message: "信息未改变", severity: "warning" });
+            showSnackbar({ message: "信息未改变", severity: "warning" });
             return;
         }
 
@@ -47,16 +47,16 @@ function Profile() {
                 if (res.ok) {
                     update(res => {
                         setData({});
-                        show({ message: "修改成功", severity: "success" });
+                        showSnackbar({ message: "修改成功", severity: "success" });
                     })
                 } else if (res.status === 401) {
                     setMsg({ password: "密码错误" });
                 } else {
-                    show({ message: "修改失败", severity: "error" });
+                    showSnackbar({ message: "修改失败", severity: "error" });
                 }
             })
             .catch((err) => {
-                show({ message: "修改失败", severity: "error" });
+                showSnackbar({ message: "修改失败", severity: "error" });
             });
     };
 
@@ -87,7 +87,7 @@ function Profile() {
                         <TableCell>姓名</TableCell>
                         <TableCell>{user? user.name:<Skeleton />}</TableCell>
                     </TableRow>
-                    {user?.role > 0 &&
+                    {user?.role > UserRole.restricted &&
                         <TableRow>
                             <TableCell>级别</TableCell>
                             <TableCell>{user? roleList[user.role+1]?.label:<Skeleton />}</TableCell>

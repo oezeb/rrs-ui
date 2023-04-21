@@ -9,15 +9,15 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Dayjs } from "dayjs";
 
 import HomeRoomView, { RoomSkeleton } from "../home/RoomView";
+import { RoomStatus } from "../util";
 
 interface RoomViewProps {
     room_id: string;
-    periods: Record<string, any>[];
     date: Dayjs;
 }
 
 function RoomView(props: RoomViewProps) {
-    const { room_id, periods, date } = props;
+    const { room_id, date } = props;
     const [room, setRoom] = useState<Record<string, any> | null>(null);
     let navigate = useNavigate();
     let location = useLocation();
@@ -43,10 +43,10 @@ function RoomView(props: RoomViewProps) {
     if (room) {
         return (
             <>
-                <HomeRoomView periods={periods} date={date} 
+                <HomeRoomView date={date} 
                     room={room} show_pending={true} 
                 />
-                <Dialog open={room !== undefined && room.status === 0}
+                <Dialog open={room !== undefined && room.status === RoomStatus.unavailable}
                     aria-labelledby="alert-dialog-title"
                     aria-describedby="alert-dialog-description"
                 >

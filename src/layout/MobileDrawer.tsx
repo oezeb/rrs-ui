@@ -12,6 +12,7 @@ import {
 import InfoIcon from '@mui/icons-material/Info';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import { useAuth } from "../auth/AuthProvider";
 
 const drawerWidth = 180;
 
@@ -23,6 +24,7 @@ interface Props {
 
 function MobileDrawer(props: Props) {
     const { window, toggleDrawer, open } = props;
+    const { user } = useAuth();
     const theme = useTheme();
     const is_mobile = useMediaQuery(theme.breakpoints.down('sm'));
     
@@ -39,8 +41,8 @@ function MobileDrawer(props: Props) {
             }}
         ><Toolbar />
             <List>
-                <DrawerItem name="预约" onClick={onClick} link="/reservations/new"
-                    icon={<EventAvailableIcon />} />
+                {user && <DrawerItem name="预约" onClick={onClick} link="/reservations/new"
+                    icon={<EventAvailableIcon />} />}
                 <DrawerItem  name="通知"  onClick={onClick} link="/notices" 
                     icon={<NotificationsIcon />} />
                 <DrawerItem name="关于" onClick={onClick} link="/about"

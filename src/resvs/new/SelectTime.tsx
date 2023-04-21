@@ -1,40 +1,35 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { 
     Autocomplete, 
     Box, 
     TextField, 
     Typography 
 } from "@mui/material";
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 
-import { time } from "../../util";
+import { ResvStatus, Setting, time } from "../../util";
+import { Option, optionEqual } from "./SelectDateTime";
+import { usePeriods } from "../../PeriodsProvider";
 
-export interface Option {
-    index: number;
-    time: Dayjs;
-}
-
-const optionEqual = (a: Option, b: Option) => {
-    return a.index === b.index && a.time.isSame(b.time);
-};
-
-interface BookTimeProps {
+interface SelectTimeProps {
     room_id: string;
     date: Dayjs;
-    periods: Record<string, any>[];
-    start: Option | null;
-    setStart: (start: Option | null) => void;
-    end: Option | null;
-    setEnd: (end: Option | null) => void;
+    start: Dayjs;
+    end: Dayjs;
+    startOption: Option|null;
+    setStartOption: (option: Option|null) => void;
+    endOption: Option|null;
+    setEndOption: (option: Option|null) => void;
 }
 
-function SelectTime(props: BookTimeProps) {
-    const { room_id, date, periods, start, setStart, end, setEnd } = props;
-    const [max_time, setMaxTime] = useState(0); // seconds
+function SelectTime(props: SelectTimeProps) {
+    const { room_id, date, start, end, startOption, setStartOption, endOption, setEndOption } = props;
     const [reservations, setReservations] = useState<Record<string, any>[]>([]);
-    const [filteredPeriods, setFilteredPeriods] = useState<Record<string, any>[]>([]);
-    const [start_options, setStartOptions] = useState<Option[]>([]);
-    const [end_options, setEndOptions] = useState<Option[]>([]);
+    const [max_time, setMaxTime] = useState(0); // seconds
+    const [startOptions, setStartOptions] = useState<Option[]>([]);
+    const [endOptions, setEndOptions] = useState<Option[]>([]);
+
+    const { periods } = usePeriods();
 
     const options = (periods: Record<string, any>[], t: "start" | "end") => {
         return periods.map((period, i) => {
@@ -44,49 +39,51 @@ function SelectTime(props: BookTimeProps) {
         });
     };
 
+    const filterPeriods = useMemo(() => {
+        const t = (p: any) => dayjs(`${date.format('YYYY-MM-DD')} ${p.format('HH:mm:ss')}`);
+        return periods.map((p: any) => ({
+            ...p,
+            start_time: t(p.start_time),
+            end_time: t(p.end_time),
+        })).filter((p: Record<string, any>) => (
+            // filter out periods that are not in the time window
+            // or are already reserved
+            p.start_time >= start && p.end_time <= end && reservations.every((r) => (
+                (r.start_time >= p.end_time || r.end_time <= p.start_time)
+            ))
+        ));
+    }, [date, start, end, periods, reservations]);
+
     useEffect(() => {
-        let start_options = options(filteredPeriods, "start");
-        let end_options = options(filteredPeriods, "end");
-        setEndOptions(end_options);
-        setStartOptions(start_options);
-        setStart(null);
-        setEnd(null);
-    }, [filteredPeriods, setStart, setEnd]);
+            setStartOptions(options(filterPeriods, "start"));
+            setEndOptions(options(filterPeriods, "end"));
+            setStartOption(null);
+            setEndOption(null);
+    }, [filterPeriods, setStartOptions, setEndOptions, setStartOption, setEndOption]);
 
     useEffect(() => {
         let url = `/api/reservations?room_id=${room_id}&date=${date.format('YYYY-MM-DD')}`;
-        fetch(url).then((res) => res.json())    
-            .then((data) => {
-                setReservations(data.map((resv: Record<string, any>) => {
+        fetch(url)
+        .then((res) => res.json())
+        .then((data) => {
+            setReservations(data.filter((r: Record<string, any>) => (
+                r.status === ResvStatus.pending || r.status === ResvStatus.confirmed
+            ))
+                .map((resv: Record<string, any>) => {
                     return {
                         ...resv,
-                        start_time: time(resv.start_time),
-                        end_time: time(resv.end_time),
+                        start_time: dayjs(resv.start_time),
+                        end_time: dayjs(resv.end_time),
                     };
                 }));
-            })
-            .catch((err) => {
-                console.error(err);
-            });
+        })
+        .catch((err) => {
+            console.error(err);
+        });
     }, [room_id, date]);
 
-    const isBeetwen = (t: Dayjs, t1: Dayjs, t2: Dayjs) => {
-        return t.isAfter(t1) && t.isBefore(t2);
-    };
-
     useEffect(() => {
-        const filteredPeriods = periods.filter((period) => {
-            return !reservations.some((resv) => {
-                return (period.start_time.isSame(resv.start_time) && period.end_time.isSame(resv.end_time)) ||
-                    isBeetwen(period.start_time, resv.start_time, resv.end_time) ||
-                    isBeetwen(period.end_time, resv.start_time, resv.end_time);
-            });
-        });
-        setFilteredPeriods(filteredPeriods);
-    }, [periods, reservations]);
-
-    useEffect(() => {
-        fetch('/api/settings?id=2')
+        fetch(`/api/settings?id=${Setting.timeLimit}`)
         .then((res) => res.json())
         .then((data) => {
             setMaxTime(time(data[0].value).diff(time('00:00'), 'second'))
@@ -97,63 +94,78 @@ function SelectTime(props: BookTimeProps) {
     }, []);
 
     const handleStartChange = (_: any, value: Option | null) => {
-        setStart(value);
-        let end_options = [];
+        setStartOption(value);
+        let endOptions = [];
         if (value) {
-            for (let i = value.index; i < filteredPeriods.length; i++) {
-                const period = filteredPeriods[i];
+            for (let i = value.index; i < filterPeriods.length; i++) {
+                const period = filterPeriods[i];
                 // ensure continuous time
-                if (i > value.index && !period.start_time.isSame(filteredPeriods[i - 1].end_time)) {
+                if (i > value.index && !period.start_time.isSame(filterPeriods[i - 1].end_time)) {
                     break;
                 }
                 if (period.end_time.diff(value.time, 'second') <= max_time) {
-                    end_options.push({ index: i, time: period.end_time });
+                    endOptions.push({ index: i, time: period.end_time });
                 } else { break; }
             }
         } else {
-            end_options = options(filteredPeriods, "end");
+            endOptions = options(filterPeriods, "end");
         }
-        setEndOptions(end_options);
+        setEndOptions(endOptions);
     }
 
     const handleEndChange = (_: any, value: Option | null) => {
-        setEnd(value);
-        let start_options = [];
+        setEndOption(value);
+        let startOptions = [];
         if (value) {
             for (let i = value.index; i >= 0; i--) {
-                const period = filteredPeriods[i];
+                let period = filterPeriods[i];
                 // ensure continuous time
-                if (i < value.index && !period.end_time.isSame(filteredPeriods[i + 1].start_time)) {
+                if (i < value.index && !period.end_time.isSame(filterPeriods[i + 1].start_time)) {
                     break;
                 }
                 if (value.time.diff(period.start_time, 'second') <= max_time) {
-                    start_options.push({ index: i, time: period.start_time });
+                    startOptions.push({ index: i, time: period.start_time });
                 } else { break; }
             }
-            start_options.reverse();
+            startOptions.reverse();
         } else {
-            start_options = options(filteredPeriods, "start");
+            startOptions = options(filterPeriods, "start");
         }
-        setStartOptions(start_options);
+        setStartOptions(startOptions);
     }
 
+    const timeView = (time: number) => { // seconds
+        const h = Math.floor(time / 3600);
+        const m = Math.floor((time % 3600) / 60);
+        if (h > 0 && m > 0) {
+            return `${h}小时${m}分钟`;
+        } else if (h > 0) {
+            return `${h}小时`;
+        } else {
+            return `${m}分钟`;
+        }
+    }
+    
     const auto_complete_view = (value: Option | null, options: Option[], label: string,
-        onChange: (event: any, value: Option | null) => void) => (
+        onChange: (event: any, value: Option | null) => void, show_max_time?: boolean) => (
         <Autocomplete fullWidth value={value} options={options}
             getOptionLabel={(option) => option.time.format('HH:mm')}
             isOptionEqualToValue={(option, value) => optionEqual(option, value)}
-            renderInput={(params) => <TextField {...params} label={label} variant="standard" />}
+            renderInput={(params) => <TextField {...params} label={label} variant="standard"
+                helperText={show_max_time? <>最长预约时间：{timeView(max_time)}</>: null}
+            />}
             onChange={onChange}
         />
     );
 
     return (
         <Box display="flex" width="100%">
-            {auto_complete_view(start, start_options, "开始时间", handleStartChange)}
+            {auto_complete_view(startOption, startOptions, "开始时间", handleStartChange, true)}
             <Box><Typography variant="h6" sx={{ margin: 2 }}>~</Typography></Box>
-            {auto_complete_view(end, end_options, "结束时间", handleEndChange)}
+            {auto_complete_view(endOption, endOptions, "结束时间", handleEndChange)}
         </Box>
     );
 }
+
 
 export default SelectTime;

@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { 
     Box, 
     Skeleton, 
@@ -7,35 +6,15 @@ import {
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import dayjs, { Dayjs } from "dayjs";
-import weekday from 'dayjs/plugin/weekday';
-import 'dayjs/locale/zh-cn'
-
-import { time } from "../../util";
-
-dayjs.extend(weekday);
-dayjs.locale('zh-cn');
 
 interface SelectDateProps {
     date: Dayjs;
     setDate: (date: Dayjs) => void;
+    start: Dayjs;
+    end: Dayjs;
 }
 
-function SelectDate({ date, setDate }: SelectDateProps) {
-    const [dates, setDates] = useState<Dayjs[]>([]);
-
-    useEffect(() => {
-        fetch('/api/settings?id=1')
-            .then((res) => res.json())
-            .then((data) => {
-                let time_window = time(data[0].value).diff(time('00:00'), 'day');
-                setDates(Array.from({ length: time_window }, (_, i) => {
-                    return dayjs().add(i, 'day');
-                }));
-            })
-            .catch((err) => {
-                console.error(err);
-            });
-    }, []);
+function SelectDate({ date, setDate, start, end }: SelectDateProps) {
 
     const handleChange = (_: React.MouseEvent<HTMLElement>, value: string) => {
         if (value) { setDate(dayjs(value)); }
@@ -43,22 +22,28 @@ function SelectDate({ date, setDate }: SelectDateProps) {
 
     const dateStr = (date: Dayjs) => date.format('YYYY-MM-DD');
 
+    let buttons: JSX.Element[] = [];
+    for (let i = start; i <= end; i = i.add(1, 'day')) {
+        buttons.push(
+            <ToggleButton key={dateStr(i)} value={dateStr(i)}>
+                <Box>
+                    <Typography variant='body2'>
+                        {i.format('ddd')}
+                    </Typography>
+                    <Typography variant='caption'>
+                        {dateStr(i)}
+                    </Typography>
+                </Box>
+            </ToggleButton>
+        );
+    }
+
+
     return (
         <ToggleButtonGroup fullWidth exclusive color="primary" value={dateStr(date)}
             onChange={handleChange} sx={{ margin: 'auto' }}
         >
-            {dates.length? dates.map((date) => (
-                <ToggleButton key={dateStr(date)} value={dateStr(date)}>
-                    <Box>
-                        <Typography variant='body2'>
-                            {date.format('ddd')}
-                        </Typography>
-                        <Typography variant='caption'>
-                            {dateStr(date)}
-                        </Typography>
-                    </Box>
-                </ToggleButton>
-            )) : <ToggleButtonsSkeleton />}
+            {buttons.length? buttons : <ToggleButtonsSkeleton />}
         </ToggleButtonGroup>
     );
 }

@@ -10,11 +10,14 @@ import Home from "./home/Home";
 import Notices from "./Notices";
 import Profile from "./Profile";
 import NewResv from "./resvs/new/NewResv";
-import Reservations from "./resvs/Resvs";
+import Resvs from "./resvs/Resvs";
 import SnackbarProvider from "./SnackbarProvider";
 import Layout from "./layout/Layout";
 import AppBar from "./layout/AppBar";
 import About from "./About";
+import Rooms from "./rooms/Rooms";
+import RoomDetails from "./rooms/RoomDetails";
+import { PeriodsProvider } from "./PeriodsProvider";
 
 function App() {
   return(
@@ -24,7 +27,15 @@ function App() {
                 <Route path="/" element={<Layout />}>
                     <Route 
                         index 
-                        element={<Home />} 
+                        element={<PeriodsProvider><Home /></PeriodsProvider>} 
+                    />
+                    <Route
+                        path="/rooms"
+                        element={<Rooms />}
+                    />
+                    <Route
+                        path="/rooms/:room_id"
+                        element={<RoomDetails />}
                     />
                     <Route 
                         path="/notices" 
@@ -40,11 +51,11 @@ function App() {
                     />
                     <Route 
                         path="/reservations" 
-                        element={<RequireAuth><Reservations /></RequireAuth>} 
+                        element={<RequireAuth><Resvs /></RequireAuth>} 
                     />
                     <Route 
                         path="/reservations/new" 
-                        element={<RequireAuth><NewResv /></RequireAuth>} 
+                        element={<RequireAuth><PeriodsProvider><NewResv /></PeriodsProvider></RequireAuth>} 
                     />
                 </Route>
 

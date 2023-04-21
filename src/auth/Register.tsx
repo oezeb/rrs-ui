@@ -13,7 +13,7 @@ function Register() {
     const [error, setError] = React.useState<Record<string, string>>({});
     let navigate = useNavigate();
     let { logout } = useAuth();
-    let { show } = useSnackbar();
+    let { showSnackbar } = useSnackbar();
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -45,7 +45,7 @@ function Register() {
         })
         .then((res) => {
             if (res.status === 201) {
-                show({ message: "注册成功", severity: "success", duration: 2000});
+                showSnackbar({ message: "注册成功", severity: "success", duration: 2000});
                 logout(() => {
                     navigate("/login", { replace: true });
                 });
