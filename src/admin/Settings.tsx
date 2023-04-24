@@ -7,6 +7,7 @@ import {
     Button 
 } from "@mui/material";
 import TextField from "@mui/material/TextField";
+import InputAdornment from '@mui/material/InputAdornment';
 
 import { Setting } from "../util";
 import { time } from "../util";
@@ -196,7 +197,10 @@ function Settings() {
 };
 
 const SettingItem = (props: any) => {
-    const { id, title, text, value, label, description } = props;
+    const { id, title, text, value } = props;
+    const [label, setLabel] = React.useState(props.label);
+    const [description, setDescription] = React.useState(props.description);
+
     const Item = ({name, value}:{name: string, value: JSX.Element}) => (<>
         <ListItemText sx={{ flex: 'none', width: 50 }} >
             <Typography fontWeight="bold">
@@ -232,13 +236,25 @@ const SettingItem = (props: any) => {
             <ListItem><Item name="值" value={value} /></ListItem>
             <ListItem>
                 <Item name="标签" value={<Field required 
-                    name="label" defaultValue={label} variant="standard"
+                    name="label" variant="standard"
+                    value={label} 
+                    onChange={(e: any) => setLabel(e.target.value)}
+                    inputProps={{ 
+                        maxLength: 50,
+                    }}
+                     InputProps={{
+                        endAdornment: <InputAdornment position="end">{label?.length??0}/50</InputAdornment>,
+                    }}
                 />} />
             </ListItem>
             <ListItem>
                 <Item name="描述" value={<Field
-                    name="description" defaultValue={description}
+                    name="description"
+                    value={description}
+                    onChange={(e: any) => setDescription(e.target.value)}
                     multiline maxRows={4} minRows={2}
+                    inputProps={{ maxLength: 200 }}
+                    helperText={`${description?.length??0}/200`}
                 />} />
             </ListItem>
         </List>
@@ -313,7 +329,5 @@ const TimeView = (props: TimeViewProps) => {
         </Box>
     );
 };
-        
-
 
 export default Settings;

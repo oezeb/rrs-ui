@@ -6,13 +6,18 @@ import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip,
 } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
+import TableSortLabel from '@mui/material/TableSortLabel';
 
 import { statusColors } from "../../../rooms/RoomDetails";
 import { Link } from "../../../Navigate";
+import { getComparator } from "../../../util";
 
 
 function Status() {
     const [roomStatus, setRoomStatus] = React.useState<Record<string, any>[]>([]);
+    const [orderBy, setOrderBy] = React.useState<string>("type");
+    const [order, setOrder] = React.useState<"asc"|"desc">("asc");
+    const [sorted, setSorted] = React.useState<Record<string, any>[]>([]);
 
     React.useEffect(() => {
         fetch("/api/admin/room_status")
@@ -22,12 +27,37 @@ function Status() {
             });
     }, []);
 
-    return (
-        <RoomStatusView roomStatus={roomStatus} />
-    );
-}
+    React.useEffect(() => {
+        const comparator = getComparator(order, orderBy);
+        const sorted = [...roomStatus].sort(comparator);
+        setSorted(sorted);
+    }, [roomStatus, order, orderBy]);
 
-export function RoomStatusView({roomStatus}: {roomStatus: Record<string, any>[]}) {
+    const handleRequestSort = React.useCallback(
+        (event: React.MouseEvent<unknown>, property: string) => {
+            const isAsc = orderBy === property && order === "asc";
+            setOrder(isAsc ? "desc" : "asc");
+            setOrderBy(property);
+
+            const comparator = getComparator(order, orderBy);
+            const sorted = [...roomStatus].sort(comparator);
+            setSorted(sorted);
+        },
+        [orderBy, order, roomStatus]
+    );
+
+    const SortHeadCell = (props: {field: string, label: string}) => {
+        return (
+            <TableCell sortDirection={orderBy === props.field ? order : false}>
+                <TableSortLabel
+                    active={orderBy === props.field}
+                    direction={orderBy === props.field ? order : "asc"}
+                    onClick={(e) => { handleRequestSort(e, props.field); }}
+                >{props.label}</TableSortLabel>
+            </TableCell>
+        );
+    };
+
     return(
         <Box>
             <Typography variant="h5" component="h2" gutterBottom>
@@ -37,17 +67,23 @@ export function RoomStatusView({roomStatus}: {roomStatus: Record<string, any>[]}
                 <Table size="small">
                     <TableHead>
                         <TableRow>
-                            <TableCell>状态</TableCell>
-                            <TableCell>标签</TableCell>
+                            <SortHeadCell field="status" label="状态" />
+                            <SortHeadCell field="label" label="标签" />
                             <TableCell>说明</TableCell>
                             <TableCell>操作</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {Object.values(roomStatus).map((roomStatus: Record<string, any>, i) => (
+                        {sorted.map((roomStatus: Record<string, any>, i) => (
                             <TableRow key={i}>
                                 <TableCell>{roomStatus.status}</TableCell>
-                                <TableCell>
+                                <TableCell
+                                    sx={{
+                                        maxWidth: 150,
+                                        overflow: "hidden", textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap"
+                                    }}
+                                >
                                     <Box display="inline" 
                                         borderBottom={3} 
                                         borderColor={statusColors[roomStatus.status]}
@@ -55,7 +91,13 @@ export function RoomStatusView({roomStatus}: {roomStatus: Record<string, any>[]}
                                         {roomStatus.label}
                                     </Box>
                                 </TableCell>
-                                <TableCell>{roomStatus.description?? "无"}</TableCell>
+                                <TableCell
+                                    sx={{
+                                        maxWidth: 150,
+                                        overflow: "hidden", textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap"
+                                    }}
+                                >{roomStatus.description?? "无"}</TableCell>
                                 <TableCell>
                                     <Tooltip title="编辑">
                                         <IconButton size="small" 

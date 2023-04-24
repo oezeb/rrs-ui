@@ -9,13 +9,19 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import TableSortLabel from '@mui/material/TableSortLabel';
 
 import { Link } from "../../../Navigate";
 import { useSnackbar } from "../../../SnackbarProvider";
 import BinaryDialog from "../../../BinaryDialog";
+import { getComparator } from "../../../util";
 
 function Types() {
     const [roomTypes, setRoomTypes] = React.useState<Record<string, any>[]>([]);
+    const [del, setDel] = React.useState<Record<string, any>|null>(null);
+    const [orderBy, setOrderBy] = React.useState<string>("type");
+    const [order, setOrder] = React.useState<"asc"|"desc">("asc");
+    const [sorted, setSorted] = React.useState<Record<string, any>[]>([]);
 
     React.useEffect(() => {
         fetch("/api/admin/room_types")
@@ -25,13 +31,38 @@ function Types() {
             });
     }, []);
 
-    return (
-        <RoomTypesView roomTypes={roomTypes} />
-    );
-}
+    React.useEffect(() => {
+        const comparator = getComparator(order, orderBy);
+        const sorted = [...roomTypes].sort(comparator);
+        setSorted(sorted);
+    }, [roomTypes, order, orderBy]);
 
-export function RoomTypesView({ roomTypes }: { roomTypes: Record<string, any>[] }) {
-    const [del, setDel] = React.useState<Record<string, any>|null>(null);
+    const handleRequestSort = React.useCallback(
+        (event: React.MouseEvent<unknown>, property: string) => {
+            const isAsc = orderBy === property && order === "asc";
+            setOrder(isAsc ? "desc" : "asc");
+            setOrderBy(property);
+
+            const comparator = getComparator(order, orderBy);
+            const sorted = [...roomTypes].sort(comparator);
+            setSorted(sorted);
+        },
+        [orderBy, order, roomTypes]
+    );
+
+    const SortHeadCell = (props: {field: string, label: string}) => {
+        return (
+            <TableCell sortDirection={orderBy === props.field ? order : false}>
+                <TableSortLabel
+                    active={orderBy === props.field}
+                    direction={orderBy === props.field ? order : "asc"}
+                    onClick={(e) => { handleRequestSort(e, props.field); }}
+                >{props.label}</TableSortLabel>
+            </TableCell>
+        );
+    };
+
+
     return(
         <Box>
             <Typography variant="h5" component="h2" gutterBottom>
@@ -41,18 +72,30 @@ export function RoomTypesView({ roomTypes }: { roomTypes: Record<string, any>[] 
                 <Table size="small">
                     <TableHead>
                         <TableRow>
-                            <TableCell>类型</TableCell>
-                            <TableCell>标签</TableCell>
+                            <SortHeadCell field="type" label="类型" />
+                            <SortHeadCell field="label" label="标签" />
                             <TableCell>说明</TableCell>
                             <TableCell>操作</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {Object.values(roomTypes).map((roomType: Record<string, any>, i) => (
+                        {sorted.map((roomType: Record<string, any>, i) => (
                             <TableRow key={i}>
                                 <TableCell>{roomType.type}</TableCell>
-                                <TableCell>{roomType.label}</TableCell>
-                                <TableCell>{roomType.description?? "无"}</TableCell>
+                                <TableCell
+                                    sx={{
+                                        maxWidth: 150, 
+                                        overflow: "hidden", textOverflow: "ellipsis", 
+                                        whiteSpace: "nowrap"
+                                    }}
+                                >{roomType.label}</TableCell>
+                                <TableCell
+                                    sx={{
+                                        maxWidth: 150,
+                                        overflow: "hidden", textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap"
+                                    }}
+                                >{roomType.description?? "无"}</TableCell>
                                 <TableCell>
                                     <Tooltip title="删除">
                                         <IconButton size="small" onClick={() => setDel(roomType)}>
@@ -78,13 +121,20 @@ export function RoomTypesView({ roomTypes }: { roomTypes: Record<string, any>[] 
                     添加类型
                 </Button>
             </Box>
-            <DeleteDialog del={del} setDel={setDel} />
+            <DeleteDialog del={del} setDel={setDel} setRoomTypes={setRoomTypes} />
         </Box>
     );
 }
 
-const DeleteDialog = ({ del, setDel }: { del: Record<string, any>|null, setDel: (del: Record<string, any>|null) => void }) => {
+interface DeleteDialogProps {
+    del: Record<string, any>|null;
+    setDel: (del: Record<string, any>|null) => void;
+    setRoomTypes: React.Dispatch<React.SetStateAction<Record<string, any>[]>>;
+}
+
+const DeleteDialog = ({ del, setDel, setRoomTypes }: DeleteDialogProps) => {
     const { showSnackbar } = useSnackbar();
+    
     const handleClose = () => {
         setDel(null);
     };
@@ -97,14 +147,17 @@ const DeleteDialog = ({ del, setDel }: { del: Record<string, any>|null, setDel: 
             },
             body: JSON.stringify([{type: del?.type}])
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
+        .then(res => {
+            if (res.ok) {
                 showSnackbar({message: "删除成功", severity: "success", duration: 2000});
+                setRoomTypes(old => {
+                    console.log(old);
+                    return old.filter(roomType => roomType.type !== del?.type);
+                });
+                handleClose();
             } else {
-                showSnackbar({message: `删除失败。请确保类型 ${del?.type} 没有被任何房间使用。`, severity: "error"});
+                throw new Error("删除失败");
             }
-            handleClose();
         })
         .catch(err => {
             showSnackbar({message: `删除失败。请确保类型 ${del?.type} 没有被任何房间使用。`, severity: "error"});

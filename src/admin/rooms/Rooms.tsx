@@ -10,18 +10,21 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import TableSortLabel from '@mui/material/TableSortLabel';
 
 import { useSnackbar } from "../../SnackbarProvider";
 import { statusColors } from "../../rooms/RoomDetails";
 import { Link } from "../../Navigate";
-import { RoomTypesView } from "./types/Types";
-import { RoomStatusView } from "./status/Status";
 import BinaryDialog from "../../BinaryDialog";
-
+import { getComparator } from "../../util";
+import Types from "./types/Types";
+import Status from "./status/Status";
 
 function Rooms() {
     const [rooms, setRooms] = React.useState<Record<string, any>[]>([]);
-    const [edited, setEdited] = React.useState<Record<string, any>[]>([]);
+    const [orderBy, setOrderBy] = React.useState<string>("room_id");
+    const [order, setOrder] = React.useState<"asc"|"desc">("asc");
+    const [sorted, setSorted] = React.useState<Record<string, any>[]>([]);
     const [roomTypes, setRoomTypes] = React.useState<Record<string, any>>({});
     const [roomStatus, setRoomStatus] = React.useState<Record<string, any>>({});
     const [del, setDel] = React.useState<Record<string, any>|null>(null);
@@ -35,8 +38,10 @@ function Rooms() {
     }, []);
 
     React.useEffect(() => {
-        setEdited(rooms);
-    }, [rooms]);
+        const comparator = getComparator(order, orderBy);
+        const sorted = [...rooms].sort(comparator);
+        setSorted(sorted);
+    }, [rooms, order, orderBy]);
 
     React.useEffect(() => {
         fetch("/api/admin/room_types")
@@ -60,37 +65,76 @@ function Rooms() {
             });
     }, []);
 
+    const handleRequestSort = React.useCallback(
+        (event: React.MouseEvent<unknown>, property: string) => {
+            const isAsc = orderBy === property && order === 'asc';
+            setOrder(isAsc ? 'desc' : 'asc');
+            setOrderBy(property);
+
+            const comparator = getComparator(order, orderBy);
+            const sorted = [...rooms].sort(comparator);
+            setSorted(sorted);
+        },
+        [orderBy, order, rooms],
+    );
+
+    const SortHeadCell = (props: {field: string, label: string}) => {
+        return (
+            <TableCell sortDirection={orderBy === props.field ? order : false}>
+                <TableSortLabel
+                    active={orderBy === props.field}
+                    direction={orderBy === props.field ? order : "asc"}
+                    onClick={(e) => { handleRequestSort(e, props.field); }}
+                >{props.label}</TableSortLabel>
+            </TableCell>
+        );
+    };
+
     return(
         <Box>
             <Typography variant="h5" component="h2" gutterBottom>
                 房间管理
             </Typography>
-            <TableContainer sx={{minWidth: 600}}>
+            <TableContainer sx={{minWidth: 750}}>
                 <Table size="small" stickyHeader>
                     <TableHead>
                         <TableRow>
-                            <TableCell>房间号</TableCell>
-                            <TableCell>房间名</TableCell>
-                            <TableCell>容量</TableCell>
-                            <TableCell>状态</TableCell>
-                            <TableCell>类型</TableCell>
+                            <SortHeadCell field="room_id" label="房间号" />
+                            <SortHeadCell field="name" label="房间名" />
+                            <SortHeadCell field="capacity" label="容量" />
+                            <SortHeadCell field="status" label="状态" />
+                            <SortHeadCell field="type" label="类型" />
                             <TableCell>图片</TableCell>
                             <TableCell>操作</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {edited.map((room, i) => (
+                        {sorted.map((room, i) => {
+                            console.log(room, i);
+                            return (
                             <TableRow key={i}>
                                 <TableCell>
                                     {room.room_id}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell
+                                    sx={{
+                                        maxWidth: 150,
+                                        overflow: "hidden", textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap"
+                                    }}
+                                >
                                     {room.name}
                                 </TableCell>
                                 <TableCell>
                                     {room.capacity}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell
+                                    sx={{
+                                        maxWidth: 150,
+                                        overflow: "hidden", textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap"
+                                    }}
+                                >
                                     <Box display="inline" 
                                         borderBottom={3} 
                                         borderColor={statusColors[room.status]}
@@ -98,7 +142,13 @@ function Rooms() {
                                         {roomStatus[room.status]?.label}
                                     </Box>
                                 </TableCell>
-                                <TableCell>
+                                <TableCell
+                                    sx={{
+                                        maxWidth: 150,
+                                        overflow: "hidden", textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap"
+                                    }}
+                                >
                                     {roomTypes[room.type]?.label}
                                 </TableCell>
                                 <TableCell>
@@ -125,7 +175,8 @@ function Rooms() {
                                     </Tooltip>
                                 </TableCell>
                             </TableRow>
-                        ))}
+                            );
+                        })}
                     </TableBody>
                 </Table>
             </TableContainer>
@@ -135,8 +186,8 @@ function Rooms() {
                     添加房间
                 </Button>
             </Box>
-            <RoomTypesView roomTypes={Object.values(roomTypes)} />
-            <RoomStatusView roomStatus={Object.values(roomStatus)} />
+            <Types />
+            <Status />
             <DeleteDialog del={del} setDel={setDel} setRooms={setRooms} />
         </Box>
     );
@@ -145,7 +196,7 @@ function Rooms() {
 interface DeleteDialogProps {
     del: Record<string, any>|null;
     setDel: (del: Record<string, any>|null) => void;
-    setRooms: React.Dispatch<React.SetStateAction<Record<string, any>[]>>
+    setRooms: React.Dispatch<React.SetStateAction<Record<string, any>[]>>;
 }
 
 const DeleteDialog = ({del, setDel, setRooms}: DeleteDialogProps) => {
@@ -167,10 +218,10 @@ const DeleteDialog = ({del, setDel, setRooms}: DeleteDialogProps) => {
             if (res.ok) {
                 showSnackbar({message: "删除成功", severity: "success", duration: 2000});
                 setRooms(old => old.filter(room => room.room_id !== del?.room_id));
+                handleClose();
             } else {
-                showSnackbar({message: "删除失败", severity: "error"});
+                throw new Error("删除失败");
             }
-            handleClose();
         })
         .catch(err => {
             showSnackbar({message: "删除失败", severity: "error"});
@@ -180,11 +231,9 @@ const DeleteDialog = ({del, setDel, setRooms}: DeleteDialogProps) => {
 
     return (
         <BinaryDialog
-            open={del !== null}
+            open={del !== null} onConfirm={handleDelete} onClose={handleClose}
             title="删除房间"
             content={`确定要删除房间 ${del?.room_id} 吗？`}
-            onClose={handleClose}
-            onConfirm={handleDelete}
         />
     );
 }

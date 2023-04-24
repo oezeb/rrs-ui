@@ -5,6 +5,8 @@ import {
     List, ListItem, Button, Autocomplete,
 } from "@mui/material";
 import TextField from "@mui/material/TextField";
+import InputAdornment from '@mui/material/InputAdornment';
+
 import { Item as AddEditLabelItem } from "./AddEditLabel";
 
 interface AddEditRoomProps {
@@ -22,6 +24,7 @@ interface AddEditRoomProps {
 
 export const AddEditRoom = (props: AddEditRoomProps) => {
     const { title, room_id, nameDefault, capacityDefault, status, setStatus, type, setType, handleSubmit, image } = props;
+    const [name, setName] = React.useState(nameDefault);
     const [roomTypes, setRoomTypes] = React.useState<Record<number, any>>({});
     const [roomStatus, setRoomStatus] = React.useState<Record<number, any>>({});
 
@@ -64,7 +67,16 @@ export const AddEditRoom = (props: AddEditRoomProps) => {
                     <Item name="房间名" value={<TextField required
                         name="name" variant="standard"
                         size="small"
-                        defaultValue={nameDefault}
+                        value={name}
+                        onChange={(event) => {
+                            setName(event.target.value);
+                        }}
+                        inputProps={{ 
+                            maxLength: 50,
+                         }}
+                         InputProps={{
+                            endAdornment: <InputAdornment position="end">{name?.length??0}/50</InputAdornment>,
+                        }}
                     />} />
                 </ListItem>
                 <ListItem>

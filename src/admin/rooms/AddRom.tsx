@@ -30,7 +30,7 @@ function AddRoom() {
         }
 
         let image = form.get('image') as File;
-        if (image && image.name !== "" && image.size > 0) {
+        if (image.name !== "" && image.size > 0) {
             data.image = image;
         }
 

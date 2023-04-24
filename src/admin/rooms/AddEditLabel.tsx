@@ -1,9 +1,11 @@
+import React from "react";
 import { 
     Box,  
     Typography, 
     List, ListItem, ListItemText, Button,
 } from "@mui/material";
 import TextField from "@mui/material/TextField";
+import InputAdornment from '@mui/material/InputAdornment';
 
 interface Props {
     title: string;
@@ -15,6 +17,9 @@ interface Props {
 
 function AddEditLabel(props: Props) {
     const {title, id, labelDefault, descriptionDefault, handleSubmit} = props;
+    const [label, setLabel] = React.useState(labelDefault);
+    const [description, setDescription] = React.useState(descriptionDefault);
+
     return (
         <Box component="form" onSubmit={handleSubmit}>
             <Typography variant="h5" component="h2" gutterBottom>
@@ -24,13 +29,26 @@ function AddEditLabel(props: Props) {
                 <ListItem>{id}</ListItem>
                 <ListItem>
                     <Item name="标签" value={<Field required
-                        name="label" defaultValue={labelDefault} variant="standard"
+                        name="label"
+                        value={label}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLabel(e.target.value)}
+                        variant="standard"
+                        inputProps={{ 
+                            maxLength: 50,
+                         }}
+                         InputProps={{
+                            endAdornment: <InputAdornment position="end">{label?.length??0}/50</InputAdornment>,
+                        }}
                     />} />
                 </ListItem>
                 <ListItem>
                     <Item name="描述" value={<Field
-                        name="description" defaultValue={descriptionDefault}
+                        name="description"
+                        value={description}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
                         multiline maxRows={4} minRows={2}
+                        inputProps={{ maxLength: 200 }}
+                        helperText={`${description?.length??0}/200`}
                     />} />
                 </ListItem>
                 <ListItem>

@@ -58,7 +58,7 @@ function EditRoom() {
         if (type !== room.type) {
             data.type = type;
         }
-        if (image && image.name !== "" && image.size > 0) {
+        if (image.name !== "" && image.size > 0) {
             data.image = image;
         } else if (room.image === null) {
             data.image = null;
@@ -92,7 +92,7 @@ function EditRoom() {
                 }
             };
 
-            if (data.image === undefined) {
+            if (data.image !== undefined) {
                 FileToBase64(data.image, (base64) => {
                     data.image = base64;
                     update();
