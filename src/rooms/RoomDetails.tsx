@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import { useParams } from "react-router-dom";
 
 // room status: 0: 不可用、1: 可用
-const statusColors = ["#FF5733", "#00CC66"];
+export const statusColors = ["#FF5733", "#00CC66"];
 
 function RoomDetails() {
     const [room, setRoom] = React.useState<Record<string, any> | null>(null);

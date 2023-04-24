@@ -1,4 +1,3 @@
-import { Link, useNavigate } from "react-router-dom";
 import { 
     AppBar as MuiAppBar, 
     Box, 
@@ -15,18 +14,23 @@ import MenuIcon from '@mui/icons-material/Menu';
 import LangMenu from "./LangMenu";
 import UserMenu from "./UserMenu";
 import { useAuth } from "../auth/AuthProvider";
+import { Link, useNavigate } from '../Navigate';
 
 interface Props {
+    title: string;
+    onTitleClick?: () => void;
     toggleDrawer?: () => void;
     showMenuButton?: boolean;
+    showToAdmin?: boolean,
+    showToUser?: boolean,
 }
 
-function AppBar({ toggleDrawer, showMenuButton }: Props) {
+function AppBar({ title, onTitleClick, toggleDrawer, showMenuButton, showToAdmin, showToUser }: Props) {
     const { user, logout } = useAuth();
     let navigate = useNavigate();
 
     const handleLogout = () => {
-        logout(() => navigate('/'));
+        logout(() => navigate(""));
     }
 
     return (
@@ -39,14 +43,14 @@ function AppBar({ toggleDrawer, showMenuButton }: Props) {
                 <IconButton color="inherit" onClick={toggleDrawer} sx={{ mr: 2 }}>
                     <MenuIcon />
                 </IconButton>}
-                <Button variant='text' color='inherit' component={Link} to='/' sx={{ textTransform: 'none'}}>
+                <Button onClick={onTitleClick} variant='text' color='inherit' component={Link} to="" sx={{ textTransform: 'none'}}>
                     <Typography variant="h6" noWrap component="div">
-                        预约系统
+                        {title}
                     </Typography>
                 </Button>
                 <Box sx={{ flexGrow: 1 }} />
                 <LangMenu />
-                {user ? <UserMenu  user={user} logout={handleLogout} /> : <>
+                {user ? <UserMenu  user={user} logout={handleLogout} showToAdmin={showToAdmin} showToUser={showToUser} /> : <>
                     <Tooltip title="登录">
                         <IconButton color="inherit" component={Link} to="/login"
                             sx={{ display: { xs: 'block', sm: 'none' } }}

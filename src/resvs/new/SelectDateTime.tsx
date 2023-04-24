@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
-import 'dayjs/locale/zh-cn'
 
 import SelectDate from "./SelectDate";
 import SelectTime from "./SelectTime";
 import { Setting } from "../../util";
-
-dayjs.locale('zh-cn');
 
 export interface Option {
     index: number;

@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo } from "react";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { 
     Box, 
     TextField,
@@ -12,13 +12,15 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import dayjs from "dayjs";
 
-import { RoomStatus, Setting, time } from "../../util";
+import { RoomStatus, Setting } from "../../util";
 import { useSnackbar } from "../../SnackbarProvider";
 import RoomView from "../RoomView";
 import SelectDateTime, { Option } from "./SelectDateTime";
 import { RoomList } from "../../rooms/Rooms";
+import { Link, useNavigate } from "../../Navigate";
 
 function NewResv() {
     const [types, setTypes] = useState<Record<string, any>[]>([]);
@@ -124,24 +126,31 @@ function Book({ room_id }: { room_id: string }) {
             <TextField fullWidth required variant="standard"
                 id="title" name="title" label="预约标题"
             />
-            <TextField fullWidth multiline variant="standard"
-                id="note" name="note" label="备注"
-            />
+            <TextField multiline minRows={3} maxRows={5} fullWidth id="note" name="note"
+                        size="small" label="备注" variant="standard"
+                    />
             <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
                 提交
+            </Button>
+            {/* Link to advanced booking options */}
+            <Button  fullWidth variant="text" sx={{ mt: 3, mb: 2 }}
+                endIcon={<NavigateNextIcon />}
+                component={Link} to='/reservations/advanced'
+            >
+                高级预约选项
             </Button>
         </Box>
     );
 }
 
-function MaxDailyDialog() {
+export function MaxDailyDialog() {
     const [max_daily, setMaxDaily] = useState<number|undefined>(undefined);
     const [today_count, setTodayCount] = useState<number|undefined>(undefined);
     let navigate = useNavigate();
     let location = useLocation();
 
     
-    let from = location.state?.from?.pathname || "/";
+    let from = location.state?.from || "/";
 
     useEffect(() => {
         fetch(`/api/settings?id=${Setting.maxDaily}`) 

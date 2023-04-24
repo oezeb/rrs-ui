@@ -1,15 +1,15 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Skeleton, ListItem, ListItemText, ListItemIcon, ListItemButton } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import EventSeatIcon from '@mui/icons-material/EventSeat';
 import { Dayjs } from 'dayjs';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { Link } from 'react-router-dom';
 
 import { time, compareStartEndTime, ResvStatus, RoomStatus } from '../util';
 import { useAuth } from '../auth/AuthProvider';
 import ResvsView from './ResvsView';
 import { usePeriods } from '../PeriodsProvider';
+import { Link } from '../Navigate';
 
 interface RoomViewProps {
     date: Dayjs;

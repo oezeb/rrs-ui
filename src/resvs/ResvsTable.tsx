@@ -8,13 +8,12 @@ import {
     Skeleton,
 } from "@mui/material";
 
-import LinearProgress from '@mui/material/LinearProgress';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import Badge from '@mui/material/Badge';
-import { Link } from "react-router-dom";
 
 import { statusColors } from "./Resvs";
 import { compareStartEndTime, groupResvTimeSlots } from "../util";
+import { Link } from "../Navigate";
 
 interface ResvsTableProps {
     timeFilter: "全部" | "当前" | "历史";

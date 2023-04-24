@@ -39,6 +39,17 @@ export const time = (t: string) => {
     return dayjs(res ? `1970-01-01 ${res[0]}` : null);
 }
 
+export const FileToBase64 = (file: File, callback: (data: string|undefined) => void) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+        let base64 = reader.result?.toString()
+            .replace('data:', '')
+            .replace(/^.+,/, '');
+        callback(base64);
+    };
+    reader.readAsDataURL(file);
+}
+
 export const compareStartEndTime = (a: any, b: any) => {
     // used for sorting objects with `start_time` and `end_time` Day.js objects
     if (a.start_time.isBefore(b.start_time)) {

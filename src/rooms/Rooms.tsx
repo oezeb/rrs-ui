@@ -1,6 +1,5 @@
 
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { 
     Box, 
     List, ListItem, ListItemButton, ListItemIcon, ListItemText, 
@@ -9,6 +8,7 @@ import {
 } from "@mui/material";
 import EventSeatIcon from '@mui/icons-material/EventSeat';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import { Link } from "../Navigate";
 
 function Rooms() {
     const [roomTypes, setRoomTypes] = useState<Record<string, any>[]>([]);

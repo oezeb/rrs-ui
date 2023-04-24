@@ -1,18 +1,11 @@
 import * as React from "react";
-import {
-  Link,
-} from "react-router-dom";
 import { 
-    Drawer, 
+    Drawer as MuiDrawer,
     List, ListItem, ListItemButton, ListItemIcon, ListItemText, 
     Toolbar, 
     useMediaQuery, useTheme 
 } from '@mui/material';
-
-import InfoIcon from '@mui/icons-material/Info';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import EventAvailableIcon from '@mui/icons-material/EventAvailable';
-import { useAuth } from "../auth/AuthProvider";
+import { Link } from "../Navigate";
 
 const drawerWidth = 180;
 
@@ -20,19 +13,18 @@ interface Props {
     window?: () => Window;
     toggleDrawer: () => void;
     open: boolean;
+    children: React.ReactNode;
   }
 
-function MobileDrawer(props: Props) {
-    const { window, toggleDrawer, open } = props;
-    const { user } = useAuth();
+function Drawer(props: Props) {
+    const { window, toggleDrawer, open, children } = props;
     const theme = useTheme();
     const is_mobile = useMediaQuery(theme.breakpoints.down('sm'));
     
     const container = window !== undefined ? () => window().document.body : undefined;
-    const onClick = () => { setTimeout(() => { toggleDrawer();});};
 
     return (
-        <Drawer container={container} variant="temporary" open={is_mobile ? !open : false}
+        <MuiDrawer container={container} variant="temporary" open={is_mobile ? !open : false}
             onClose={toggleDrawer}
             ModalProps={{ keepMounted: true }}
             sx={{
@@ -40,30 +32,24 @@ function MobileDrawer(props: Props) {
                 '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
             }}
         ><Toolbar />
-            <List>
-                {user && <DrawerItem name="预约" onClick={onClick} link="/reservations/new"
-                    icon={<EventAvailableIcon />} />}
-                <DrawerItem  name="通知"  onClick={onClick} link="/notices" 
-                    icon={<NotificationsIcon />} />
-                <DrawerItem name="关于" onClick={onClick} link="/about"
-                    icon={<InfoIcon />} />
-            </List>
-        </Drawer>
+            <List>{children}</List>
+        </MuiDrawer>
     );
 }
 
 interface DrawerItemProps {
     name: string;
-    icon: React.ReactElement;
+    icon?: React.ReactElement;
     link: string;
     onClick?: () => void;
+    selected: boolean;
 }
 
-const DrawerItem = (props: DrawerItemProps) => {
-    const { name, icon, link, onClick } = props;
+export const DrawerItem = (props: DrawerItemProps) => {
+    const { name, icon, link, onClick, selected } = props;
     return (
         <ListItem key={name} disablePadding sx={{ display: 'block' }}>
-            <ListItemButton component={Link} to={link} onClick={onClick}>
+            <ListItemButton component={Link} to={link} onClick={onClick} selected={selected}>
                 <ListItemIcon>
                     {icon}
                 </ListItemIcon>
@@ -73,4 +59,4 @@ const DrawerItem = (props: DrawerItemProps) => {
     );
 }
 
-export default MobileDrawer;
+export default Drawer;

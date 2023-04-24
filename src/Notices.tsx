@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import Box from '@mui/material/Box';
 import { List, ListItem, ListItemButton, ListItemText, Skeleton, Typography } from "@mui/material";
 import dayjs from "dayjs";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import ReactMarkdown from 'react-markdown'
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import EditIcon from '@mui/icons-material/Edit';
+import { Link } from "./Navigate";
 
 function Notices() {
     const [searchParams] = useSearchParams();

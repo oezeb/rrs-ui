@@ -5,11 +5,12 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Dayjs } from "dayjs";
 
 import HomeRoomView, { RoomSkeleton } from "../home/RoomView";
 import { RoomStatus } from "../util";
+import { useNavigate } from "../Navigate";
 
 interface RoomViewProps {
     room_id: string;
@@ -22,7 +23,7 @@ function RoomView(props: RoomViewProps) {
     let navigate = useNavigate();
     let location = useLocation();
 
-    let from = location.state?.from?.pathname || "/";
+    let from = location.state?.from || "";
 
     useEffect(() => {
         let url = `/api/rooms?room_id=${room_id}`;

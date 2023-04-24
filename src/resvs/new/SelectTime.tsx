@@ -146,6 +146,7 @@ function SelectTime(props: SelectTimeProps) {
         }
     }
     
+    // TODO: use Autocomplete filterOptions
     const auto_complete_view = (value: Option | null, options: Option[], label: string,
         onChange: (event: any, value: Option | null) => void, show_max_time?: boolean) => (
         <Autocomplete fullWidth value={value} options={options}

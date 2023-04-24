@@ -7,6 +7,9 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import dayjs, { Dayjs } from "dayjs";
 
+import 'dayjs/locale/zh-cn'
+dayjs.locale('zh-cn');
+
 interface SelectDateProps {
     date: Dayjs;
     setDate: (date: Dayjs) => void;

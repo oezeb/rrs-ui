@@ -1,9 +1,5 @@
 import * as React from "react";
-import {
-    Link,
-    useNavigate,
-    useLocation,
-} from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { 
     Box, 
     Button, 
@@ -13,6 +9,7 @@ import {
 
 import { useSnackbar } from "../SnackbarProvider";
 import { useAuth } from "./AuthProvider";
+import { useNavigate, Link } from "../Navigate";
 
 function Login() {
     const [error, setError] = React.useState(false);
@@ -21,7 +18,7 @@ function Login() {
     let auth = useAuth();
     let { showSnackbar } = useSnackbar();
   
-    let from = location.state?.from?.pathname || "/";
+    let from = location.state?.from || "";
 
     React.useEffect(() => {
         if (auth.user) {

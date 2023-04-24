@@ -1,10 +1,8 @@
 import * as React from "react";
-import {
-  useLocation,
-  Navigate,
-} from "react-router-dom";
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
+import Forbidden from "../Forbidden";
+import { Navigate } from "../Navigate";
 
 export interface AuthContextProps {
     user: Record<string, any> | null;
@@ -80,27 +78,22 @@ export function useAuth() {
     return { ...auth, loading };
 }
 
-export function RequireAuth({ children }: { children: React.ReactNode}) {
+export function RequireAuth({ children, role }: { children: React.ReactNode, role?: number }) {
     const { user, loading } = useAuth();
-    const location = useLocation();
 
     if (loading) {
         return (
             <Backdrop
-            sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-            open
-          >
+                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                open
+            >
             <CircularProgress color="inherit" />
           </Backdrop>
         );
     } else if (user) {
-        return <>{children}</>;
+        return role !== undefined && user.role < role ? <Forbidden /> : <>{children}</>;
     } else {
-        return <Navigate 
-            to="/login"
-            state={{ from: location }}
-            replace
-        />;
+        return <Navigate to="/login" replace />;
     }
 }
 

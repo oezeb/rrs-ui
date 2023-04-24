@@ -1,13 +1,10 @@
 import * as React from "react";
-import {
-  Link,
-  useNavigate,
-} from "react-router-dom";
 import { Box, Button, TextField, Typography } from "@mui/material";
 
 import { email_regex } from "../util";
 import { useSnackbar } from "../SnackbarProvider";
 import { useAuth } from "./AuthProvider";
+import { Link, useNavigate } from "../Navigate";
 
 function Register() {
     const [error, setError] = React.useState<Record<string, string>>({});

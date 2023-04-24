@@ -1,7 +1,4 @@
 import * as React from "react";
-import {
-  Link,
-} from "react-router-dom";
 import { 
     CSSObject, 
     List, ListItem, ListItemButton, ListItemIcon, ListItemText, 
@@ -10,17 +7,18 @@ import {
     Typography
 } from '@mui/material';
 
-import InfoIcon from '@mui/icons-material/Info';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import MuiDrawer from '@mui/material/Drawer';
 import styled from '@mui/material/styles/styled';
-import { useAuth } from "../auth/AuthProvider";
+import { Link } from "../Navigate";
 
 const drawerWidth = 180;
 
-function DesktopDrawer({ open } : { open: boolean }) {
-    const { user } = useAuth();
+interface DrawerProps {
+    open: boolean;
+    children: React.ReactNode;
+}
+
+function Drawer({ open, children }: DrawerProps) {
     return (
         <CustomDrawer
             variant="permanent"
@@ -30,14 +28,7 @@ function DesktopDrawer({ open } : { open: boolean }) {
             }}
         >
             <Toolbar />
-            <List>
-                {user && <DrawerItem name="预约" link="/reservations/new"
-                    icon={<EventAvailableIcon />} open={open} />}
-                <DrawerItem name="通知" link="/notices"
-                    icon={<NotificationsIcon />} open={open} />
-                <DrawerItem name="关于" link="/about"
-                    icon={<InfoIcon />} open={open} />
-            </List>
+            <List>{children}</List>
         </CustomDrawer>
     );
 }
@@ -61,16 +52,18 @@ const CustomDrawer = styled(
 
 interface DrawerItemProps {
     name: string;
-    icon: React.ReactElement;
+    icon?: React.ReactElement;
     link: string;
     open: boolean;
+    onClick?: () => void;
+    selected: boolean;
 }
 
-const DrawerItem = (props: DrawerItemProps) => {
-    const { name, icon, link, open } = props;
+export const DrawerItem = (props: DrawerItemProps) => {
+    const { name, icon, link, open, onClick, selected } = props;
     return (
         <ListItem key={name} disablePadding sx={{ display: 'block' }}>
-            <ListItemButton component={Link} to={link}
+            <ListItemButton component={Link} to={link} selected={selected} onClick={onClick}
                 sx={{
                     minHeight: 48, px: 2.5,
                     justifyContent: open ? 'initial' : 'center',
@@ -113,6 +106,5 @@ const closedMixin = (theme: Theme): CSSObject => ({
         width: `calc(${theme.spacing(8)} + 1px)`,
     },
 });
-  
 
-export default DesktopDrawer;
+export default Drawer;

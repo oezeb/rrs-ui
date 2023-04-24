@@ -13,11 +13,29 @@ import NewResv from "./resvs/new/NewResv";
 import Resvs from "./resvs/Resvs";
 import SnackbarProvider from "./SnackbarProvider";
 import Layout from "./layout/Layout";
-import AppBar from "./layout/AppBar";
 import About from "./About";
 import Rooms from "./rooms/Rooms";
 import RoomDetails from "./rooms/RoomDetails";
 import { PeriodsProvider } from "./PeriodsProvider";
+import Advanced from "./resvs/Advanced";
+import AppBar from "./layout/AppBar";
+
+import AdminLayout from "./admin/Layout";
+import AdminResvs from "./admin/Resvs";
+import AdminUsers from "./admin/Users";
+import AdminRooms from "./admin/rooms/Rooms";
+import AdminSessions from "./admin/Sessions";
+import AdminPeriods from "./admin/Periods";
+import AdminNotices from "./admin/Notices";
+import AdminSettings from "./admin/Settings";
+import AdminLanguages from "./admin/Languages";
+import AdminAddRoom from "./admin/rooms/AddRom";
+import AdminEditRoom from "./admin/rooms/EditRoom";
+import AdminRoomTypes from "./admin/rooms/types/Types";
+import AdminRoomStatus from "./admin/rooms/status/Status";
+import AdminAddRoomType from "./admin/rooms/types/AddType";
+import AdminEditRoomType from "./admin/rooms/types/EditType";
+import AdminEditRoomStatus from "./admin/rooms/status/EditStatus";
 
 function App() {
   return(
@@ -30,42 +48,62 @@ function App() {
                         element={<PeriodsProvider><Home /></PeriodsProvider>} 
                     />
                     <Route
-                        path="/rooms"
+                        path="rooms"
                         element={<Rooms />}
                     />
                     <Route
-                        path="/rooms/:room_id"
+                        path="rooms/:room_id"
                         element={<RoomDetails />}
                     />
                     <Route 
-                        path="/notices" 
+                        path="notices" 
                         element={<Notices />} 
                     />
                     <Route
-                        path="/about"
+                        path="about"
                         element={<About />}
                     />
                     <Route 
-                        path="/profile"
+                        path="profile"
                         element={<RequireAuth><Profile /></RequireAuth>} 
                     />
                     <Route 
-                        path="/reservations" 
+                        path="reservations" 
                         element={<RequireAuth><Resvs /></RequireAuth>} 
                     />
                     <Route 
-                        path="/reservations/new" 
-                        element={<RequireAuth><PeriodsProvider><NewResv /></PeriodsProvider></RequireAuth>} 
+                        path="reservations/new" 
+                        element={<RequireAuth role={0} ><PeriodsProvider><NewResv /></PeriodsProvider></RequireAuth>} 
+                    />
+                    <Route 
+                        path="reservations/advanced"
+                        element={<RequireAuth role={1} ><PeriodsProvider><Advanced /></PeriodsProvider></RequireAuth>} 
                     />
                 </Route>
-
+                <Route path="/admin" element={<RequireAuth role={3}><AdminLayout /></RequireAuth>}>
+                    <Route path="reservations" element={<AdminResvs />} />
+                    <Route path="users" element={<AdminUsers />} />
+                    <Route path="rooms" element={<AdminRooms />} />
+                    <Route path="rooms/add" element={<AdminAddRoom />} />
+                    <Route path="rooms/edit" element={<AdminEditRoom />} />
+                    <Route path="rooms/types" element={<AdminRoomTypes />} />
+                    <Route path="rooms/status" element={<AdminRoomStatus />} />
+                    <Route path="rooms/status/edit" element={<AdminEditRoomStatus />} />
+                    <Route path="rooms/types/add" element={<AdminAddRoomType />} />
+                    <Route path="rooms/types/edit" element={<AdminEditRoomType />} />
+                    <Route path="sessions" element={<AdminSessions />} />
+                    <Route path="periods" element={<AdminPeriods />} />
+                    <Route path="notices" element={<AdminNotices />} />
+                    <Route path="settings" element={<AdminSettings />} />
+                    <Route path="languages" element={<AdminLanguages />} />
+                </Route>
                 <Route 
                     path="/login" 
-                    element={<><AppBar showMenuButton={false} /><Login /></>} 
+                    element={<><AppBar title="预约系统" showMenuButton={false} /><Login /></>} 
                 />
                 <Route 
                     path="/register" 
-                    element={<><AppBar showMenuButton={false} /><Register /></>} 
+                    element={<><AppBar title="预约系统" showMenuButton={false} /><Register /></>} 
                 />
             </Routes>
         </SnackbarProvider>

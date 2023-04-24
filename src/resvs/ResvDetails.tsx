@@ -19,11 +19,10 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
-import { Link } from "react-router-dom";
-
 import { statusColors as resvStatusColors } from "./Resvs";
 import { useSnackbar } from "../SnackbarProvider";
 import { ResvStatus } from "../util";
+import { Link } from "../Navigate";
 
 interface ResvDetailsViewProps {
     resv_id: string;

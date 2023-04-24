@@ -1,5 +1,4 @@
 import * as React from "react";
-import { Link } from "react-router-dom";
 import { Button, IconButton, Tooltip, Typography } from '@mui/material';
 
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -9,15 +8,20 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import InfoIcon from '@mui/icons-material/Info';
 import PersonIcon from '@mui/icons-material/Person';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import { UserRole } from "../util";
+import { Link } from "../Navigate";
 
 const UserMenu = (props: { 
     user: Record<string, any>, 
     logout: () => void,
+    showToAdmin?: boolean,
+    showToUser?: boolean,
 }) => {
-    const { user, logout } = props;
+    const { user, logout, showToAdmin, showToUser } = props;
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -45,6 +49,22 @@ const UserMenu = (props: {
                         {user.name}
                     </Typography>
                 </MenuItem>
+                {/* Admin panel */}
+                {user.role >= UserRole.admin && showToAdmin &&
+                <MenuItem component={Link} to="/admin" onClick={handleClose}>
+                    <AdminPanelSettingsIcon />
+                    <Typography variant="body2" sx={{ ml: 2 }}>
+                        管理界面
+                    </Typography>
+                </MenuItem>}
+                {/* User panel */}
+                {showToUser &&
+                <MenuItem component={Link} to="/" onClick={handleClose}>
+                    <PersonIcon />
+                    <Typography variant="body2" sx={{ ml: 2 }}>
+                        预约界面
+                    </Typography>
+                </MenuItem>}
                 <MenuItem component={Link} to="/reservations" onClick={handleClose}>
                     <EventAvailableIcon />
                     <Typography variant="body2" sx={{ ml: 2 }}>
