@@ -14,6 +14,7 @@ import Badge from '@mui/material/Badge';
 import { statusColors } from "./Resvs";
 import { compareStartEndTime, groupResvTimeSlots } from "../util";
 import { Link } from "../Navigate";
+import { paths as api_paths } from "../api";
 
 interface ResvsTableProps {
     timeFilter: "全部" | "当前" | "历史";
@@ -27,7 +28,7 @@ function ResvsTable(props: ResvsTableProps) {
     const [reservations, setReservations] = React.useState<Record<string, any>[]>([]);
 
     React.useEffect(() => {
-        let url = '/api/user/reservation';
+        let url = api_paths.user_resv;
         url += status != null ? `?status=${status.status}`: '';
         let now = dayjs();
         fetch(url).then(res => res.json()).then(data => {
@@ -83,56 +84,18 @@ function ResvTableRow({ resv, statusList, mobile }: ResvTableRowProps) {
     // 标题 | 房间 | 时间 | 状态 | 详情
     const [room, setRoom] = React.useState<Record<string, any> | null>(null);
     React.useEffect(() => {
-        fetch(`/api/rooms?room_id=${resv.room_id}`)
+        fetch(api_paths.rooms + `?room_id=${resv.room_id}`)
             .then(res => res.json())
             .then(data => {
                 setRoom(data[0]);
             });
     }, [resv.room_id]);
 
-    const TimeView = () => {
-        if (resv.time_slots.length === 0)
-            return <Box>无</Box>;
-        
-        let now = dayjs();
-        let ts = resv.time_slots[0];
-
-        const box = (s_format: string, e_format: string) => (
-            <Badge badgeContent={2}  max={1} color="info"
-                invisible={resv.time_slots.length <= 1}
-                >
-                <Box display="inline">
-                    {ts.start_time.format(s_format)}
-                    {mobile ? <br /> : " 至 "}
-                    {ts.end_time.format(e_format)}
-                </Box>
-            </Badge>
-        )
-
-        if (ts.start_time.isSame(now, 'year') && ts.end_time.isSame(now, 'year')) {
-            if (ts.start_time.isSame(now, 'month') && ts.end_time.isSame(now, 'month')) {
-                if (ts.start_time.isSame(now, 'day') && ts.end_time.isSame(now, 'day')) {
-                    return box("HH:mm", "HH:mm");
-                } else if (ts.start_time.isSame(ts.end_time, 'day')) {
-                    return box("MM/DD HH:mm", "HH:mm");
-                } else {
-                    return box("MM/DD HH:mm", "MM/DD HH:mm");
-                }
-            } else {
-                return box("MM/DD HH:mm", "MM/DD HH:mm");
-            }
-        } else if (ts.start_time.isSame(ts.end_time, 'year')) {
-            return box("YYYY/MM/DD HH:mm", "MM/DD HH:mm");
-        } else {
-            return box("YYYY/MM/DD HH:mm", "YYYY/MM/DD HH:mm");
-        }
-    };
-
     return (
         <TableRow>
             <TableCell>{resv.title}</TableCell>
             <TableCell>{room ? room.name : <Skeleton />}</TableCell>
-            <TableCell><TimeView /></TableCell>
+            <TableCell><TimeView resv={resv} mobile={mobile} /></TableCell>
             <TableCell>
                 <Box display="inline" 
                     borderBottom={3} 
@@ -153,5 +116,43 @@ function ResvTableRow({ resv, statusList, mobile }: ResvTableRowProps) {
         </TableRow>
     );
 }
+
+export const TimeView = ({ resv, mobile }: { resv: any, mobile?: boolean }) => {
+    if (resv.time_slots.length === 0)
+        return <Box>无</Box>;
+    
+    let now = dayjs();
+    let ts = resv.time_slots[0];
+
+    const box = (s_format: string, e_format: string) => (
+        <Badge badgeContent={2}  max={1} color="info"
+            invisible={resv.time_slots.length <= 1}
+            >
+            <Box display="inline">
+                {ts.start_time.format(s_format)}
+                {mobile ? <br /> : " 至 "}
+                {ts.end_time.format(e_format)}
+            </Box>
+        </Badge>
+    )
+
+    if (ts.start_time.isSame(now, 'year') && ts.end_time.isSame(now, 'year')) {
+        if (ts.start_time.isSame(now, 'month') && ts.end_time.isSame(now, 'month')) {
+            if (ts.start_time.isSame(now, 'day') && ts.end_time.isSame(now, 'day')) {
+                return box("HH:mm", "HH:mm");
+            } else if (ts.start_time.isSame(ts.end_time, 'day')) {
+                return box("MM/DD HH:mm", "HH:mm");
+            } else {
+                return box("MM/DD HH:mm", "MM/DD HH:mm");
+            }
+        } else {
+            return box("MM/DD HH:mm", "MM/DD HH:mm");
+        }
+    } else if (ts.start_time.isSame(ts.end_time, 'year')) {
+        return box("YYYY/MM/DD HH:mm", "MM/DD HH:mm");
+    } else {
+        return box("YYYY/MM/DD HH:mm", "YYYY/MM/DD HH:mm");
+    }
+};
 
 export default ResvsTable;

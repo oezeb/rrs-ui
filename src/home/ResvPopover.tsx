@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import {  Box, Button, Popover } from '@mui/material';
 import Typography from '@mui/material/Typography';
-import { ResvStatus } from '../util';
+import { paths as api_paths, resv_status } from "../api";
+import { useLang } from '../LangProvider';
 
 function ResvPopover({ resv }: { resv: Record<string, any> }) {
+    const lang = useLang();
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
     const [user, setUser] = useState<Record<string, any> | null>(null);
 
@@ -16,7 +18,7 @@ function ResvPopover({ resv }: { resv: Record<string, any> }) {
     };
 
     useEffect(() => {
-        const url = `/api/users?username=${resv.username}`;
+        let url = api_paths.users + `?username=${resv.username}`;
         fetch(url).then((res) => res.json()).then((data) => {
             setUser(data[0]);
         }).catch((err) => {
@@ -37,7 +39,7 @@ function ResvPopover({ resv }: { resv: Record<string, any> }) {
                     justifyContent: 'flex-start',
                 }}
             >
-                {resv.status === ResvStatus.pending ? "待审核" : resv.title}
+                {resv.status === resv_status.pending ? strings[lang]["pending"] : resv.title}
             </Button>
             <Popover open={open} anchorEl={anchorEl} onClose={handleClose}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
@@ -58,5 +60,14 @@ function ResvPopover({ resv }: { resv: Record<string, any> }) {
         </Box>
     );
 };
+
+const strings = {
+    "zh": {
+        pending: "待审核",
+    } as const,
+    "en": {
+        pending: "Pending",
+    } as const,
+} as const;
 
 export default ResvPopover;

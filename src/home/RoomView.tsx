@@ -5,11 +5,13 @@ import EventSeatIcon from '@mui/icons-material/EventSeat';
 import { Dayjs } from 'dayjs';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
-import { time, compareStartEndTime, ResvStatus, RoomStatus } from '../util';
+import { time, compareStartEndTime } from '../util';
 import { useAuth } from '../auth/AuthProvider';
 import ResvsView from './ResvsView';
 import { usePeriods } from '../PeriodsProvider';
 import { Link } from '../Navigate';
+import { paths as api_paths, resv_status, room_status } from "../api";
+import { useLang } from '../LangProvider';
 
 interface RoomViewProps {
     date: Dayjs;
@@ -19,17 +21,19 @@ interface RoomViewProps {
 }
 
 export function RoomView(props: RoomViewProps) {
+    const lang = useLang();
     const { date, room, show_pending, resv_button } = props;
     const [reservations, setReservations] = useState<Record<string, any>[]>([]);
     const { user } = useAuth();
     const { periods } = usePeriods();
 
     useEffect(() => {
-        let url = `/api/reservations?room_id=${room.room_id}&date=${date.format('YYYY-MM-DD')}`;
+        let today = date.format('YYYY-MM-DD');
+        let url = api_paths.reservations + `?room_id=${room.room_id}&start_date=${today}`;
         fetch(url).then((res) => res.json())
             .then((data) => {
                 setReservations(data.filter((r: Record<string, any>) => (
-                    (show_pending && r.status === ResvStatus.pending) || r.status === ResvStatus.confirmed
+                    (show_pending && r.status === resv_status.pending) || r.status === resv_status.confirmed
                 )).map((resv: Record<string, any>) => ({
                     ...resv,
                     start_time: time(resv.start_time),
@@ -61,10 +65,10 @@ export function RoomView(props: RoomViewProps) {
                     <ListItem dense disablePadding
                         sx={{ '&:hover': { backgroundColor: 'transparent' } }} 
                     >
-                        <ListItemButton disabled={room.status !== RoomStatus.available}
+                        <ListItemButton disabled={room.status !== room_status.available}
                             component={Link}  to={`/reservations/new?room_id=${room.room_id}`}>
                             <ListItemText>
-                                预约
+                                {strings[lang].resv}
                             </ListItemText>
                             <ListItemIcon sx={{
                                 minWidth: 0,
@@ -83,5 +87,14 @@ export const RoomSkeleton = () =>(
     <Skeleton width={140} height={244} variant="rectangular" component="div"
         animation="wave" sx={{ margin: 1 }} />
 );
+
+const strings = {
+    "zh": {
+        resv: "预约",
+    } as const,
+    "en": {
+        resv: "Reserve",
+    } as const,
+} as const;
 
 export default RoomView;

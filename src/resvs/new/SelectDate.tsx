@@ -8,16 +8,16 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import dayjs, { Dayjs } from "dayjs";
 
 import 'dayjs/locale/zh-cn'
+import { TimeWindow } from "./SelectDateTime";
 dayjs.locale('zh-cn');
 
 interface SelectDateProps {
     date: Dayjs;
     setDate: (date: Dayjs) => void;
-    start: Dayjs;
-    end: Dayjs;
+    timeWindow: TimeWindow;
 }
 
-function SelectDate({ date, setDate, start, end }: SelectDateProps) {
+function SelectDate({ date, setDate, timeWindow }: SelectDateProps) {
 
     const handleChange = (_: React.MouseEvent<HTMLElement>, value: string) => {
         if (value) { setDate(dayjs(value)); }
@@ -26,7 +26,7 @@ function SelectDate({ date, setDate, start, end }: SelectDateProps) {
     const dateStr = (date: Dayjs) => date.format('YYYY-MM-DD');
 
     let buttons: JSX.Element[] = [];
-    for (let i = start; i <= end; i = i.add(1, 'day')) {
+    for (let i = timeWindow.start; i <= timeWindow.end; i = i.add(1, 'day')) {
         buttons.push(
             <ToggleButton key={dateStr(i)} value={dateStr(i)}>
                 <Box>

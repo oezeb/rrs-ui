@@ -15,6 +15,7 @@ import LangMenu from "./LangMenu";
 import UserMenu from "./UserMenu";
 import { useAuth } from "../auth/AuthProvider";
 import { Link, useNavigate } from '../Navigate';
+import { to, useLang } from '../LangProvider';
 
 interface Props {
     title: string;
@@ -25,9 +26,12 @@ interface Props {
     showToUser?: boolean,
 }
 
-function AppBar({ title, onTitleClick, toggleDrawer, showMenuButton, showToAdmin, showToUser }: Props) {
+function AppBar(props: Props) {
+    const { title, onTitleClick, toggleDrawer, showMenuButton, showToAdmin, showToUser } = props;
     const { user, logout } = useAuth();
     let navigate = useNavigate();
+    
+    const lang = useLang();
 
     const handleLogout = () => {
         logout(() => navigate(""));
@@ -43,7 +47,7 @@ function AppBar({ title, onTitleClick, toggleDrawer, showMenuButton, showToAdmin
                 <IconButton color="inherit" onClick={toggleDrawer} sx={{ mr: 2 }}>
                     <MenuIcon />
                 </IconButton>}
-                <Button onClick={onTitleClick} variant='text' color='inherit' component={Link} to="" sx={{ textTransform: 'none'}}>
+                <Button onClick={onTitleClick} variant='text' color='inherit' component={Link} to={to("/", lang)}  sx={{ textTransform: 'none'}}>
                     <Typography variant="h6" noWrap component="div">
                         {title}
                     </Typography>
@@ -51,23 +55,32 @@ function AppBar({ title, onTitleClick, toggleDrawer, showMenuButton, showToAdmin
                 <Box sx={{ flexGrow: 1 }} />
                 <LangMenu />
                 {user ? <UserMenu  user={user} logout={handleLogout} showToAdmin={showToAdmin} showToUser={showToUser} /> : <>
-                    <Tooltip title="登录">
-                        <IconButton color="inherit" component={Link} to="/login"
+                    <Tooltip title={strings[lang]["login"]}>
+                        <IconButton color="inherit" component={Link} to={to("/login", lang)}
                             sx={{ display: { xs: 'block', sm: 'none' } }}
                         >
                             <AccountCircleOutlinedIcon />
                         </IconButton>
                     </Tooltip>
-                    <Button color="inherit" component={Link} to="/login"
+                    <Button color="inherit" component={Link} to={to("/login", lang)}
                         sx={{ display: { xs: 'none', sm: 'flex' } }}
                         startIcon={<AccountCircleOutlinedIcon />}
                     >
-                        登录
+                        {strings[lang]["login"]}
                     </Button>
                 </>}
             </Toolbar>
         </MuiAppBar>
     )
 }
+
+const strings = {
+    "zh": {
+        "login": "登录",
+    } as const,
+    "en": {
+        "login": "Login",
+    } as const
+};
 
 export default AppBar;

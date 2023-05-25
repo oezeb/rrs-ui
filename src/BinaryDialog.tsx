@@ -9,7 +9,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 interface BinaryDialogProps {
     open: boolean;
     title: string;
-    content: string;
+    content: JSX.Element | string;
     onConfirm: () => void;
     onClose: () => void;
 }
@@ -19,9 +19,9 @@ const BinaryDialog = ({ open, title, content, onConfirm, onClose }: BinaryDialog
         <Dialog open={open} >
             <DialogTitle>{title}</DialogTitle>
             <DialogContent>
-                <DialogContentText>
-                    {content}
-                </DialogContentText>
+                {typeof content === 'string' ?
+                    <DialogContentText>{content}</DialogContentText> :
+                    content}
             </DialogContent>
             <DialogActions>
                 <Button onClick={onClose}>取消</Button>

@@ -9,12 +9,13 @@ import {
 import EventSeatIcon from '@mui/icons-material/EventSeat';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Link } from "../Navigate";
+import { paths as api_paths } from "../api";
 
 function Rooms() {
     const [roomTypes, setRoomTypes] = useState<Record<string, any>[]>([]);
 
     useEffect(() => {
-        fetch(`/api/room_types`)
+        fetch(api_paths.room_types)
             .then(res => res.json())
             .then(data => {
                 setRoomTypes(data);
@@ -50,7 +51,7 @@ export function RoomList({ type, link, onClick, disabled }: RoomListProps) {
     const [rooms, setRooms] = useState<Record<string, any>[] | null>(null);
 
     useEffect(() => {
-        let url = '/api/rooms'
+        let url = api_paths.rooms;
         url += type ? `?type=${type.type}` : '';
         fetch(url).then((res) => res.json())
             .then((data) => {

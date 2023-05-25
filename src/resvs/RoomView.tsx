@@ -9,11 +9,11 @@ import { useLocation } from "react-router-dom";
 import { Dayjs } from "dayjs";
 
 import HomeRoomView, { RoomSkeleton } from "../home/RoomView";
-import { RoomStatus } from "../util";
 import { useNavigate } from "../Navigate";
+import { paths as api_paths, room_status } from "../api";
 
 interface RoomViewProps {
-    room_id: string;
+    room_id: string|number;
     date: Dayjs;
 }
 
@@ -26,7 +26,7 @@ function RoomView(props: RoomViewProps) {
     let from = location.state?.from || "";
 
     useEffect(() => {
-        let url = `/api/rooms?room_id=${room_id}`;
+        let url = api_paths.rooms + `?room_id=${room_id}`;
         fetch(url).then((res) => res.json())
             .then((data) => {
                 if (data && data.length > 0) {
@@ -47,7 +47,7 @@ function RoomView(props: RoomViewProps) {
                 <HomeRoomView date={date} 
                     room={room} show_pending={true} 
                 />
-                <Dialog open={room !== undefined && room.status === RoomStatus.unavailable}
+                <Dialog open={room !== undefined && room.status === room_status.unavailable}
                     aria-labelledby="alert-dialog-title"
                     aria-describedby="alert-dialog-description"
                 >

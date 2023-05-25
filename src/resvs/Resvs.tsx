@@ -1,7 +1,7 @@
 import React from "react";
 import {  
     Box, useTheme, useMediaQuery,
-    FormControl, InputLabel, Select, Typography, ListItem, ListItemText, 
+    FormControl, InputLabel, Select, Typography,  
 } from "@mui/material";
 
 import MenuItem from '@mui/material/MenuItem';
@@ -10,6 +10,7 @@ import { useSearchParams } from "react-router-dom";
 
 import ResvDetails from "./ResvDetails";
 import ResvsTable from "./ResvsTable";
+import { paths as api_paths } from "../api";
 
 // 0: 待审核、1: 审核通过、2: 已取消、3: 审核未通过
 export const statusColors = ["#FFC107", "#00CC66", "#A9A9A9", "#FF5733"];
@@ -25,7 +26,7 @@ function Resvs() {
     const resv_id = searchParams.get('id');
 
     React.useEffect(() => {
-        let url = '/api/resv_status';
+        let url = api_paths.resv_status;
         fetch(url).then(res => res.json()).then(res => {
             setStatusOptions(res.sort((a: any, b: any) => a.status - b.status));
         });

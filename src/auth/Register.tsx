@@ -5,6 +5,7 @@ import { email_regex } from "../util";
 import { useSnackbar } from "../SnackbarProvider";
 import { useAuth } from "./AuthProvider";
 import { Link, useNavigate } from "../Navigate";
+import { paths as api_paths } from "../api";
 
 function Register() {
     const [error, setError] = React.useState<Record<string, string>>({});
@@ -28,7 +29,7 @@ function Register() {
         const name = data.get('name');
         const email = data.get('email');
 
-        fetch("/api/register", {
+        fetch(api_paths.register, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -77,35 +78,21 @@ function Register() {
                     justifyContent: "center", alignItems: "center"
                 }}
             >
-                <TextField variant='standard' required fullWidth
-                    id="username" label="用户名" name="username"
+                <TextField {...UsernameFieldParams}
                     autoFocus
                     error={'username' in error}
                     helperText={error.username}
-                    inputProps={{ minLength: 6, maxLength: 20, pattern: "[a-zA-Z0-9_]+" }}
                 />
-                <TextField variant='standard' required fullWidth
-                    id="password" label="密码" name="password"
-                    type="password"
+                <TextField {...PasswordFieldParams}
                     error={'password' in error}
-                    inputProps={{ minLength: 6, maxLength: 20 }}
                 />
-                <TextField variant='standard' required fullWidth
+                <TextField {...PasswordFieldParams}
                     id="confirmPassword" label="确认密码" name="confirmPassword"
-                    type="password"
                     error={'password' in error}
                     helperText={error.password}
-                    inputProps={{ minLength: 6, maxLength: 20 }}
                 />
-                <TextField variant='standard' required fullWidth
-                    id="name" label="姓名" name="name"
-                    inputProps={{ minLength: 1 }}
-                />
-                <TextField variant='standard' fullWidth
-                    id="email" label="邮箱" name="email"
-                    type="email"
-                    inputProps={{ pattern: email_regex }}
-                />
+                <TextField {...NameFieldParams} />
+                <TextField {...EmailFieldParams} />
                 <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
                     注册
                 </Button>
@@ -120,5 +107,47 @@ function Register() {
         </Box>
     );
 }
+
+
+export const UsernameFieldParams = {
+    id: "username",
+    label: "用户名",
+    name: "username",
+    inputProps: { minLength: 1, pattern: "[a-zA-Z0-9_]+" },
+    variant: "standard",
+    fullWidth: true,
+    required: true,
+} as const;
+
+export const PasswordFieldParams = {
+    id: "password",
+    label: "密码",
+    name: "password",
+    type: "password",
+    inputProps: { minLength: 1 },
+    variant: "standard",
+    fullWidth: true,
+    required: true,
+} as const;
+
+export const NameFieldParams = {
+    id: "name",
+    label: "姓名",
+    name: "name",
+    inputProps: { minLength: 1 },
+    variant: "standard",
+    fullWidth: true,
+    required: true,
+} as const;
+
+export const EmailFieldParams = {
+    id: "email",
+    label: "邮箱",
+    name: "email",
+    type: "email",
+    inputProps: { pattern: email_regex.source },
+    variant: "standard",
+    fullWidth: true,
+} as const;
 
 export default Register;

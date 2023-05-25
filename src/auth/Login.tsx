@@ -1,15 +1,16 @@
+import {
+    Box,
+    Button,
+    TextField,
+    Typography
+} from "@mui/material";
 import * as React from "react";
 import { useLocation } from "react-router-dom";
-import { 
-    Box, 
-    Button, 
-    TextField, 
-    Typography 
-} from "@mui/material";
 
-import { useSnackbar } from "../SnackbarProvider";
-import { useAuth } from "./AuthProvider";
-import { useNavigate, Link } from "../Navigate";
+import { Link, useNavigate } from "Navigate";
+import { useSnackbar } from "SnackbarProvider";
+import { useAuth } from "auth/AuthProvider";
+import { PasswordFieldParams, UsernameFieldParams } from "auth/Register";
 
 function Login() {
     const [error, setError] = React.useState(false);
@@ -55,13 +56,12 @@ function Login() {
                 登录
             </Typography>
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-                <TextField required fullWidth variant='standard' error={error}
-                    label="用户名" id="username" name="username"
+                <TextField {...UsernameFieldParams}
+                    error={error}
                     autoFocus
                 />
-                <TextField required fullWidth variant='standard' error={error}
-                    label="密码" id="password" name="password" 
-                    type="password"
+                <TextField {...PasswordFieldParams}
+                    error={error}
                     helperText={error ? "用户名或密码错误" : ""}
                 />
                 <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>

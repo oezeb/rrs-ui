@@ -2,37 +2,6 @@ import dayjs from "dayjs";
 
 export const email_regex = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
 
-export const SecuLevel = {
-    public: 0,
-    private: 2,
-};
-
-export const ResvStatus = {
-    pending: 0,
-    confirmed: 1,
-    cancelled: 2,
-    rejected: 3,
-};
-
-export const RoomStatus = {
-    unavailable: 0,
-    available: 1,
-};
-
-export const UserRole = {
-    blocked: -1,
-    restricted: 0,
-    basic: 1,
-    advanced: 2,
-    admin: 3,
-};
-
-export const Setting = {
-    timeWindow: 1,
-    timeLimit: 2,
-    maxDaily: 3,
-};
-
 export const time = (t: string) => {
     const re = /\d+:\d\d?(:\d\d?)?/;
     const res = re.exec(t);
@@ -66,7 +35,10 @@ export const compareStartEndTime = (a: any, b: any) => {
 }
 
 // use to sort table columns
-export function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
+export type Order = 'asc' | 'desc';
+export type DescendingComparator<T> = (a: T, b: T, orderBy: keyof T) => number;
+
+export function basicDescendingComparator<T>(a: T, b: T, orderBy: keyof T) {
     if (b[orderBy] < a[orderBy]) {
         return -1;
     }
@@ -76,14 +48,14 @@ export function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
     return 0;
 }
   
-export type Order = 'asc' | 'desc';
 
-export function getComparator<Key extends keyof any>(
+export function getComparator<T>(
     order: Order,
-    orderBy: Key,
+    orderBy: keyof T,
+    descendingComparator: DescendingComparator<T>=basicDescendingComparator,
   ): (
-    a: { [key in Key]: number | string },
-    b: { [key in Key]: number | string },
+    a: T,
+    b: T,
   ) => number {
     return order === 'desc'
         ? (a, b) => descendingComparator(a, b, orderBy)
@@ -104,7 +76,28 @@ export const groupResvTimeSlots = (resvs: Record<string, any>[]) => {
         return acc;
     }, {}));
 }
-  
+
+export const labelFieldParams = {
+    variant: "standard",
+    id: "label",
+    name: "label",
+    label: "标签",
+    required: true,
+    size: "small",
+    fullWidth: true,
+} as const;
+
+export const descriptionFieldParams = {
+    id: "description",
+    name: "description",
+    label: "描述",
+    multiline: true,
+    minRows: 3,
+    maxRows: 5,
+    size: "small",
+    fullWidth: true,
+} as const;
+
 export const defaultLanguage: string = "zh";
 
 const _linksMemo: Record<string, any> = {};

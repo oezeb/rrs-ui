@@ -1,73 +1,56 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { 
-    Autocomplete, 
+    Autocomplete as MuiAutocomplete, 
     Box, 
     TextField, 
     Typography 
 } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
 
-import { ResvStatus, Setting, time } from "../../util";
-import { Option, optionEqual } from "./SelectDateTime";
+import { Option as _Option, TimeWindow, optionEqual, formatDateTime } from "./SelectDateTime";
 import { usePeriods } from "../../PeriodsProvider";
+import { paths as api_paths, resv_status } from "../../api";
+
+interface Option extends _Option {
+    disabled: boolean;
+}
 
 interface SelectTimeProps {
-    room_id: string;
+    room_id: string|number;
     date: Dayjs;
-    start: Dayjs;
-    end: Dayjs;
-    startOption: Option|null;
-    setStartOption: (option: Option|null) => void;
-    endOption: Option|null;
-    setEndOption: (option: Option|null) => void;
+    timeWindow: TimeWindow;
+    max_time?: number;
 }
 
 function SelectTime(props: SelectTimeProps) {
-    const { room_id, date, start, end, startOption, setStartOption, endOption, setEndOption } = props;
+    const { room_id, date, timeWindow, max_time } = props;
+    const [periods, setPeriods] = useState<Record<string, any>[]>([]);
     const [reservations, setReservations] = useState<Record<string, any>[]>([]);
-    const [max_time, setMaxTime] = useState(0); // seconds
-    const [startOptions, setStartOptions] = useState<Option[]>([]);
-    const [endOptions, setEndOptions] = useState<Option[]>([]);
+    // const [startOptions, setStartOptions] = useState<Option[]>([]);
+    const [startOption, setStartOption] = useState<Option|null>(null);
+    const [endOption, setEndOption] = useState<Option|null>(null);
+    // const [endOptions, setEndOptions] = useState<Option[]>([]);
 
-    const { periods } = usePeriods();
-
-    const options = (periods: Record<string, any>[], t: "start" | "end") => {
-        return periods.map((period, i) => {
-            return {index: i,
-                time: t === "start" ? period.start_time : period.end_time,
-            };
-        });
-    };
-
-    const filterPeriods = useMemo(() => {
-        const t = (p: any) => dayjs(`${date.format('YYYY-MM-DD')} ${p.format('HH:mm:ss')}`);
-        return periods.map((p: any) => ({
+    const _periods = usePeriods().periods;
+    
+    useEffect(() => {
+        setPeriods(_periods.map((p) => ({
             ...p,
-            start_time: t(p.start_time),
-            end_time: t(p.end_time),
-        })).filter((p: Record<string, any>) => (
-            // filter out periods that are not in the time window
-            // or are already reserved
-            p.start_time >= start && p.end_time <= end && reservations.every((r) => (
-                (r.start_time >= p.end_time || r.end_time <= p.start_time)
-            ))
-        ));
-    }, [date, start, end, periods, reservations]);
+            start_time: dayjs(formatDateTime(date, p.start_time)),
+            end_time: dayjs(formatDateTime(date, p.end_time)),
+            disabled: false,
+        })));
+        setStartOption(null);
+        setEndOption(null);
+    }, [_periods, date]);
 
     useEffect(() => {
-            setStartOptions(options(filterPeriods, "start"));
-            setEndOptions(options(filterPeriods, "end"));
-            setStartOption(null);
-            setEndOption(null);
-    }, [filterPeriods, setStartOptions, setEndOptions, setStartOption, setEndOption]);
-
-    useEffect(() => {
-        let url = `/api/reservations?room_id=${room_id}&date=${date.format('YYYY-MM-DD')}`;
+        let url = api_paths.reservations + `?room_id=${room_id}&start_date=${date.format('YYYY-MM-DD')}`;
         fetch(url)
         .then((res) => res.json())
         .then((data) => {
             setReservations(data.filter((r: Record<string, any>) => (
-                r.status === ResvStatus.pending || r.status === ResvStatus.confirmed
+                r.status === resv_status.pending || r.status === resv_status.confirmed
             ))
                 .map((resv: Record<string, any>) => {
                     return {
@@ -82,91 +65,153 @@ function SelectTime(props: SelectTimeProps) {
         });
     }, [room_id, date]);
 
-    useEffect(() => {
-        fetch(`/api/settings?id=${Setting.timeLimit}`)
-        .then((res) => res.json())
-        .then((data) => {
-            setMaxTime(time(data[0].value).diff(time('00:00'), 'second'))
-        })
-        .catch((err) => {
-            console.error(err);
-        });
-    }, []);
-
-    const handleStartChange = (_: any, value: Option | null) => {
-        setStartOption(value);
-        let endOptions = [];
-        if (value) {
-            for (let i = value.index; i < filterPeriods.length; i++) {
-                const period = filterPeriods[i];
-                // ensure continuous time
-                if (i > value.index && !period.start_time.isSame(filterPeriods[i - 1].end_time)) {
-                    break;
-                }
-                if (period.end_time.diff(value.time, 'second') <= max_time) {
-                    endOptions.push({ index: i, time: period.end_time });
-                } else { break; }
+    const filterPeriods = () => {
+        let _periods = periods;
+        for (let p of _periods) {
+            if (p.start_time >= timeWindow.start && p.end_time <= timeWindow.end && reservations.every((r) => (
+                r.start_time >= p.end_time || r.end_time <= p.start_time
+            ))) {
+                p.disabled = false;
+            } else {
+                p.disabled = true;
             }
-        } else {
-            endOptions = options(filterPeriods, "end");
         }
-        setEndOptions(endOptions);
-    }
+        return _periods;
+    };
 
-    const handleEndChange = (_: any, value: Option | null) => {
-        setEndOption(value);
-        let startOptions = [];
-        if (value) {
-            for (let i = value.index; i >= 0; i--) {
-                let period = filterPeriods[i];
-                // ensure continuous time
-                if (i < value.index && !period.end_time.isSame(filterPeriods[i + 1].start_time)) {
-                    break;
+    const endOptions = () => {  
+        let _periods = filterPeriods();  
+        let _endOptions: Option[] = _periods.map((p, i) => {
+            return {
+            index: i,
+            time: p.end_time,
+            disabled: p.disabled,
+        }});
+        
+        if (startOption !== null) {
+            let continuous = true;
+            let below_max_time = true;
+            for (let i = 0; i < filterPeriods.length; i++) {
+                let p = _periods[i];
+                if (p.disabled === false) {
+                    if (i < startOption.index) {
+                        _endOptions[i].disabled = true;
+                    } else {
+                        if (continuous && i > startOption.index && !p.start_time.isSame(_periods[i - 1].end_time)) {
+                            continuous = false;
+                        }
+
+                        if (below_max_time && max_time !== undefined && p.end_time.diff(startOption.time, 'second') > max_time) {
+                            below_max_time = false;
+                        }
+
+                        if (!continuous || !below_max_time) {
+                            _endOptions[i].disabled = true;
+                        }
+                    }
                 }
-                if (value.time.diff(period.start_time, 'second') <= max_time) {
-                    startOptions.push({ index: i, time: period.start_time });
-                } else { break; }
             }
-            startOptions.reverse();
-        } else {
-            startOptions = options(filterPeriods, "start");
         }
-        setStartOptions(startOptions);
-    }
 
-    const timeView = (time: number) => { // seconds
-        const h = Math.floor(time / 3600);
-        const m = Math.floor((time % 3600) / 60);
-        if (h > 0 && m > 0) {
-            return `${h}小时${m}分钟`;
-        } else if (h > 0) {
-            return `${h}小时`;
-        } else {
-            return `${m}分钟`;
+        return _endOptions;
+    };
+
+    const startOptions = () => {
+        let _periods = filterPeriods();
+        let _startOptions: Option[] = _periods.map((p, i) => ({
+            index: i,
+            time: p.start_time,
+            disabled: p.disabled,
+        }));
+
+        if (endOption !== null) {
+            let continuous = true;
+            let below_max_time = true;
+            for (let i = _periods.length - 1; i >= 0; i--) {
+                let p = _periods[i];
+                if (!p.disabled) {
+                    if (i > endOption.index) {
+                        _startOptions[i].disabled = true;
+                    } else {
+                        if (continuous && i < endOption.index && !p.end_time.isSame(_periods[i + 1].start_time)) {
+                            continuous = false;
+                        }
+
+                        if (below_max_time && max_time !== undefined && endOption.time.diff(p.start_time, 'second') > max_time) {
+                            below_max_time = false;
+                        }
+
+                        if (!continuous || !below_max_time) {
+                            _startOptions[i].disabled = true;
+                        }
+                    }
+                }
+            }
         }
-    }
-    
-    // TODO: use Autocomplete filterOptions
-    const auto_complete_view = (value: Option | null, options: Option[], label: string,
-        onChange: (event: any, value: Option | null) => void, show_max_time?: boolean) => (
-        <Autocomplete fullWidth value={value} options={options}
-            getOptionLabel={(option) => option.time.format('HH:mm')}
-            isOptionEqualToValue={(option, value) => optionEqual(option, value)}
-            renderInput={(params) => <TextField {...params} label={label} variant="standard"
-                helperText={show_max_time? <>最长预约时间：{timeView(max_time)}</>: null}
-            />}
-            onChange={onChange}
-        />
-    );
+
+        return _startOptions;
+    };
 
     return (
         <Box display="flex" width="100%">
-            {auto_complete_view(startOption, startOptions, "开始时间", handleStartChange, true)}
+            <AutoComplete
+                name="start_time"
+                value={startOption}
+                options={startOptions()}
+                label="开始时间"
+                onChange={(e: any, value: Option | null) => setStartOption(value)}
+                max_time={max_time}
+            />
             <Box><Typography variant="h6" sx={{ margin: 2 }}>~</Typography></Box>
-            {auto_complete_view(endOption, endOptions, "结束时间", handleEndChange)}
+            <AutoComplete
+                name="end_time"
+                value={endOption}
+                options={endOptions()}
+                label="结束时间"
+                onChange={(e: any, value: Option | null) => setEndOption(value)}
+            />
         </Box>
     );
 }
 
+const timeView = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h > 0 && m > 0) {
+        return `${h}小时${m}分钟`;
+    } else if (h > 0) {
+        return `${h}小时`;
+    } else {
+        return `${m}分钟`;
+    }
+}
+
+interface AutoCompleteProps {
+    name: string;
+    value: Option | null;
+    options: Option[];
+    label: string;
+    onChange: (event: any, value: Option | null) => void;
+    max_time?: number;
+}
+
+const AutoComplete = ({ name, value, options, label, onChange, max_time }: AutoCompleteProps) => (
+    <MuiAutocomplete fullWidth size="small" 
+        getOptionLabel={(option) => option.time.format('HH:mm')}
+        isOptionEqualToValue={(v1, v2) => optionEqual(v1, v2)}
+        getOptionDisabled={(option) => option.disabled}
+        
+        value={value} 
+        options={options}
+        onChange={onChange}
+        renderInput={(params) => (
+            <TextField {...params} required variant="standard"
+                name={name}
+                label={label}
+                helperText={max_time !== undefined? <>最长预约时间：{timeView(max_time)}</>: null}
+            />
+        )}
+    />
+)
 
 export default SelectTime;

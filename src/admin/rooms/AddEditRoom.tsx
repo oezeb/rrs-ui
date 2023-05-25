@@ -2,34 +2,33 @@ import * as React from "react";
 import { 
     Box,  
     Typography, 
-    List, ListItem, Button, Autocomplete,
+    List, ListItem, Button, FormControl, InputLabel, Select, MenuItem,
 } from "@mui/material";
 import TextField from "@mui/material/TextField";
-import InputAdornment from '@mui/material/InputAdornment';
 
-import { Item as AddEditLabelItem } from "./AddEditLabel";
+import { Item as AddEditLabelItem } from "../AddEditLabel";
+import { paths as api_paths, room_status } from "../../api";
 
 interface AddEditRoomProps {
     title: string;
-    room_id: JSX.Element;
-    nameDefault?: string;
-    capacityDefault?: number;
-    status: number|null;
-    setStatus: (status: number|null) => void;
-    type: number|null;
-    setType: (type: number|null) => void;
-    handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+    room_id?: number|string;
+    name?: string;
+    capacity?: number|string;
+    status?: number|string;
+    type?: number|string;
     image?: JSX.Element;
+    handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+
+    _type: "add" | "edit";
 }
 
 export const AddEditRoom = (props: AddEditRoomProps) => {
-    const { title, room_id, nameDefault, capacityDefault, status, setStatus, type, setType, handleSubmit, image } = props;
-    const [name, setName] = React.useState(nameDefault);
-    const [roomTypes, setRoomTypes] = React.useState<Record<number, any>>({});
-    const [roomStatus, setRoomStatus] = React.useState<Record<number, any>>({});
+    const { title, room_id, name, capacity, status, type, image, handleSubmit, _type } = props;
+    const [roomTypes, setRoomTypes] = React.useState<Record<number, any>|undefined>(undefined);
+    const [roomStatus, setRoomStatus] = React.useState<Record<number, any>|undefined>(undefined);
 
     React.useEffect(() => {
-        fetch('/api/admin/room_types')
+        fetch(api_paths.admin.room_types)
             .then(res => res.json())
             .then(data => {
                 setRoomTypes(data.reduce((acc: Record<string, any>, cur: Record<string, any>) => {
@@ -39,9 +38,10 @@ export const AddEditRoom = (props: AddEditRoomProps) => {
             })
             .catch(err => {
                 console.log(err);
+                setRoomTypes({});
             });
 
-        fetch('/api/admin/room_status')
+        fetch(api_paths.admin.room_status)
             .then(res => res.json())
             .then(data => {
                 setRoomStatus(data.reduce((acc: Record<string, any>, cur: Record<string, any>) => {
@@ -51,6 +51,7 @@ export const AddEditRoom = (props: AddEditRoomProps) => {
             })
             .catch(err => {
                 console.log(err);
+                setRoomStatus({});
             });
     }, []);
     
@@ -61,57 +62,47 @@ export const AddEditRoom = (props: AddEditRoomProps) => {
             </Typography>
             <List sx={{ ml: 4 }} dense>
                 <ListItem>
-                    {room_id}
+                    <TextField size="small" variant="standard" type="number" fullWidth
+                        name="room_id" label="房间号" defaultValue={room_id}
+                        disabled={_type === "edit"}
+                    />
+                    {roomStatus !== undefined &&
+                    <FormControl sx={{ ml: 1}} fullWidth required>
+                        <InputLabel>状态</InputLabel>
+                        <Select variant="standard" required size="small"
+                            name="status" label="状态" defaultValue={status??room_status.available}
+                        >
+                            {Object.values(roomStatus).map((status: any) => (
+                                <MenuItem key={status.status} value={status.status}>
+                                    {status.label}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>}
+                    {roomTypes !== undefined &&
+                    <FormControl sx={{ ml: 1}} fullWidth required>
+                        <InputLabel>类型</InputLabel>
+                        <Select variant="standard" required size="small"
+                            name="type" label="类型" defaultValue={type}
+                        >
+                            {Object.values(roomTypes).map((type: any) => (
+                                <MenuItem key={type.type} value={type.type}>
+                                    {type.label}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>}
                 </ListItem>
                 <ListItem>
-                    <Item name="房间名" value={<TextField required
-                        name="name" variant="standard"
-                        size="small"
-                        value={name}
-                        onChange={(event) => {
-                            setName(event.target.value);
-                        }}
-                        inputProps={{ 
-                            maxLength: 50,
-                         }}
-                         InputProps={{
-                            endAdornment: <InputAdornment position="end">{name?.length??0}/50</InputAdornment>,
-                        }}
-                    />} />
+                    <TextField required size="small" variant="standard" fullWidth
+                        name="name" label="房间名" defaultValue={name}
+                        inputProps={{ maxLength: 50 }}
+                    />
                 </ListItem>
                 <ListItem>
-                    <Item name="容量" value={<TextField required
-                        name="capacity" type="number" variant="standard"
-                        size="small" defaultValue={capacityDefault}
-                    />} />
-                </ListItem>
-                <ListItem>
-                    <Item name="状态" value={<Autocomplete 
-                        options={Object.values(roomStatus)}
-                        getOptionLabel={(option) => option.label}
-                        renderInput={(params) => <TextField {...params} required name="status" />}
-                        size="small"
-                        value={status !== null ? roomStatus[status]??null:null}
-                        onChange={(event, newValue) => {
-                            if (newValue) {
-                                setStatus(newValue.status);
-                            }
-                        }}
-                    />} />
-                </ListItem>
-                <ListItem>
-                    <Item name="类型" value={<Autocomplete
-                        options={Object.values(roomTypes)}
-                        getOptionLabel={(option) => option.label}
-                        renderInput={(params) => <TextField {...params} required name="type" />}
-                        size="small"
-                        value={type !== null ? roomTypes[type]??null:null}
-                        onChange={(event, newValue) => {
-                            if (newValue) {
-                                setType(newValue.type);
-                            }
-                        }}
-                    />} />
+                <TextField required size="small" variant="standard" type="number" fullWidth
+                        name="capacity" label="容量" defaultValue={capacity}
+                    />
                 </ListItem>
                 <ListItem>
                     <Item name="图片" value={<>
@@ -122,10 +113,12 @@ export const AddEditRoom = (props: AddEditRoomProps) => {
                     </>} />
                     {image}
                 </ListItem>
+                <ListItem>
+                    <Button fullWidth variant="contained" color="primary" type="submit">
+                        {_type === "add" ? "添加" : "保存"}
+                    </Button>
+                </ListItem>
             </List>
-            <Button fullWidth variant="contained" color="primary" type="submit">
-                提交
-            </Button>
         </Box>
     );
 }

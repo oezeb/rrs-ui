@@ -4,20 +4,22 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useSearchParams } from "react-router-dom";
 
 import { useSnackbar } from "../../SnackbarProvider";
-import AddEditRoom, { Item } from "./AddEditRoom";
+import AddEditRoom from "./AddEditRoom";
 import { FileToBase64 } from "../../util";
+import { paths as api_paths } from "../../api";
+import { BackDrop } from "../../App";
 
 function EditRoom() {
     const [room, setRoom] = React.useState<Record<string, any>|null>(null);
-    const [type, setType] = React.useState<number|null>(null);
-    const [status, setStatus] = React.useState<number|null>(null);
+    const [delImage, setDelImage] = React.useState<boolean>(false);
+    const [loading, setLoading] = React.useState<boolean>(false);
     const [searchParams] = useSearchParams();
     const {showSnackbar} = useSnackbar();
 
     let room_id = searchParams.get('room_id');
 
     React.useEffect(() => {
-        fetch(`/api/admin/rooms?room_id=${room_id}`)
+        fetch(api_paths.admin.rooms + `?room_id=${room_id}`)
             .then(res => res.json())
             .then(data => {
                 setRoom(data[0]);
@@ -26,13 +28,6 @@ function EditRoom() {
                 console.log(err);
             });
     }, [room_id]);
-
-    React.useEffect(() => {
-        if (room) {
-            setStatus(room.status);
-            setType(room.type);
-        }
-    }, [room]);
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -43,6 +38,8 @@ function EditRoom() {
         let form = new FormData(event.currentTarget);
         let name = form.get('name');
         let capacity = form.get('capacity');
+        let status = form.get('status');
+        let type = form.get('type');
         let image = form.get('image') as File;
 
         let data: Record<string, any> = {};
@@ -52,47 +49,45 @@ function EditRoom() {
         if (capacity !== `${room.capacity}`) {
             data.capacity = capacity;
         }
-        if (status !== room.status) {
+        if (status !== `${room.status}`) {
             data.status = status;
         }
-        if (type !== room.type) {
+        if (type !== `${room.type}`) {
             data.type = type;
         }
         if (image.name !== "" && image.size > 0) {
             data.image = image;
-        } else if (room.image === null) {
-            data.image = null;
+        } else if (delImage) {
+            data.image = "";
         }
 
         if (Object.keys(data).length === 0) {
             showSnackbar({message: "未修改任何内容", severity: "warning", duration: 2000});
         } else {
             const update = async () => {
+                setLoading(true);
                 try {
-                    let res = await fetch('/api/admin/rooms', {
+                    let res = await fetch(api_paths.admin.rooms + `/${room.room_id}`, {
                         method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify([{
-                            where: { room_id: room.room_id },
-                            data: data
-                        }]),
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(data)
                     });
 
                     if (res.ok) {
                         setRoom({...room, ...data});
                         showSnackbar({message: "修改成功", severity: "success", duration: 2000});
                     } else {
-                        showSnackbar({message: "修改失败", severity: "error"});
+                        throw new Error("修改失败");
                     }
                 } catch (err) {
                     console.log(err);
                     showSnackbar({message: "修改失败", severity: "error"});
+                } finally {
+                    setLoading(false);
                 }
             };
-
-            if (data.image !== undefined) {
+            
+            if (data.image !== undefined && data.image !== "") {
                 FileToBase64(data.image, (base64) => {
                     data.image = base64;
                     update();
@@ -103,29 +98,30 @@ function EditRoom() {
         }
     };
 
+
     return (<>{room && 
         <AddEditRoom
             title="编辑房间"
-            room_id={<Item name="房间号" value={room.room_id} />}
-            nameDefault={room.name}
-            capacityDefault={room.capacity}
-            status={status}
-            setStatus={setStatus}
-            type={type}
-            setType={setType}
+            room_id={room.room_id}
+            name={room.name}
+            capacity={room.capacity}
+            status={room.status}
+            type={room.type}
             handleSubmit={handleSubmit}
             image={<>
-                {room.image !== null && <><Tooltip title="删除图片" arrow>
+                {room.image && <><Tooltip title="删除图片" arrow>
                     <IconButton onClick={() => {
                         setRoom({...room, image: null});
+                        setDelImage(true);
                     }} size="small">
                         <DeleteIcon />
                     </IconButton>
                 </Tooltip>
                 <img src={`data:image/png;base64,${room.image}`} alt="房间图片" style={{maxWidth: 100}} /></>}
             </>}
+            _type="edit"
         />
-    }</>);
+    }<BackDrop open={loading} /></>);
 }
 
 export default EditRoom;

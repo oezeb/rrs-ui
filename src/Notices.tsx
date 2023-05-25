@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown'
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import EditIcon from '@mui/icons-material/Edit';
 import { Link } from "./Navigate";
+import { paths as api_paths } from "./api";
 
 function Notices() {
     const [searchParams] = useSearchParams();
@@ -31,7 +32,7 @@ function NoticeList() {
     const [notices, setNotices] = useState<Record<string, any>[]|null>(null);
 
     useEffect(() => {
-        let url = `/api/notices`;
+        let url = api_paths.notices;
         fetch(url).then((res) => res.json())
             .then((data) => {
                 setNotices(data.map((notice: Record<string, any>) => {
@@ -83,7 +84,7 @@ function NoticeView({ notice_id }: { notice_id: string }) {
     const [notice, setNotice] = useState<Record<string, any> | null>(null);
 
     useEffect(() => {
-        let url = `/api/notices?notice_id=${notice_id}`
+        let url = api_paths.notices + `?notice_id=${notice_id}`;
         fetch(url).then((res) => res.json())
             .then((data) => {
                 setNotice({
@@ -107,7 +108,7 @@ function NoticeView({ notice_id }: { notice_id: string }) {
                         </Typography>
                     }
                     secondary={
-                        <Box sx={{ display: "flex", alignItems: "center", mt: 0.3 }}>
+                        <Box component="span" sx={{ display: "flex", alignItems: "center", mt: 0.3 }}>
                             <AccessTimeIcon fontSize="small" color="disabled" sx={{ mr: 1 }} />
                             {notice? notice.create_time.format("YYYY-MM-DD HH:mm")
                                 : <Skeleton width={110} />}

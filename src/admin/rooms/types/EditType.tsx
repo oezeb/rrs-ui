@@ -1,8 +1,9 @@
 import * as React from "react";
 import { useSearchParams } from "react-router-dom";
 
-import AddEditLabel, { Item } from "../AddEditLabel";
 import { useSnackbar } from "../../../SnackbarProvider";
+import AddEditType from "./AddEditType";
+import { paths as api_paths } from "../../../api";
 
 function EditType() {
     const [type, setType] = React.useState<Record<string, any>|null>(null);
@@ -12,10 +13,9 @@ function EditType() {
     let id = searchParams.get('type');
 
     React.useEffect(() => {
-        let url = `/api/admin/room_types?type=${id}`;
+        let url = api_paths.admin.room_types + `?type=${id}`;
         fetch(url).then(res => res.json()).then(res => {
             setType(res[0]);
-            console.log(res[0]);
         });
     }, [id]);
 
@@ -37,18 +37,15 @@ function EditType() {
             data.description = description;
         }
 
+        console.log(data);
+
         if (Object.keys(data).length === 0) {
             showSnackbar({message: "未修改任何内容", severity: "warning", duration: 2000});
         } else {
-            fetch('/api/admin/room_types', {
+            fetch(api_paths.admin.room_types + `/${type.type}`, {
                 method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify([{
-                    where: {type: type.type},
-                    data: data
-                }]),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
             })
             .then(res => {
                 if (res.ok) {
@@ -66,12 +63,13 @@ function EditType() {
     };
 
     return (<>{type &&
-        <AddEditLabel
+        <AddEditType
             title="编辑房间类型"
-            id={<Item name="类型" value={type.type} />}
-            labelDefault={type.label}
-            descriptionDefault={type.description}
+            type={type.type}
+            label={type.label}
+            description={type.description}
             handleSubmit={handleSubmit}
+            _type="edit"
         />
     }</>);
 }

@@ -4,6 +4,7 @@ import {  List, ListItem, Box, Tooltip, Skeleton } from "@mui/material";
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import { useParams } from "react-router-dom";
+import { paths as api_paths } from "../api";
 
 // room status: 0: 不可用、1: 可用
 export const statusColors = ["#FF5733", "#00CC66"];
@@ -16,7 +17,7 @@ function RoomDetails() {
     const { room_id } = useParams();
 
     React.useEffect(() => {
-        fetch(`/api/rooms?room_id=${room_id}`)
+        fetch(api_paths.rooms + `?room_id=${room_id}`)
             .then(res => res.json())
             .then(data => {
                 setRoom(data[0]);
@@ -24,7 +25,7 @@ function RoomDetails() {
         }, [room_id]);
         
     React.useEffect(() => {
-        fetch(`/api/room_status`)
+        fetch(api_paths.room_status)
             .then(res => res.json())
             .then(data => {
                 setRoomStatus(data.reduce((acc: Record<number, any>, item: any) => {
@@ -33,7 +34,7 @@ function RoomDetails() {
                 }, {}));
             });
 
-        fetch(`/api/room_types`)
+        fetch(api_paths.room_types)
             .then(res => res.json())
             .then(data => {
                 setRoomTypes(data.reduce((acc: Record<number, any>, item: any) => {

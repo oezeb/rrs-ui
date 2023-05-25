@@ -1,27 +1,25 @@
 import * as React from "react";
-import TextField from "@mui/material/TextField";
 
-import AddEditRoom, { Item } from "./AddEditRoom";
+import AddEditRoom from "./AddEditRoom";
 import { useSnackbar } from "../../SnackbarProvider";
 import { useNavigate } from "../../Navigate";
 import { FileToBase64 } from "../../util";
+import { paths as api_paths } from "../../api";
 
 function AddRoom() {
-    const [type, setType] = React.useState<number|null>(null);
-    const [status, setStatus] = React.useState<number|null>(null);
-
     const navigate = useNavigate();
     const {showSnackbar} = useSnackbar();
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        
         let form = new FormData(event.currentTarget);
 
         let data: Record<string, any> = {
             name: form.get('name'),
             capacity: form.get('capacity'),
-            status: status,
-            type: type,
+            status: form.get('status'),
+            type: form.get('type'),
         };
 
         let room_id = form.get('room_id');
@@ -36,18 +34,16 @@ function AddRoom() {
 
         const insert = async () => {
             try {
-                let res = await fetch('/api/admin/rooms', {
+                let res = await fetch(api_paths.admin.rooms, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify([data])
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
                 });
 
                 if (res.ok) {
                     let json = await res.json();
                     showSnackbar({message: "添加成功", severity: "success", duration: 2000});
-                    navigate(`/admin/rooms/edit?room_id=${json['lastrowid'][0]}`);
+                    navigate(`/admin/rooms/edit?room_id=${json.room_id}`);
                 } else {
                     throw new Error("添加失败");
                 }
@@ -69,17 +65,8 @@ function AddRoom() {
     
     return (<AddEditRoom
         title="添加房间"
-        room_id={<Item name="房间号" value={<TextField
-            name="room_id" type="number" variant="standard"
-            InputLabelProps={{ shrink: true }}
-            size="small"
-            helperText="如果为空，将自动生成"
-        />} />}
-        status={status}
-        setStatus={setStatus}
-        type={type}
-        setType={setType}
         handleSubmit={handleSubmit}
+        _type="add"
     />);
 }
 

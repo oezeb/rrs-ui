@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { Box, CssBaseline, Toolbar } from '@mui/material';
 
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -10,6 +10,7 @@ import DateRangeIcon from '@mui/icons-material/DateRange';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LanguageIcon from '@mui/icons-material/Language';
 import TimelapseIcon from '@mui/icons-material/Timelapse';
+// import { Location } from "react-router-dom";
 
 import AppBar from "../layout/AppBar";
 import DesktopDrawer, { DrawerItem as DesktopDrawerItem } from "../layout/DesktopDrawer";
@@ -18,6 +19,7 @@ import MobileDrawer, { DrawerItem as MobileDrawerItem } from "../layout/MobileDr
 function Layout() {
     const [open, setOpen] = React.useState(true);
     const [selected, setSelected] = React.useState<number | null>(null);
+    const location = useLocation();
 
     const toggleDrawer = () => {
         setOpen(oldOpen => !oldOpen);
@@ -32,11 +34,6 @@ function Layout() {
         {name: "通知", link: "notices", icon: <NotificationsIcon />},
         {name: "设置", link: "settings", icon: <SettingsIcon />},
         {name: "语言", link: "languages", icon: <LanguageIcon />},
-        // {name: "预订状态", link: "admin/resv_status"},
-        // {name: "预订安全级别", link: "admin/resv_secu_levels"},
-        // {name: "房间类型", link: "admin/room_types"},
-        // {name: "房间状态", link: "admin/room_status"},
-        // {name: "用户级别", link: "admin/user_roles"},
     ];
 
     return (
@@ -50,7 +47,7 @@ function Layout() {
                         open={open} 
                         icon={item.icon}
                         onClick={() => setSelected(index)}
-                        selected={selected === index}
+                        selected={location.pathname.includes(item.link)}
                     />
                 ))}
             </DesktopDrawer>

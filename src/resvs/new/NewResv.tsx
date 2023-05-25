@@ -15,12 +15,13 @@ import DialogTitle from '@mui/material/DialogTitle';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import dayjs from "dayjs";
 
-import { RoomStatus, Setting } from "../../util";
 import { useSnackbar } from "../../SnackbarProvider";
 import RoomView from "../RoomView";
-import SelectDateTime, { Option } from "./SelectDateTime";
+import SelectDateTime from "./SelectDateTime";
 import { RoomList } from "../../rooms/Rooms";
 import { Link, useNavigate } from "../../Navigate";
+import { paths as api_paths, room_status, setting } from "../../api";
+import { descriptionFieldParams, labelFieldParams } from "../../util";
 
 function NewResv() {
     const [types, setTypes] = useState<Record<string, any>[]>([]);
@@ -29,9 +30,9 @@ function NewResv() {
     const room_id = searchParams.get("room_id");
 
     useEffect(() => {
-        if (!room_id) {
-            let url = `/api/room_types`;
-            fetch(url).then((res) => res.json())
+        if (room_id === null) {
+            fetch(api_paths.room_types)
+                .then((res) => res.json())
                 .then((data) => {
                     setTypes(data);
                 })
@@ -41,15 +42,15 @@ function NewResv() {
         }
     }, [room_id]);
 
-    if (room_id) {
+    if (room_id !== null) {
         return  <Book room_id={room_id} />;
     } else {
         return (<>
             {types.map((type) => (
                 <RoomList key={type.type} 
                     type={type} 
-                    link={(room) => `/reservations/new?room_id=${room.room_id}`} 
-                    disabled={(room) => room.status !== RoomStatus.available}
+                    link={(room) => `/reservations/new?room_id=${room.room_id}`}
+                    disabled={(room) => room.status !== room_status.available}
                 />
             ))}
         </>
@@ -58,26 +59,16 @@ function NewResv() {
 }
 
 function Book({ room_id }: { room_id: string }) {
-    const [start, setStart] = useState<Option|null>(null);
-    const [end, setEnd] = useState<Option|null>(null);
     const [date, setDate] = useState(dayjs());
     const { showSnackbar } = useSnackbar();
     let navigate = useNavigate();
 
-    const formatDateTime = (date: dayjs.Dayjs, time: dayjs.Dayjs) => {
-        return `${date.format('YYYY-MM-DD')} ${time.format('HH:mm')}`;
-    }
-
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (!start || !end) {
-            showSnackbar({ message: '请选择时间段', severity: 'error' });
-            return;
-        }
-        let start_time = formatDateTime(date, start.time);
-        let end_time = formatDateTime(date, end.time);
         const data = new FormData(event.currentTarget);
-        let url = `/api/user/reservation`;
+        let start_time = `${date.format('YYYY-MM-DD')} ${data.get('start_time')}`;
+        let end_time =   `${date.format('YYYY-MM-DD')} ${data.get('end_time')}`;
+        let url = api_paths.user_resv;
         fetch(url, {
             method: 'POST',
             headers: {
@@ -87,26 +78,22 @@ function Book({ room_id }: { room_id: string }) {
                 room_id,
                 title: data.get('title'),
                 note: data.get('note'),
-                time_slots: [{ start_time, end_time }],
+                start_time, end_time,
             }),
-        }).then((res) => {
-            if (res.ok) {
-                showSnackbar({ message: '预约成功', severity: 'success', duration: 2000 });
-                setStart(null);
-                setEnd(null);
-                res.json().then((data) => {
-                    navigate(`/reservations?id=${data.resv_id}`);
-                });
-            } else {
-                res.json().then((data) => {
-                    console.log(data);
-                });
-                showSnackbar({ message: '预约失败', severity: 'error' });   
-            }
-        }).catch((err) => {
-            console.error(err);
-            showSnackbar({ message: '预约失败', severity: 'error' });
-        });
+        })
+            .then((res) => {
+                if (res.ok) {
+                    showSnackbar({ message: '预约成功', severity: 'success', duration: 2000 });
+                    res.json().then((data) => {
+                        navigate(`/reservations?id=${data.resv_id}`);
+                    });
+                } else {
+                    throw new Error("预约失败")
+                }
+            }).catch((err) => {
+                console.error(err);
+                showSnackbar({ message: '预约失败', severity: 'error' });
+            });
     }
 
     return (
@@ -119,23 +106,15 @@ function Book({ room_id }: { room_id: string }) {
             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                 <RoomView room_id={room_id} date={date} />
             </Box>
-            <SelectDateTime date={date} setDate={setDate} room_id={room_id}
-                startOption={start} endOption={end}
-                setStartOption={setStart} setEndOption={setEnd}
-            />
-            <TextField fullWidth required variant="standard"
-                id="title" name="title" label="预约标题"
-            />
-            <TextField multiline minRows={3} maxRows={5} fullWidth id="note" name="note"
-                        size="small" label="备注" variant="standard"
-                    />
+            <SelectDateTime date={date} setDate={setDate} room_id={room_id} />
+            <TextField {...labelFieldParams} id="title" name="title" label="预约标题" />
+            <TextField {...descriptionFieldParams} id="note" name="note" label="备注" sx={{ mt: 2 }} />
             <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
                 提交
             </Button>
-            {/* Link to advanced booking options */}
             <Button  fullWidth variant="text" sx={{ mt: 3, mb: 2 }}
                 endIcon={<NavigateNextIcon />}
-                component={Link} to='/reservations/advanced'
+                component={Link} to={`/reservations/advanced?room_id=${room_id}`}
             >
                 高级预约选项
             </Button>
@@ -146,6 +125,7 @@ function Book({ room_id }: { room_id: string }) {
 export function MaxDailyDialog() {
     const [max_daily, setMaxDaily] = useState<number|undefined>(undefined);
     const [today_count, setTodayCount] = useState<number|undefined>(undefined);
+    const [open, setOpen] = useState(false);
     let navigate = useNavigate();
     let location = useLocation();
 
@@ -153,7 +133,7 @@ export function MaxDailyDialog() {
     let from = location.state?.from || "/";
 
     useEffect(() => {
-        fetch(`/api/settings?id=${Setting.maxDaily}`) 
+        fetch(api_paths.settings + `?id=${setting.maxDaily}`)
             .then((res) => res.json())
             .then((data) => {
                 setMaxDaily(Number(data[0].value));
@@ -161,23 +141,39 @@ export function MaxDailyDialog() {
             .catch((err) => {
                 console.log(err);
             });
-    
     }, []);
 
     useEffect(() => {
-        fetch('/api/user/reservation/today').then((res) => res.json())
+        let today = dayjs().format('YYYY-MM-DD');
+        fetch(api_paths.user_resv + `?create_date=${today}`)
+            .then((res) => res.json())
             .then((data) => {
-                setTodayCount(data.length);
+                let set = new Set();
+                for (let resv of data) {
+                    set.add(resv.resv_id);
+                }
+                setTodayCount(set.size);
             })
             .catch((err) => {
                 console.log(err);
             });
     }, []);
 
-    const open = max_daily !== undefined && today_count !== undefined && today_count >= max_daily;
+    useEffect(() => {
+        setOpen(max_daily !== undefined && today_count !== undefined && today_count >= max_daily);
+    }, [max_daily, today_count]);
 
-    return (
-        <>今日已预约 {today_count} 个，上限 {max_daily} 个
+    const Text = () => {
+        if (today_count === undefined || max_daily === undefined) {
+            return <>正在加载...</>;
+        } else if (today_count < max_daily) {
+            return <>今日已预约 {today_count} 个，上限 {max_daily} 个</>;
+        } else {
+            return <>今日预约已达上限，上限 {max_daily} 个</>;
+        }
+    }
+
+    return (<><Text />
         <Dialog open={open}>
             <DialogTitle>预约失败</DialogTitle>
             <DialogContent>
@@ -186,11 +182,11 @@ export function MaxDailyDialog() {
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => navigate(from)}>返回</Button>
+                <Button onClick={() => setOpen(false)}>关闭</Button>
+                <Button onClick={() => navigate(from)} autoFocus>返回</Button>
             </DialogActions>
         </Dialog>
-        </>
-    );
+    </>);
 }
 
 export default NewResv;

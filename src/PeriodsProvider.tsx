@@ -1,5 +1,6 @@
 import React from "react";
 import { time } from "./util";
+import { paths as api_paths } from "./api";
 
 interface PeriodsProviderContextType {
     periods: Record<string, any>[];
@@ -13,7 +14,7 @@ function PeriodsProvider(props: { children: React.ReactNode }) {
     const [loading, setLoading] = React.useState(true);
 
     const periodsMemo = React.useMemo(async () => {
-        let res = await fetch('/api/periods');
+        let res = await fetch(api_paths.periods);
         let json = await res.json();
         let periods = json.map((p: any) => ({
             ...p,

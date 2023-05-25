@@ -1,8 +1,8 @@
 import * as React from "react";
-import Backdrop from '@mui/material/Backdrop';
-import CircularProgress from '@mui/material/CircularProgress';
-import Forbidden from "../Forbidden";
-import { Navigate } from "../Navigate";
+import Forbidden from "Forbidden";
+import { Navigate } from "Navigate";
+import { paths as api_paths } from "api";
+import { BackDrop } from "App";
 
 export interface AuthContextProps {
     user: Record<string, any> | null;
@@ -17,7 +17,7 @@ function AuthProvider(props: React.PropsWithChildren<{}>) {
     const [user, setUser] = React.useState<Record<string, any> | null>(null);
 
     const update = async (callback: (res: Response) => void) => {
-        let res = await fetch("/api/user");
+        let res = await fetch(api_paths.user);
         if (res.ok) {
             let user = await res.json();
             setUser(user);
@@ -28,22 +28,26 @@ function AuthProvider(props: React.PropsWithChildren<{}>) {
     };
     
     const login = async (username: string, password: string, callback: (res: Response) => void) => {
-        let res = await fetch("/api/login", {
-            method: "POST",
-            headers: {
-                "Authorization": `Basic ${btoa(`${username}:${password}`)}`,
-            },
-        });
+        try {
+            let res = await fetch(api_paths.login, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Basic ${btoa(`${username}:${password}`)}`,
+                },
+            });
 
-        if (res.ok) {
-            update(callback);
-        } else {
-            callback(res);
+            if (res.ok) {
+                update(callback);
+            } else {
+                callback(res);
+            }
+        } catch (err) {
+            console.error(err);
         }
     };
 
     const logout = async (callback: (res: Response) => void) => {
-        let res = await fetch("/api/logout", { method: "POST" });
+        let res = await fetch(api_paths.logout, { method: "POST" });
         if (res.ok) {
             setUser(null);
         }
@@ -82,14 +86,7 @@ export function RequireAuth({ children, role }: { children: React.ReactNode, rol
     const { user, loading } = useAuth();
 
     if (loading) {
-        return (
-            <Backdrop
-                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-                open
-            >
-            <CircularProgress color="inherit" />
-          </Backdrop>
-        );
+        return <BackDrop />;
     } else if (user) {
         return role !== undefined && user.role < role ? <Forbidden /> : <>{children}</>;
     } else {

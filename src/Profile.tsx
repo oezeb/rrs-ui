@@ -5,16 +5,20 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import { useAuth } from "./auth/AuthProvider";
 import { useSnackbar } from "./SnackbarProvider";
-import { UserRole, email_regex } from "./util";
+import { paths as api_paths, user_role } from "./api";
+import { EmailFieldParams } from "./auth/Register";
+import { useLang } from "./LangProvider";
 
 function Profile() {
     const [data, setData] = React.useState<Record<string, any>>({});
     const [msg, setMsg] = React.useState<Record<string, any>>({});
-    const [roleList, setRoleList] = React.useState<Record<string, any>>({}); // 级别
+    const [roles, setRoles] = React.useState<Record<string, any>>({}); // 级别
     const { user, update } = useAuth();
     const { showSnackbar } = useSnackbar();
 
-    const required_password = data.password || data.new_password || data.confirm_password;
+    const lang = useLang();
+
+    const required_password = data.password !== undefined || data.new_password !== undefined || data.confirm_password !== undefined;
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -34,7 +38,7 @@ function Profile() {
             return;
         }
 
-        fetch('/api/user', {
+        fetch(api_paths.user, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -61,10 +65,13 @@ function Profile() {
     };
 
     React.useEffect(() => {
-        fetch('/api/user_roles')
+        fetch(api_paths.user_roles)
             .then((res) => res.json())
             .then((data) => {
-                setRoleList(data);
+                setRoles(data.reduce((obj: Record<string, any>, item: Record<string, any>) => {
+                    obj[item.role] = item;
+                    return obj;
+                }, {}));
             })
             .catch((err) => {
                 console.log(err);
@@ -75,30 +82,30 @@ function Profile() {
     return (
         <Box component="form" onSubmit={handleSubmit}>
             <Typography variant="h5" component="h2" gutterBottom>
-                个人信息
+                {strings[lang]['personal information']}
             </Typography>
             <Table sx={{ mb: 3}}>
                 <TableBody>
                     <TableRow>
-                        <TableCell>用户名</TableCell>
+                        <TableCell>{strings[lang]['username']}</TableCell>
                         <TableCell>{user? user.username:<Skeleton />}</TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell>姓名</TableCell>
+                        <TableCell>{strings[lang]['name']}</TableCell>
                         <TableCell>{user? user.name:<Skeleton />}</TableCell>
                     </TableRow>
-                    {user?.role > UserRole.restricted &&
+                    {user?.role > user_role.guest &&
                         <TableRow>
-                            <TableCell>级别</TableCell>
-                            <TableCell>{user? roleList[user.role+1]?.label:<Skeleton />}</TableCell>
+                            <TableCell>{strings[lang]['role']}</TableCell>
+                            <TableCell>{user? roles[user.role]?.label:<Skeleton />}</TableCell>
                         </TableRow>
                     }
                     <TableRow>
-                        <TableCell>邮箱</TableCell>
+                        <TableCell>{strings[lang]['email']}</TableCell>
                         <TableCell>
-                            <TextField variant='standard' id="email" name="email" size="small" 
+                            <TextField {...EmailFieldParams}
                                 defaultValue={user?.email} placeholder="Email"
-                                inputProps={{ pattern: `${email_regex.source}` }}
+                                label={undefined}
                                 InputProps={{ disableUnderline: true }}
                                 onChange={(e) => {
                                     setData({ ...data, email: e.target.value });
@@ -109,12 +116,12 @@ function Profile() {
                 </TableBody>
             </Table>
             <Typography variant="h5" component="h2" gutterBottom>
-                修改密码
+                {strings[lang]['change password']}
             </Typography>
                 <TextField variant='standard' fullWidth id="password" name="password"
                     type="password"
                     required={required_password}
-                    label="原密码"
+                    label={strings[lang]['old password']}
                     error={ 'password' in msg }
                     helperText={msg.password}
                     onChange={(e) => {
@@ -124,7 +131,7 @@ function Profile() {
                 <TextField variant='standard' fullWidth id="new_password" name="new_password"
                     type="password"
                     required={required_password}
-                    label="新密码"
+                    label={strings[lang]['new password']}
                     error={ 'confirm_password' in msg }
                     onChange={(e) => {
                         setData({ ...data, new_password: e.target.value });
@@ -133,7 +140,7 @@ function Profile() {
                 <TextField variant='standard' fullWidth id="confirm_password" name="confirm_password"
                     type="password"
                     required={required_password}
-                    label="确认密码"
+                    label={strings[lang]['confirm password']}
                     error={ 'confirm_password' in msg }
                     helperText={msg.confirm_password}
                     onChange={(e) => {
@@ -141,10 +148,38 @@ function Profile() {
                     }}
                 />
                 <Button  type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-                    保存
+                    {strings[lang]['save']}
                 </Button>
         </Box>
     );
 }
+
+const strings = {
+    'zh': {
+        'personal information': '个人信息',
+        'username': '用户名',
+        'name': '姓名',
+        'role': '角色',
+        'email': '邮箱',
+        'change password': '修改密码',
+        'old password': '原密码',
+        'new password': '新密码',
+        'confirm password': '确认密码',
+        'save': '保存',
+    } as const,
+    'en': {
+        'personal information': 'Personal Information',
+        'username': 'Username',
+        'name': 'Name',
+        'role': 'Role',
+        'email': 'Email',
+        'change password': 'Change Password',
+        'old password': 'Old Password',
+        'new password': 'New Password',
+        'confirm password': 'Confirm Password',
+        'save': 'Save',
+    } as const,
+} as const;
+
 
 export default Profile;

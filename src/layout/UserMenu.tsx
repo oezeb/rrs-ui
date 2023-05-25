@@ -12,16 +12,19 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import { UserRole } from "../util";
 import { Link } from "../Navigate";
+import { user_role } from "../api";
+import { to, useLang } from "../LangProvider";
 
-const UserMenu = (props: { 
-    user: Record<string, any>, 
+interface UserMenuProps {
+    user: Record<string, any>,
     logout: () => void,
     showToAdmin?: boolean,
     showToUser?: boolean,
-}) => {
-    const { user, logout, showToAdmin, showToUser } = props;
+}
+
+const UserMenu = ({ user, logout, showToAdmin, showToUser }: UserMenuProps) => {
+    const lang = useLang();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -32,7 +35,7 @@ const UserMenu = (props: {
 
     return (
         <div>
-            <Tooltip title="个人信息">
+            <Tooltip title={user.name}>
                 <IconButton onClick={handleClick} color="inherit"
                     sx={{display: { xs: 'block', sm: 'none' }}}
                 ><AccountCircleOutlinedIcon /></IconButton>
@@ -50,42 +53,59 @@ const UserMenu = (props: {
                     </Typography>
                 </MenuItem>
                 {/* Admin panel */}
-                {user.role >= UserRole.admin && showToAdmin &&
-                <MenuItem component={Link} to="/admin" onClick={handleClose}>
+                {user.role >= user_role.admin && showToAdmin &&
+                <MenuItem component={Link} to={to("/admin", lang)} onClick={handleClose}>
                     <AdminPanelSettingsIcon />
                     <Typography variant="body2" sx={{ ml: 2 }}>
-                        管理界面
+                        {strings[lang]["adminPanel"]}
                     </Typography>
                 </MenuItem>}
                 {/* User panel */}
                 {showToUser &&
-                <MenuItem component={Link} to="/" onClick={handleClose}>
+                <MenuItem component={Link} to={to("/", lang)} onClick={handleClose}>
                     <PersonIcon />
                     <Typography variant="body2" sx={{ ml: 2 }}>
-                        预约界面
+                        {strings[lang]["userPanel"]}
                     </Typography>
                 </MenuItem>}
-                <MenuItem component={Link} to="/reservations" onClick={handleClose}>
+                <MenuItem component={Link} to={to("/reservations", lang)} onClick={handleClose}>
                     <EventAvailableIcon />
                     <Typography variant="body2" sx={{ ml: 2 }}>
-                        预约记录
+                        {strings[lang]["reservations"]}
                     </Typography>
                 </MenuItem>
-                <MenuItem component={Link} to="/profile" onClick={handleClose}>
+                <MenuItem component={Link} to={to("/profile", lang)} onClick={handleClose}>
                     <InfoIcon />
                     <Typography variant="body2" sx={{ ml: 2 }}>
-                        个人信息
+                        {strings[lang]["profile"]}
                     </Typography>
                 </MenuItem>
                 <MenuItem onClick={() => { handleClose(); logout(); }}>
                     <LogoutIcon />
                     <Typography variant="body2" sx={{ ml: 2 }}>
-                        退出登录
+                        {strings[lang]["logout"]}
                     </Typography>
                 </MenuItem>
             </Menu>
         </div>
     );
 }
+
+const strings = {
+    "zh": {
+        adminPanel: "管理界面",
+        userPanel: "预约界面",
+        reservations: "预约记录",
+        profile: "个人信息",
+        logout: "退出登录"
+    } as const,
+    "en": {
+        adminPanel: "Admin Panel",
+        userPanel: "User Panel",
+        reservations: "Reservations",
+        profile: "Profile",
+        logout: "Logout"
+    } as const
+};
 
 export default UserMenu;
