@@ -2,16 +2,17 @@ import * as React from "react";
 import { useSearchParams } from "react-router-dom";
 
 
-import { 
-    Box,  
-    Typography, 
-    List, ListItem, Button,
+import {
+    Box,
+    Button,
+    List, ListItem,
+    Typography,
 } from "@mui/material";
 import TextField from "@mui/material/TextField";
 
-import { useSnackbar } from "../../../SnackbarProvider";
-import { paths as api_paths } from "../../../api";
-import { labelFieldParams, descriptionFieldParams } from "../../../util";
+import { useSnackbar } from "providers/SnackbarProvider";
+import { paths as api_paths } from "utils/api";
+import { descriptionFieldParams, labelFieldParams } from "utils/util";
 
 function EditRole() {
     const [role, setRole] = React.useState<Record<string, any>|null>(null);

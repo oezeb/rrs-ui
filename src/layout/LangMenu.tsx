@@ -7,14 +7,14 @@ import LanguageIcon from '@mui/icons-material/Language';
 
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import { Link } from "../Navigate";
-import { useLang } from "../LangProvider";
-// import { useLocation } from "react-router-dom";
+import { Link } from "utils/Navigate";
+import { to, useLang } from "../providers/LangProvider";
+import { useLocation } from "react-router-dom";
 
 const LangMenu = () => {
     const lang = useLang();
-    // const location = useLocation();
-    
+    const location = useLocation();
+
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -49,10 +49,16 @@ const LangMenu = () => {
                 open={open}
                 onClose={handleClose}
             >
-                <MenuItem onClick={handleClose} component={Link} to="/" selected={lang === "zh"}>
+                <MenuItem onClick={handleClose} component={Link} 
+                    to={to(location.pathname, "zh")}
+                    selected={lang === "zh"}
+                >
                     {strings[lang]["zh"]}
                 </MenuItem>
-                <MenuItem onClick={handleClose} component={Link} to="/en" selected={lang === "en"}>
+                <MenuItem onClick={handleClose} component={Link} 
+                    to={to(location.pathname, "en")}
+                    selected={lang === "en"}
+                >
                     {strings[lang]["en"]}
                 </MenuItem>
             </Menu>

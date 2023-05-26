@@ -1,20 +1,19 @@
+import { Box, CssBaseline, Toolbar } from '@mui/material';
 import * as React from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { Box, CssBaseline, Toolbar } from '@mui/material';
 
-import NotificationsIcon from '@mui/icons-material/Notifications';
+import DateRangeIcon from '@mui/icons-material/DateRange';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import GroupIcon from '@mui/icons-material/Group';
-import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
-import DateRangeIcon from '@mui/icons-material/DateRange';
-import SettingsIcon from '@mui/icons-material/Settings';
 import LanguageIcon from '@mui/icons-material/Language';
+import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import SettingsIcon from '@mui/icons-material/Settings';
 import TimelapseIcon from '@mui/icons-material/Timelapse';
-// import { Location } from "react-router-dom";
 
-import AppBar from "../layout/AppBar";
-import DesktopDrawer, { DrawerItem as DesktopDrawerItem } from "../layout/DesktopDrawer";
-import MobileDrawer, { DrawerItem as MobileDrawerItem } from "../layout/MobileDrawer";
+import AppBar from "layout/AppBar";
+import DesktopDrawer, { DrawerItem as DesktopDrawerItem } from "layout/DesktopDrawer";
+import MobileDrawer, { DrawerItem as MobileDrawerItem } from "layout/MobileDrawer";
 
 function Layout() {
     const [open, setOpen] = React.useState(true);

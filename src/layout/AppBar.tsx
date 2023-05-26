@@ -13,9 +13,9 @@ import MenuIcon from '@mui/icons-material/Menu';
 
 import LangMenu from "./LangMenu";
 import UserMenu from "./UserMenu";
-import { useAuth } from "../auth/AuthProvider";
-import { Link, useNavigate } from '../Navigate';
-import { to, useLang } from '../LangProvider';
+import { useAuth } from "../providers/AuthProvider";
+import { Link, useNavigate } from 'utils/Navigate';
+import { to, useLang } from '../providers/LangProvider';
 
 interface Props {
     title: string;

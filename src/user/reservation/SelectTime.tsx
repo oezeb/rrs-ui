@@ -1,15 +1,15 @@
-import { useEffect, useState } from "react";
-import { 
-    Autocomplete as MuiAutocomplete, 
-    Box, 
-    TextField, 
-    Typography 
+import {
+    Box,
+    Autocomplete as MuiAutocomplete,
+    TextField,
+    Typography
 } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
+import { useEffect, useState, useCallback } from "react";
 
-import { Option as _Option, TimeWindow, optionEqual, formatDateTime } from "./SelectDateTime";
-import { usePeriods } from "../../PeriodsProvider";
-import { paths as api_paths, resv_status } from "../../api";
+import { usePeriods } from "providers/PeriodsProvider";
+import { paths as api_paths, resv_status } from "utils/api";
+import { TimeWindow, Option as _Option, formatDateTime, optionEqual } from "./SelectDateTime";
 
 interface Option extends _Option {
     disabled: boolean;
@@ -26,10 +26,8 @@ function SelectTime(props: SelectTimeProps) {
     const { room_id, date, timeWindow, max_time } = props;
     const [periods, setPeriods] = useState<Record<string, any>[]>([]);
     const [reservations, setReservations] = useState<Record<string, any>[]>([]);
-    // const [startOptions, setStartOptions] = useState<Option[]>([]);
     const [startOption, setStartOption] = useState<Option|null>(null);
     const [endOption, setEndOption] = useState<Option|null>(null);
-    // const [endOptions, setEndOptions] = useState<Option[]>([]);
 
     const _periods = usePeriods().periods;
     
@@ -65,7 +63,7 @@ function SelectTime(props: SelectTimeProps) {
         });
     }, [room_id, date]);
 
-    const filterPeriods = () => {
+    const filterPeriods = useCallback(() => {
         let _periods = periods;
         for (let p of _periods) {
             if (p.start_time >= timeWindow.start && p.end_time <= timeWindow.end && reservations.every((r) => (
@@ -77,44 +75,7 @@ function SelectTime(props: SelectTimeProps) {
             }
         }
         return _periods;
-    };
-
-    const endOptions = () => {  
-        let _periods = filterPeriods();  
-        let _endOptions: Option[] = _periods.map((p, i) => {
-            return {
-            index: i,
-            time: p.end_time,
-            disabled: p.disabled,
-        }});
-        
-        if (startOption !== null) {
-            let continuous = true;
-            let below_max_time = true;
-            for (let i = 0; i < filterPeriods.length; i++) {
-                let p = _periods[i];
-                if (p.disabled === false) {
-                    if (i < startOption.index) {
-                        _endOptions[i].disabled = true;
-                    } else {
-                        if (continuous && i > startOption.index && !p.start_time.isSame(_periods[i - 1].end_time)) {
-                            continuous = false;
-                        }
-
-                        if (below_max_time && max_time !== undefined && p.end_time.diff(startOption.time, 'second') > max_time) {
-                            below_max_time = false;
-                        }
-
-                        if (!continuous || !below_max_time) {
-                            _endOptions[i].disabled = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        return _endOptions;
-    };
+    }, [periods, reservations, timeWindow]);
 
     const startOptions = () => {
         let _periods = filterPeriods();
@@ -150,6 +111,43 @@ function SelectTime(props: SelectTimeProps) {
         }
 
         return _startOptions;
+    };
+    
+    const endOptions = () => {  
+        let _periods = filterPeriods();  
+        let _endOptions: Option[] = _periods.map((p, i) => {
+            return {
+            index: i,
+            time: p.end_time,
+            disabled: p.disabled,
+        }});
+        
+        if (startOption !== null) {
+            let continuous = true;
+            let below_max_time = true;
+            for (let i = 0; i < _periods.length; i++) {
+                let p = _periods[i];
+                if (p.disabled === false) {
+                    if (i < startOption.index) {
+                        _endOptions[i].disabled = true;
+                    } else {
+                        if (continuous && i > startOption.index && !p.start_time.isSame(_periods[i - 1].end_time)) {
+                            continuous = false;
+                        }
+
+                        if (below_max_time && max_time !== undefined && p.end_time.diff(startOption.time, 'second') > max_time) {
+                            below_max_time = false;
+                        }
+
+                        if (!continuous || !below_max_time) {
+                            _endOptions[i].disabled = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return _endOptions;
     };
 
     return (

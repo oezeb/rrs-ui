@@ -1,30 +1,37 @@
-import React from "react";
-import dayjs, { Dayjs } from "dayjs";
 import {
-    Box, 
+    Box,
     Button,
-    Tooltip, 
-    Skeleton, TextField, 
-    Table, TableBody, TableCell, TableRow, TableHead, FormControl, Select, MenuItem, IconButton, ListItemText, 
+    FormControl,
+    IconButton, ListItemText,
+    MenuItem,
+    Select,
+    Skeleton,
+    Table, TableBody, TableCell,
+    TableHead,
+    TableRow,
+    TextField,
+    Tooltip,
 } from "@mui/material";
+import dayjs, { Dayjs } from "dayjs";
+import React from "react";
 
-import Typography from '@mui/material/Typography';
+import CancelIcon from '@mui/icons-material/Cancel';
+import HelpIcon from '@mui/icons-material/Help';
+import ThumbDownIcon from '@mui/icons-material/ThumbDown';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import HelpIcon from '@mui/icons-material/Help';
-import ThumbUpIcon from '@mui/icons-material/ThumbUp';
-import ThumbDownIcon from '@mui/icons-material/ThumbDown';
-import CancelIcon from '@mui/icons-material/Cancel';
+import Typography from '@mui/material/Typography';
 
-import { statusColors as resvStatusColors } from "../../resvs/Resvs";
-import { useSnackbar } from "../../SnackbarProvider";
-import { Link } from "../../Navigate";
-import { paths as api_paths, resv_status } from "../../api";
-import { labelFieldParams, descriptionFieldParams } from "../../util";
+import { useSnackbar } from "providers/SnackbarProvider";
 import { useSearchParams } from "react-router-dom";
+import { statusColors as resvStatusColors } from "user/reservation/Reservations";
+import { Link } from "utils/Navigate";
+import { paths as api_paths, resv_status } from "utils/api";
+import { descriptionFieldParams, labelFieldParams } from "utils/util";
 
 
 function EditReservation() {

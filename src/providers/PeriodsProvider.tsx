@@ -1,6 +1,6 @@
 import React from "react";
-import { time } from "./util";
-import { paths as api_paths } from "./api";
+import { time } from "utils/util";
+import { paths as api_paths } from "utils/api";
 
 interface PeriodsProviderContextType {
     periods: Record<string, any>[];

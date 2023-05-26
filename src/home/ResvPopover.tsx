@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import {  Box, Button, Popover } from '@mui/material';
+import { Box, Button, Popover } from '@mui/material';
 import Typography from '@mui/material/Typography';
-import { paths as api_paths, resv_status } from "../api";
-import { useLang } from '../LangProvider';
+import { useLang } from "providers/LangProvider";
+import { useEffect, useState } from 'react';
+import { paths as api_paths, resv_status } from "utils/api";
 
 function ResvPopover({ resv }: { resv: Record<string, any> }) {
     const lang = useLang();

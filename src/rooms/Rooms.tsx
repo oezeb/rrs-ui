@@ -8,8 +8,8 @@ import {
 } from "@mui/material";
 import EventSeatIcon from '@mui/icons-material/EventSeat';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { Link } from "../Navigate";
-import { paths as api_paths } from "../api";
+import { Link } from "utils/Navigate";
+import { paths as api_paths } from "utils/api";
 
 function Rooms() {
     const [roomTypes, setRoomTypes] = useState<Record<string, any>[]>([]);

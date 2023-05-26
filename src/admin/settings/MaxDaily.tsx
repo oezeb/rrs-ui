@@ -1,7 +1,7 @@
 import TextField from "@mui/material/TextField";
 
-import SettingItem, { SettingItemSkeleton } from "./SettingItem";
 import { Typography } from "@mui/material";
+import SettingItem, { SettingItemSkeleton } from "./SettingItem";
 
 interface MaxDailyProps {
     maxDaily: Record<string, any>|null|undefined;

@@ -1,9 +1,9 @@
 import * as React from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { useSnackbar } from "../../SnackbarProvider";
+import { useSnackbar } from "providers/SnackbarProvider";
+import { paths as api_paths } from "utils/api";
 import AddEditUser from "./AddEditUser";
-import { paths as api_paths } from "../../api";
 
 function EditUser() {
     const [user, setUser] = React.useState<Record<string, any>|null|undefined>(undefined);

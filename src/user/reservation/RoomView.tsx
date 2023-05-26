@@ -1,16 +1,16 @@
-import { useEffect, useState } from "react";
 import { Button } from "@mui/material";
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import { useLocation } from "react-router-dom";
 import { Dayjs } from "dayjs";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 
-import HomeRoomView, { RoomSkeleton } from "../home/RoomView";
-import { useNavigate } from "../Navigate";
-import { paths as api_paths, room_status } from "../api";
+import HomeRoomView, { RoomSkeleton } from "home/RoomView";
+import { useNavigate } from "utils/Navigate";
+import { paths as api_paths, room_status } from "utils/api";
 
 interface RoomViewProps {
     room_id: string|number;
@@ -42,27 +42,20 @@ function RoomView(props: RoomViewProps) {
     }, [room_id]);
 
     if (room) {
-        return (
-            <>
-                <HomeRoomView date={date} 
-                    room={room} show_pending={true} 
-                />
-                <Dialog open={room !== undefined && room.status === room_status.unavailable}
-                    aria-labelledby="alert-dialog-title"
-                    aria-describedby="alert-dialog-description"
-                >
-                    <DialogTitle id="alert-dialog-title" >预约失败</DialogTitle>
-                    <DialogContent>
-                        <DialogContentText id="alert-dialog-description">
-                            该房间暂时不可预订
-                        </DialogContentText>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={() => navigate(from)} autoFocus>返回</Button>
-                    </DialogActions>
-                </Dialog>
-            </>
-        );
+        return (<>
+            <HomeRoomView date={date} room={room} show_pending={true} />
+            <Dialog open={room !== undefined && room.status === room_status.unavailable}>
+                <DialogTitle>预约失败</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        该房间暂时不可预订
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => navigate(from)} autoFocus>返回</Button>
+                </DialogActions>
+            </Dialog>
+        </>);
     } else {
         return <RoomSkeleton />;
     }

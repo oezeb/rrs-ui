@@ -1,24 +1,25 @@
-import * as React from "react";
-import { 
-    Box,  
-    Typography, 
-    Button,
-    IconButton,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Paper,
-} from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import TableSortLabel from '@mui/material/TableSortLabel';
+import {
+    Box,
+    Button,
+    IconButton,
+    Paper,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip,
+    Typography,
+} from "@mui/material";
 import Switch from '@mui/material/Switch';
+import TableSortLabel from '@mui/material/TableSortLabel';
+import * as React from "react";
 
-import { useSnackbar } from "../../SnackbarProvider";
-import { Link } from "../../Navigate";
-import BinaryDialog from "../../BinaryDialog";
-import { getComparator, basicDescendingComparator } from "../../util";
+import { TableSkeleton } from "admin/Table";
 import dayjs from "dayjs";
-import { paths as api_paths } from "../../api";
-import { TableSkeleton } from "../Table";
+import { useSnackbar } from "providers/SnackbarProvider";
+import BinaryDialog from "utils/BinaryDialog";
+import { Link } from "utils/Navigate";
+import { paths as api_paths } from "utils/api";
+import { basicDescendingComparator, getComparator } from "utils/util";
 
 function Sessions() {
     const [sessions, setSessions] = React.useState<Record<string, any>[]|undefined>(undefined);

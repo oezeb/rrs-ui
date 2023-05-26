@@ -1,21 +1,21 @@
-import { useState } from "react";
-import {
-    Typography,
-    ListItemText,
-    Table,
-    TableHead,
-    TableRow,
-    TableCell,
-    TableBody,
-    List,
-    Collapse,
-    ListItemIcon,
-    ListItemButton,
-    IconButton,
-} from "@mui/material";
+import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
-import DeleteIcon from '@mui/icons-material/Delete';
+import {
+    Collapse,
+    IconButton,
+    List,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableRow,
+    Typography,
+} from "@mui/material";
+import { useState } from "react";
 
 interface SlotTableProps {
     title?: string;

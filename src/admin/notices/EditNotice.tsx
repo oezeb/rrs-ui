@@ -1,7 +1,7 @@
+import { useSnackbar } from "providers/SnackbarProvider";
 import * as React from "react";
 import { useSearchParams } from "react-router-dom";
-import { useSnackbar } from "../../SnackbarProvider";
-import { paths as api_paths } from "../../api";
+import { paths as api_paths } from "utils/api";
 import AddEditNotice from "./AddEditNotice";
 
 function EditNotice() {

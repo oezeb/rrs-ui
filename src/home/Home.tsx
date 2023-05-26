@@ -1,11 +1,11 @@
-import { useState, useEffect} from "react";
 import Box from '@mui/material/Box';
-import dayjs, { Dayjs } from "dayjs";
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import dayjs, { Dayjs } from "dayjs";
+import { useLang } from "providers/LangProvider";
+import { useEffect, useState } from "react";
+import { paths as api_paths } from "utils/api";
 import RoomView, { RoomSkeleton } from "./RoomView";
-import { paths as api_paths } from "../api";
-import { useLang } from "../LangProvider";
 
 function Home() {
     const lang = useLang();

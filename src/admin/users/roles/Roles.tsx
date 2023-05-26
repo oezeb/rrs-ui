@@ -1,16 +1,17 @@
-import * as React from "react";
-import { 
-    Box,  
-    Typography,
-    IconButton,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Paper,
-} from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
+import {
+    Box,
+    IconButton,
+    Paper,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip,
+    Typography,
+} from "@mui/material";
 import TableSortLabel from '@mui/material/TableSortLabel';
-import { getComparator } from "../../../util";
-import { Link } from "../../../Navigate";
-import { paths as api_paths } from "../../../api";
-import { TableSkeleton } from "../../Table";
+import { TableSkeleton } from "admin/Table";
+import * as React from "react";
+import { Link } from "utils/Navigate";
+import { paths as api_paths } from "utils/api";
+import { getComparator } from "utils/util";
 
 function Roles() {
     const [userRoles, setUserRoles] = React.useState<Record<string, any>[]|undefined>(undefined);

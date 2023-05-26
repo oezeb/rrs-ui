@@ -1,20 +1,22 @@
-import React from "react";
-import dayjs from "dayjs";
-import {  
-    Table, TableBody, TableCell, TableRow, TableHead, 
-    Box, 
-    Tooltip, 
+import {
+    Box,
     IconButton,
     Skeleton,
+    Table, TableBody, TableCell,
+    TableHead,
+    TableRow,
+    Tooltip,
 } from "@mui/material";
+import dayjs from "dayjs";
+import React from "react";
 
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import Badge from '@mui/material/Badge';
 
-import { statusColors } from "./Resvs";
-import { compareStartEndTime, groupResvTimeSlots } from "../util";
-import { Link } from "../Navigate";
-import { paths as api_paths } from "../api";
+import { Link } from "utils/Navigate";
+import { paths as api_paths } from "utils/api";
+import { compareStartEndTime, groupResvTimeSlots } from "utils/util";
+import { statusColors } from "./Reservations";
 
 interface ResvsTableProps {
     timeFilter: "全部" | "当前" | "历史";
@@ -23,7 +25,7 @@ interface ResvsTableProps {
     is_mobile: boolean;
 }
 
-function ResvsTable(props: ResvsTableProps) {
+function ResvTable(props: ResvsTableProps) {
     const { timeFilter, status, statusOptions, is_mobile } = props;
     const [reservations, setReservations] = React.useState<Record<string, any>[]>([]);
 
@@ -59,7 +61,7 @@ function ResvsTable(props: ResvsTableProps) {
     );
     
     return (
-        <Table stickyHeader size="small" aria-label="a dense table">
+        <Table stickyHeader size="small">
             <TableHead>
                 {headRow(["标题", "房间", "时间", "状态", "详情"])}
             </TableHead>
@@ -106,7 +108,7 @@ function ResvTableRow({ resv, statusList, mobile }: ResvTableRowProps) {
             </TableCell>
             <TableCell>
                 <Tooltip title="查看详情">
-                    <IconButton component={Link} to={`/reservations?id=${resv.resv_id}`}
+                    <IconButton component={Link} to={`/reservations/${resv.resv_id}`}
                         size={mobile? "small": "medium"}
                     >
                         <NavigateNextIcon />
@@ -155,4 +157,4 @@ export const TimeView = ({ resv, mobile }: { resv: any, mobile?: boolean }) => {
     }
 };
 
-export default ResvsTable;
+export default ResvTable;

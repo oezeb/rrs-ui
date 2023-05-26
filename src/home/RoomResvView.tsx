@@ -1,15 +1,15 @@
-import {  Box } from '@mui/material';
-import { Dayjs } from 'dayjs';
+import { Box } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
+import { Dayjs } from 'dayjs';
+import { resv_status } from 'utils/api';
 import ResvPopover from './ResvPopover';
-import { resv_status } from '../api';
 
 interface ResvsViewProps {
     periods: Record<string, any>[];
     reservations: Record<string, any>[];
 };
 
-function ResvsView(props: ResvsViewProps) {
+function RoomResvView(props: ResvsViewProps) {
     const { periods, reservations } = props;
 
     // start and end time of the periods and reservations
@@ -130,4 +130,4 @@ const Resvs = ({ reservations, start, end }: ResvsProps) => {
     );
 };
 
-export default ResvsView;
+export default RoomResvView;

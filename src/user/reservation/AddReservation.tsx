@@ -1,64 +1,29 @@
-import { useEffect, useState } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
-import { 
-    Box, 
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import {
+    Box,
+    Button,
+    ListItemText,
     TextField,
     Typography,
-    ListItemText,
 } from "@mui/material";
-import { Button } from "@mui/material";
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import dayjs from "dayjs";
+import { useEffect, useState } from "react";
+import { useLocation, useParams } from "react-router-dom";
 
-import { useSnackbar } from "../../SnackbarProvider";
-import RoomView from "../RoomView";
+import { useSnackbar } from "providers/SnackbarProvider";
+import { Link, useNavigate } from "utils/Navigate";
+import { paths as api_paths, setting } from "utils/api";
+import { descriptionFieldParams, labelFieldParams } from "utils/util";
+import RoomView from "./RoomView";
 import SelectDateTime from "./SelectDateTime";
-import { RoomList } from "../../rooms/Rooms";
-import { Link, useNavigate } from "../../Navigate";
-import { paths as api_paths, room_status, setting } from "../../api";
-import { descriptionFieldParams, labelFieldParams } from "../../util";
 
-function NewResv() {
-    const [types, setTypes] = useState<Record<string, any>[]>([]);
-    const [searchParams] = useSearchParams();
-
-    const room_id = searchParams.get("room_id");
-
-    useEffect(() => {
-        if (room_id === null) {
-            fetch(api_paths.room_types)
-                .then((res) => res.json())
-                .then((data) => {
-                    setTypes(data);
-                })
-                .catch((err) => {
-                    console.log(err);
-                });
-        }
-    }, [room_id]);
-
-    if (room_id !== null) {
-        return  <Book room_id={room_id} />;
-    } else {
-        return (<>
-            {types.map((type) => (
-                <RoomList key={type.type} 
-                    type={type} 
-                    link={(room) => `/reservations/new?room_id=${room.room_id}`}
-                    disabled={(room) => room.status !== room_status.available}
-                />
-            ))}
-        </>
-        );
-    }
-}
-
-function Book({ room_id }: { room_id: string }) {
+function AddReservation() {
+    const { room_id } = useParams();
     const [date, setDate] = useState(dayjs());
     const { showSnackbar } = useSnackbar();
     let navigate = useNavigate();
@@ -85,7 +50,7 @@ function Book({ room_id }: { room_id: string }) {
                 if (res.ok) {
                     showSnackbar({ message: '预约成功', severity: 'success', duration: 2000 });
                     res.json().then((data) => {
-                        navigate(`/reservations?id=${data.resv_id}`);
+                        navigate(`/reservations/${data.resv_id}`);
                     });
                 } else {
                     throw new Error("预约失败")
@@ -96,6 +61,7 @@ function Book({ room_id }: { room_id: string }) {
             });
     }
 
+    if (room_id === undefined) return null;
     return (
         <Box component="form" onSubmit={handleSubmit}>
             <ListItemText secondary={<MaxDailyDialog />}>
@@ -114,7 +80,7 @@ function Book({ room_id }: { room_id: string }) {
             </Button>
             <Button  fullWidth variant="text" sx={{ mt: 3, mb: 2 }}
                 endIcon={<NavigateNextIcon />}
-                component={Link} to={`/reservations/advanced?room_id=${room_id}`}
+                component={Link} to={`/reservations/add/advanced/${room_id}`}
             >
                 高级预约选项
             </Button>
@@ -189,4 +155,4 @@ export function MaxDailyDialog() {
     </>);
 }
 
-export default NewResv;
+export default AddReservation;

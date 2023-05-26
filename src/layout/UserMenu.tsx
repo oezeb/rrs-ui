@@ -12,9 +12,9 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import { Link } from "../Navigate";
-import { user_role } from "../api";
-import { to, useLang } from "../LangProvider";
+import { Link } from "utils/Navigate";
+import { user_role } from "../utils/api";
+import { to, useLang } from "../providers/LangProvider";
 
 interface UserMenuProps {
     user: Record<string, any>,

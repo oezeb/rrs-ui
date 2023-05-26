@@ -1,13 +1,13 @@
-import { 
-    Box, 
-    Skeleton, 
-    Typography 
+import {
+    Box,
+    Skeleton,
+    Typography
 } from "@mui/material";
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import dayjs, { Dayjs } from "dayjs";
 
-import 'dayjs/locale/zh-cn'
+import 'dayjs/locale/zh-cn';
 import { TimeWindow } from "./SelectDateTime";
 dayjs.locale('zh-cn');
 

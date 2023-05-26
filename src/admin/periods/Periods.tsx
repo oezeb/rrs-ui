@@ -13,10 +13,10 @@ import TextField from "@mui/material/TextField";
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { time } from "../util";
-import { useSnackbar } from "../SnackbarProvider";
-import { paths as api_paths } from "../api";
-import BinaryDialog from "../BinaryDialog";
+import { time } from "utils/util";
+import { useSnackbar } from "providers/SnackbarProvider";
+import { paths as api_paths } from "utils/api";
+import BinaryDialog from "utils/BinaryDialog";
 
 function Periods() {
     const [periods, setPeriods] = React.useState<Record<string, any>[]|undefined>(undefined);

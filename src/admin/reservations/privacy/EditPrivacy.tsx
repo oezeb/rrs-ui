@@ -1,10 +1,9 @@
 import * as React from "react";
 import { useSearchParams } from "react-router-dom";
 
-// import { useSnackbar } from "../../../SnackbarProvider";
-import { paths as api_paths } from "../../../api";
 import { Box, Button, List, ListItem, TextField, Typography } from "@mui/material";
-import { descriptionFieldParams, labelFieldParams } from "../../../util";
+import { paths as api_paths } from "utils/api";
+import { descriptionFieldParams, labelFieldParams } from "utils/util";
 
 function EditPrivacy() {
     const [privacy, setPrivacy] = React.useState<Record<string, any>|null>(null);

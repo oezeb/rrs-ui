@@ -11,8 +11,8 @@ import { useLocation } from "react-router-dom";
 import AppBar from "./AppBar";
 import DesktopDrawer, { DrawerItem as DesktopDrawerItem } from "./DesktopDrawer";
 import MobileDrawer, { DrawerItem as MobileDrawerItem } from "./MobileDrawer";
-import { useAuth } from "../auth/AuthProvider";
-import { to, useLang } from "../LangProvider";
+import { useAuth } from "../providers/AuthProvider";
+import { to, useLang } from "../providers/LangProvider";
 
 function Layout() {
     const lang  = useLang();
@@ -29,7 +29,7 @@ function Layout() {
     };
 
     const links = {
-        "reservations": to("/reservations/new", lang),
+        "reservations": to("/reservations/add", lang),
         "notices": to("/notices", lang),
         "about": to("/about", lang),
     } as const;

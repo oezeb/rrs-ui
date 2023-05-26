@@ -1,19 +1,21 @@
-import * as React from "react";
-import { 
-    Box,  
-    Typography, 
-    IconButton,
-    TextField,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Paper,
-} from "@mui/material";
-import TableSortLabel from '@mui/material/TableSortLabel';
 import DoneIcon from '@mui/icons-material/Done';
+import {
+    Box,
+    IconButton,
+    Paper,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+    TextField,
+    Tooltip,
+    Typography,
+} from "@mui/material";
 import InputAdornment from '@mui/material/InputAdornment';
+import TableSortLabel from '@mui/material/TableSortLabel';
+import * as React from "react";
 
-import { useSnackbar } from "../../SnackbarProvider";
-import { getComparator } from "../../util";
-import { paths as api_paths } from "../../api";
-import { TableSkeleton } from "../Table";
+import { TableSkeleton } from "admin/Table";
+import { useSnackbar } from "providers/SnackbarProvider";
+import { paths as api_paths } from "utils/api";
+import { getComparator } from "utils/util";
 
 function Languages() {
     const [languages, setLanguages] = React.useState<Record<string, any>[]|undefined>(undefined);

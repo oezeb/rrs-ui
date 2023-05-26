@@ -5,7 +5,7 @@ import {
     Toolbar, 
     useMediaQuery, useTheme 
 } from '@mui/material';
-import { Link } from "../Navigate";
+import { Link } from "utils/Navigate";
 
 const drawerWidth = 180;
 

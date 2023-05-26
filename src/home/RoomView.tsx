@@ -5,13 +5,13 @@ import EventSeatIcon from '@mui/icons-material/EventSeat';
 import { Dayjs } from 'dayjs';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
-import { time, compareStartEndTime } from '../util';
-import { useAuth } from '../auth/AuthProvider';
-import ResvsView from './ResvsView';
-import { usePeriods } from '../PeriodsProvider';
-import { Link } from '../Navigate';
-import { paths as api_paths, resv_status, room_status } from "../api";
-import { useLang } from '../LangProvider';
+import { time, compareStartEndTime } from 'utils/util';
+import { useAuth } from 'providers/AuthProvider';
+import ResvsView from './RoomResvView';
+import { usePeriods } from 'providers/PeriodsProvider';
+import { Link } from 'utils/Navigate';
+import { paths as api_paths, resv_status, room_status } from "utils/api";
+import { useLang } from 'providers/LangProvider';
 
 interface RoomViewProps {
     date: Dayjs;
@@ -66,7 +66,7 @@ export function RoomView(props: RoomViewProps) {
                         sx={{ '&:hover': { backgroundColor: 'transparent' } }} 
                     >
                         <ListItemButton disabled={room.status !== room_status.available}
-                            component={Link}  to={`/reservations/new?room_id=${room.room_id}`}>
+                            component={Link}  to={`/reservations/add/${room.room_id}`}>
                             <ListItemText>
                                 {strings[lang].resv}
                             </ListItemText>

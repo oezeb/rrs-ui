@@ -4,7 +4,7 @@ import {  List, ListItem, Box, Tooltip, Skeleton } from "@mui/material";
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import { useParams } from "react-router-dom";
-import { paths as api_paths } from "../api";
+import { paths as api_paths } from "utils/api";
 
 // room status: 0: 不可用、1: 可用
 export const statusColors = ["#FF5733", "#00CC66"];
@@ -17,6 +17,7 @@ function RoomDetails() {
     const { room_id } = useParams();
 
     React.useEffect(() => {
+        if (room_id === undefined) return;
         fetch(api_paths.rooms + `?room_id=${room_id}`)
             .then(res => res.json())
             .then(data => {
@@ -56,7 +57,9 @@ function RoomDetails() {
             </ListItemText>
         </ListItem>
     );
-    
+
+
+    if (room_id === undefined) return null;
     return (
         <Box>
             <ListItem divider dense>

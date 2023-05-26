@@ -1,9 +1,9 @@
+import { useAuth } from "providers/AuthProvider";
+import { useSnackbar } from "providers/SnackbarProvider";
 import * as React from "react";
-import { useNavigate } from "../../Navigate";
-import { useSnackbar } from "../../SnackbarProvider";
+import { useNavigate } from "utils/Navigate";
+import { paths as api_paths } from "utils/api";
 import AddEditNotice from "./AddEditNotice";
-import { paths as api_paths } from "../../api";
-import { useAuth } from "../../auth/AuthProvider";
 
 function AddNotice() {
     const {user} = useAuth();

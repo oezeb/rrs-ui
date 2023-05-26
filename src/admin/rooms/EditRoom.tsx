@@ -1,13 +1,13 @@
-import * as React from "react";
-import { IconButton, Tooltip } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
+import { IconButton, Tooltip } from "@mui/material";
+import * as React from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { useSnackbar } from "../../SnackbarProvider";
+import { BackDrop } from "utils/BackDrop";
+import { useSnackbar } from "providers/SnackbarProvider";
+import { paths as api_paths } from "utils/api";
+import { FileToBase64 } from "utils/util";
 import AddEditRoom from "./AddEditRoom";
-import { FileToBase64 } from "../../util";
-import { paths as api_paths } from "../../api";
-import { BackDrop } from "../../App";
 
 function EditRoom() {
     const [room, setRoom] = React.useState<Record<string, any>|null>(null);

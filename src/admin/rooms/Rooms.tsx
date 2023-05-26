@@ -1,26 +1,27 @@
-import * as React from "react";
-import { 
-    Box,  
-    Typography, 
-    FormHelperText, 
-    Button,
-    IconButton,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Paper,
-} from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import {
+    Box,
+    Button,
+    FormHelperText,
+    IconButton,
+    Paper,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip,
+    Typography,
+} from "@mui/material";
 import TableSortLabel from '@mui/material/TableSortLabel';
+import * as React from "react";
 
-import { useSnackbar } from "../../SnackbarProvider";
-import { statusColors } from "../../rooms/RoomDetails";
-import { Link } from "../../Navigate";
-import BinaryDialog from "../../BinaryDialog";
-import { getComparator } from "../../util";
-import Types from "./types/Types";
+import { useSnackbar } from "providers/SnackbarProvider";
+import { statusColors } from "rooms/RoomDetails";
+import BinaryDialog from "utils/BinaryDialog";
+import { Link } from "utils/Navigate";
+import { paths as api_paths } from "utils/api";
+import { getComparator } from "utils/util";
+import { TableSkeleton } from "admin/Table";
 import Status from "./status/Status";
-import { paths as api_paths } from "../../api";
-import { TableSkeleton } from "../Table";
+import Types from "./types/Types";
 
 function Rooms() {
     const [rooms, setRooms] = React.useState<Record<string, any>[]|undefined>(undefined);

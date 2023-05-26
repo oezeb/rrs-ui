@@ -1,22 +1,24 @@
-import * as React from "react";
-import { 
-    Box,  
-    Typography, 
-    Button,
-    IconButton,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, DialogContentText, Paper,
-} from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import LockResetIcon from '@mui/icons-material/LockReset';
+import {
+    Box,
+    Button,
+    DialogContentText,
+    IconButton,
+    Paper,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip,
+    Typography,
+} from "@mui/material";
 import TableSortLabel from '@mui/material/TableSortLabel';
-import { getComparator } from "../../util";
-import BinaryDialog from "../../BinaryDialog";
-import { useSnackbar } from "../../SnackbarProvider";
+import { TableSkeleton } from "admin/Table";
+import { useSnackbar } from "providers/SnackbarProvider";
+import * as React from "react";
+import BinaryDialog from "utils/BinaryDialog";
+import { Link } from "utils/Navigate";
+import { paths as api_paths } from "utils/api";
+import { getComparator } from "utils/util";
 import Roles from "./roles/Roles";
-import { Link } from "../../Navigate";
-import { paths as api_paths } from "../../api";
-import { TableSkeleton } from "../Table";
 
 function Users() {
     const [users, setUsers] = React.useState<Record<string, any>[]|undefined>(undefined);

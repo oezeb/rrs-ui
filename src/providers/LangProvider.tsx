@@ -11,7 +11,7 @@ function LangProvider(props: { children: React.ReactNode }) {
     const location = useLocation();   
     // any path that starts with /en/ is considered English
     // any other path is considered Chinese
-    const lang = location.pathname.startsWith("/en/") || location.pathname === "/en" ? "en" : "zh";
+    const lang = _lang(location.pathname);
     return (
         <LangProviderContext.Provider value={{ lang }}>
             {props.children}
@@ -24,11 +24,22 @@ function useLang() {
 }
 
 const to = (path: string, lang: "zh" | "en") => {
+    const path_lang = _lang(path);
     if (lang === "zh") {
-        return path;
+        if (path_lang === "zh") {
+            return path;
+        } else {
+            return path.replace(`/${path_lang}`, "");
+        }
     } else {
-        return "/en" + path;
+        if (path_lang === "en") {
+            return path;
+        } else {
+            return "/en" + path;
+        }
     }
 }
+
+const _lang = (path: string): "zh" | "en" => path.startsWith("/en/") || path === "/en" ? "en" : "zh";
 
 export { LangProvider, useLang, to };

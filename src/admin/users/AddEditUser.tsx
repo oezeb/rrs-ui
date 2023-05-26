@@ -1,13 +1,16 @@
-import * as React from "react";
-import { 
-    Box,  
-    Typography, 
-    List, ListItem, Button, FormControl, InputLabel, Select, MenuItem,
+import {
+    Box,
+    Button, FormControl, InputLabel,
+    List, ListItem,
+    MenuItem,
+    Select,
+    Typography,
 } from "@mui/material";
 import TextField from "@mui/material/TextField";
+import * as React from "react";
 
-import { paths as api_paths } from "../../api";
-import { EmailFieldParams, UsernameFieldParams, NameFieldParams, PasswordFieldParams } from "../../auth/Register";
+import { EmailFieldParams, NameFieldParams, PasswordFieldParams, UsernameFieldParams } from "auth/Register";
+import { paths as api_paths } from "utils/api";
 
 interface AddEditUserProps {
     title: string;

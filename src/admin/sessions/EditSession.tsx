@@ -1,10 +1,10 @@
 import * as React from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { useSnackbar } from "../../SnackbarProvider";
-import AddEditSession from "./AddEditSession";
 import dayjs from "dayjs";
-import { paths as api_paths } from "../../api";
+import { useSnackbar } from "providers/SnackbarProvider";
+import { paths as api_paths } from "utils/api";
+import AddEditSession from "./AddEditSession";
 
 function EditSession() {
     const [session, setSession] = React.useState<Record<string, any>|null>(null);

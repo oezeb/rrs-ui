@@ -7,9 +7,9 @@ import {
 import * as React from "react";
 import { useLocation } from "react-router-dom";
 
-import { Link, useNavigate } from "Navigate";
-import { useSnackbar } from "SnackbarProvider";
-import { useAuth } from "auth/AuthProvider";
+import { Link, useNavigate } from "utils/Navigate";
+import { useSnackbar } from "providers/SnackbarProvider";
+import { useAuth } from "providers/AuthProvider";
 import { PasswordFieldParams, UsernameFieldParams } from "auth/Register";
 
 function Login() {

@@ -1,30 +1,31 @@
-import * as React from "react";
-import { 
-    Box,  
-    Typography, 
-    Button,
-    IconButton,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Badge, Paper,
-} from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
-import TableSortLabel from '@mui/material/TableSortLabel';
-import {  
-    FormControl, InputLabel, Select,
+import {
+    Box,
+    Button,
+    FormControl,
+    IconButton,
+    InputLabel,
+    Paper,
+    Select,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip,
+    Typography,
 } from "@mui/material";
+import TableSortLabel from '@mui/material/TableSortLabel';
+import * as React from "react";
 
-import MenuItem from '@mui/material/MenuItem';
-import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import EditIcon from '@mui/icons-material/Edit';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import MenuItem from '@mui/material/MenuItem';
 
-import { basicDescendingComparator, compareStartEndTime, getComparator, groupResvTimeSlots } from "../../util";
-import { Link } from "../../Navigate";
-import { paths as api_paths } from "../../api";
 import dayjs from "dayjs";
-import Status from "./status/Status";
-import { statusColors } from "../../resvs/Resvs";
-import Privacy from "./privacy/Privacy";
+import { statusColors } from "user/reservation/Reservations";
+import { TimeView } from 'user/reservation/ResvTable';
+import { Link } from "utils/Navigate";
+import { paths as api_paths } from "utils/api";
+import { basicDescendingComparator, compareStartEndTime, getComparator, groupResvTimeSlots } from "utils/util";
 import { TableSkeleton } from "../Table";
-import { TimeView } from "../../resvs/ResvsTable";
+import Privacy from "./privacy/Privacy";
+import Status from "./status/Status";
 
 function Reservations() {
     const [reservations, setReservations] = React.useState<Record<string, any>[]|undefined>(undefined);

@@ -1,18 +1,19 @@
-import * as React from "react";
-import Box from '@mui/material/Box';
 import { Skeleton, Table, TableBody, TableCell, TableRow, Typography } from "@mui/material";
-import TextField from '@mui/material/TextField';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import { useAuth } from "./auth/AuthProvider";
-import { useSnackbar } from "./SnackbarProvider";
-import { paths as api_paths, user_role } from "./api";
-import { EmailFieldParams } from "./auth/Register";
-import { useLang } from "./LangProvider";
+import TextField from '@mui/material/TextField';
+import { EmailFieldParams } from "auth/Register";
+import { useAuth } from "providers/AuthProvider";
+import { useLang } from "providers/LangProvider";
+import { useSnackbar } from "providers/SnackbarProvider";
+import * as React from "react";
+
+import { paths as api_paths, user_role } from "utils/api";
 
 function Profile() {
     const [data, setData] = React.useState<Record<string, any>>({});
     const [msg, setMsg] = React.useState<Record<string, any>>({});
-    const [roles, setRoles] = React.useState<Record<string, any>>({}); // 级别
+    const [roles, setRoles] = React.useState<Record<string, any>>({});
     const { user, update } = useAuth();
     const { showSnackbar } = useSnackbar();
 
@@ -24,17 +25,17 @@ function Profile() {
         event.preventDefault();
         setMsg({});
         if (Object.keys(data).length === 0) {
-            showSnackbar({ message: "信息未改变", severity: "warning" });
+            showSnackbar({ message: strings[lang]['information unchanged'], severity: "warning" });
             return;
         }
 
         if (required_password) {
             if (data.new_password !== data.confirm_password) {
-                setMsg({ confirm_password: "两次输入的密码不一致" });
+                setMsg({ confirm_password: strings[lang]['passwords not match'] });
                 return;
             }
         } else if (data.email === user?.email) {
-            showSnackbar({ message: "信息未改变", severity: "warning" });
+            showSnackbar({ message: strings[lang]['information unchanged'], severity: "warning" });
             return;
         }
 
@@ -51,16 +52,16 @@ function Profile() {
                 if (res.ok) {
                     update(res => {
                         setData({});
-                        showSnackbar({ message: "修改成功", severity: "success" });
+                        showSnackbar({ message: strings[lang]['update success'], severity: "success" });
                     })
                 } else if (res.status === 401) {
-                    setMsg({ password: "密码错误" });
+                    setMsg({ password: strings[lang]['password incorrect'] });
                 } else {
-                    showSnackbar({ message: "修改失败", severity: "error" });
+                    throw new Error();
                 }
             })
             .catch((err) => {
-                showSnackbar({ message: "修改失败", severity: "error" });
+                showSnackbar({ message: strings[lang]['update failed'], severity: "error" });
             });
     };
 
@@ -166,6 +167,12 @@ const strings = {
         'new password': '新密码',
         'confirm password': '确认密码',
         'save': '保存',
+
+        'information unchanged': '信息未改变',
+        'password incorrect': '密码错误',
+        'passwords not match': '两次输入的密码不一致',
+        'update failed': '修改失败',
+        'update success': '修改成功',
     } as const,
     'en': {
         'personal information': 'Personal Information',
@@ -178,8 +185,13 @@ const strings = {
         'new password': 'New Password',
         'confirm password': 'Confirm Password',
         'save': 'Save',
+
+        'information unchanged': 'Information unchanged',
+        'password incorrect': 'Password incorrect',
+        'passwords not match': 'Passwords not match',
+        'update failed': 'Change failed',
+        'update success': 'Change succeeded',
     } as const,
 } as const;
-
 
 export default Profile;

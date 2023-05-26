@@ -1,19 +1,18 @@
-import * as React from "react";
-import { 
-    Box,  
-    Typography, 
-    List, ListItemText, 
-    Button 
+import {
+    Box,
+    Button,
+    List, ListItemText,
+    Typography
 } from "@mui/material";
+import * as React from "react";
 
-import { setting } from "../../api";
-import { time } from "../../util";
-import { useSnackbar } from "../../SnackbarProvider";
+import { useSnackbar } from "providers/SnackbarProvider";
+import { paths as api_paths, setting } from "utils/api";
+import { time } from "utils/util";
+import MaxDaily from "./MaxDaily";
+import TimeLimit from "./TimeLimit";
 import { hms } from "./TimeView";
 import TimeWindow from "./TimeWindow";
-import TimeLimit from "./TimeLimit";
-import MaxDaily from "./MaxDaily";
-import { paths as api_paths } from "../../api";
 
 function Settings() {
     const [settings, setSettings] = React.useState<Record<string, any>[]|null|undefined>(undefined);

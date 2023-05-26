@@ -1,12 +1,11 @@
-import * as React from "react";
-import { 
-    Box,  
-    Typography, 
-    List, ListItem, ListItemText, 
+import {
+    Box,
+    List, ListItem, ListItemText,
     Skeleton,
+    Typography,
 } from "@mui/material";
 import TextField from "@mui/material/TextField";
-import { descriptionFieldParams, labelFieldParams } from "../../util";
+import { descriptionFieldParams, labelFieldParams } from "utils/util";
 
 const SettingItem = (props: any) => {
     const { id, title, text, value, label, description } = props;

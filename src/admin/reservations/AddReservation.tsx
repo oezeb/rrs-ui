@@ -1,26 +1,26 @@
-import { useEffect, useState } from "react";
-import { 
-    Box, 
-    TextField,
-    Typography,
-    ListItemText,
-    ListItem,
+import {
+    Box,
+    Button,
     FormControl,
     InputLabel,
-    Select,
-    MenuItem,
+    ListItem,
+    ListItemText,
     ListSubheader,
+    MenuItem,
+    Select,
+    TextField,
+    Typography,
 } from "@mui/material";
-import { Button } from "@mui/material";
 import dayjs from "dayjs";
+import { useEffect, useState } from "react";
 
-import { useSnackbar } from "../../SnackbarProvider";
-import RoomView from "../../resvs/RoomView";
-import { useNavigate } from "../../Navigate";
-import { paths as api_paths, resv_privacy } from "../../api";
-import { descriptionFieldParams, labelFieldParams } from "../../util";
-import { BackDrop } from "../../App";
-import Repeat, { RepeatType } from "../../resvs/advanced/Repeat";
+import { BackDrop } from "utils/BackDrop";
+import { useSnackbar } from "providers/SnackbarProvider";
+import RoomView from "user/reservation/RoomView";
+import Repeat, { RepeatType } from "user/reservation/advanced/Repeat";
+import { useNavigate } from "utils/Navigate";
+import { paths as api_paths, resv_privacy } from "utils/api";
+import { descriptionFieldParams, labelFieldParams } from "utils/util";
 import SelectDateTime from "./SelectDateTime";
 import SlotTable from "./SlotTable";
 
@@ -32,8 +32,8 @@ function AddResvervation() {
     const [resvPrivacy, setResvPrivacy] = useState<Record<string, any>[]>([]);
     const [sessions, setSessions] = useState<Record<string, any>[]>([]);
     
-    const [room, setRoom] = useState<Record<string, any>|null>(null);
-    const [session, setSession] = useState<Record<string, any>|null>(null);
+    const [room, setRoom] = useState<Record<string, any>|null|undefined>(undefined);
+    const [session, setSession] = useState<Record<string, any>|null|undefined>(undefined);
     
     const [loading, setLoading] = useState(true);
 
@@ -62,15 +62,23 @@ function AddResvervation() {
     }, []);
 
     useEffect(() => {
-        setRoom(rooms[0]);
-        let session = sessions.find((s) => s.is_current) || sessions[0];
-        setSession(session);
+        if (rooms.length > 0) {
+            setRoom(rooms[0]);
+        } else {
+            setRoom(null);
+        }
+        let session = sessions.find((s) => s.is_current);
+        if (session !== undefined || sessions.length > 0) {
+            setSession(session || sessions[0]);
+        } else {
+            setSession(null);
+        }
     }, [rooms, sessions]);
 
 
-    if (loading) {
-        return <BackDrop />
-    } else if (room && session) {
+    if (room === null || session === null) {
+        return <Box>没有可用的房间或会话</Box>
+    } else {
         return (
             <Box>
                 <ListItem divider>
@@ -83,6 +91,7 @@ function AddResvervation() {
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 2, justifyContent: "center" }}>
                     <FormControl fullWidth>
                         <InputLabel>选择房间</InputLabel>
+                        {room &&
                         <Select size="small" label="选择房间" value={room.room_id}>
                             {roomTypes.map((roomType) => {
                                 let items = rooms.filter((room) => room.type === roomType.type).map((room) => (
@@ -96,10 +105,11 @@ function AddResvervation() {
                                     ...items
                                 ];
                             })}
-                        </Select>
+                        </Select>}
                     </FormControl>
                     <FormControl fullWidth>
                         <InputLabel>选择会话</InputLabel>
+                        {session &&
                         <Select size="small" label="选择会话" value={session.session_id}>
                             {sessions.map((session) => (
                                 <MenuItem key={session.session_id} value={session.session_id}
@@ -107,7 +117,7 @@ function AddResvervation() {
                                     {session.name}
                                 </MenuItem>
                             ))}
-                        </Select>
+                        </Select>}
                     </FormControl>
                     <FormControl fullWidth>
                         <InputLabel>选择用户</InputLabel>
@@ -130,14 +140,14 @@ function AddResvervation() {
                         </Select>
                     </FormControl>
                 </Box>
+                {room && session &&
                 <Book 
                     room_id={room.room_id} 
-                    session_id={session?.session_id} 
-                />
+                    session_id={session.session_id} 
+                />}
+                <BackDrop open={loading || room === undefined || session === undefined} />
             </Box>
         );
-    } else {
-        return <Box>没有可用的房间或会话</Box>
     }
 }
 
@@ -236,9 +246,7 @@ function Book({ room_id, session_id }: BookProps) {
             });
     }
 
-    if (session === undefined) {
-        return <BackDrop />;
-    } else if (session === null || !session.is_current || session.end_time.isBefore(today)) {
+    if (session === null || (session !== undefined && (!session.is_current || session.end_time.isBefore(today)))) {
         return (
             <Typography variant="h3" align="center" sx={{ mt: 10 }}>
                 当前无可预约
@@ -250,16 +258,18 @@ function Book({ room_id, session_id }: BookProps) {
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                     <RoomView room_id={room_id} date={date} />
                 </Box>
+                {session &&
                 <SelectDateTime
                     date={date} setDate={setDate}
                     room_id={room_id} session={session}
                     slots={slots} setSlots={(slots) => { setConflicts(undefined); setSlots(slots); }}
-                />
+                />}
                 <SlotTable slots={slots} />
+                {session &&
                 <Repeat type={repeatType} setType={setRepeatType} room_id={room_id} session={session}
                     slots={slots} setValidSlots={setValidSlots} 
                     conflicts={conflicts} setConflicts={setConflicts}
-                />
+                />}
                 <Box component="form" onSubmit={handleSubmit}>
                     <TextField {...labelFieldParams} id="title" name="title" label="标题" />
                     <TextField {...descriptionFieldParams} id="note" name="note" label="备注" sx={{ mt: 2 }} />
@@ -267,6 +277,7 @@ function Book({ room_id, session_id }: BookProps) {
                         提交
                     </Button>
                 </Box>
+                <BackDrop open={session === undefined} />
             </Box>
         );
     }

@@ -1,36 +1,34 @@
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { 
-    Box, 
+import HelpIcon from '@mui/icons-material/Help';
+import {
+    Box,
+    Button,
+    ListItem,
+    ListItemText,
     TextField,
     Typography,
-    ListItemText,
-    ListItem,
 } from "@mui/material";
-import { Button } from "@mui/material";
 import dayjs from "dayjs";
-import HelpIcon from '@mui/icons-material/Help';
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
-import { useSnackbar } from "../../SnackbarProvider";
-import RoomView from "../RoomView";
-import { RoomList } from "../../rooms/Rooms";
-import { useNavigate } from "../../Navigate";
-import { paths as api_paths, room_status } from "../../api";
-import { descriptionFieldParams, labelFieldParams } from "../../util";
-import { BackDrop } from "../../App";
+import { BackDrop } from "utils/BackDrop";
+import { useSnackbar } from "providers/SnackbarProvider";
+import { RoomList } from "rooms/Rooms";
+import RoomView from "user/reservation/RoomView";
+import { useNavigate } from "utils/Navigate";
+import { paths as api_paths, room_status } from "utils/api";
+import { descriptionFieldParams, labelFieldParams } from "utils/util";
+import Repeat, { RepeatType } from "./Repeat";
 import SelectDateTime from "./SelectDateTime";
 import SlotTable from "./SlotTable";
-import Repeat, { RepeatType } from "./Repeat";
 
-function NewResv() {
+function AddReservation() {
     const [types, setTypes] = useState<Record<string, any>[]>([]);
     const [session, setSession] = useState<Record<string, any>|null|undefined>(undefined);
-    const [searchParams] = useSearchParams();
-
-    const room_id = searchParams.get("room_id");
+    const { room_id } = useParams();
 
     useEffect(() => {
-        if (room_id !== null) {
+        if (room_id === undefined) {
             let url = api_paths.room_types;
             fetch(url).then((res) => res.json())
                 .then((data) => {
@@ -49,24 +47,25 @@ function NewResv() {
                 if (data.length > 0) {
                     setSession(data[0]);
                 } else {
-                    setSession(null);
+                    throw new Error();
                 }
             })
             .catch((err) => {
                 console.log(err);
+                setSession(null);
             });
     }, []);
 
-    if (session === undefined) {
-        return <BackDrop />
-    } else if (room_id !== null) {
-        return  <Book room_id={room_id} session_id={session?.session_id} />;
+    if (room_id !== undefined) {
+        return  (
+            <Book room_id={room_id} session={session} />
+        );
     } else {
         return (<>
             {types.map((type) => (
                 <RoomList key={type.type} 
                     type={type} 
-                    link={(room) => `/reservations/advanced?room_id=${room.room_id}`}
+                    link={(room) => `/reservations/add/advanced/${room.room_id}`}
                     disabled={(room) => room.status !== room_status.available}
                 />
             ))}
@@ -77,12 +76,11 @@ function NewResv() {
 
 interface BookProps {
     room_id: string|number;
-    session_id?: string|number;
+    session?: Record<string, any>|null;
 }
 
-function Book({ room_id, session_id }: BookProps) {
+function Book({ room_id, session }: BookProps) {
     const today = dayjs();
-    const [session, setSession] = useState<Record<string, any>|null|undefined>(undefined);
     const [date, setDate] = useState(dayjs());
     const [slots, setSlots] = useState<Record<string, any>[]>([]);
     const [repeatType, setRepeatType] = useState<RepeatType>("none");
@@ -93,29 +91,6 @@ function Book({ room_id, session_id }: BookProps) {
     let navigate = useNavigate();
 
     useEffect(() => {
-        if (session_id !== undefined) {
-            fetch(api_paths.sessions + `?session_id=${session_id}`)
-                .then((res) => res.json())
-                .then((data) => {
-                    if (data.length > 0) {
-                        setSession({
-                            ...data[0],
-                            start_time: dayjs(data[0].start_time),
-                            end_time: dayjs(data[0].end_time),
-                        });
-                    } else {
-                        setSession(null);
-                    }
-                })
-                .catch((err) => {
-                    console.log(err);
-                });
-        } else {
-            setSession(null);
-        }
-    }, [session_id]);
-
-    useEffect(() => {
         if (repeatType === "none") {
             setValidSlots(slots);
         } 
@@ -123,6 +98,8 @@ function Book({ room_id, session_id }: BookProps) {
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        if (session === undefined || session === null) return;
+
         const data = new FormData(event.currentTarget);
         if (repeatType !== "none" && conflicts === undefined) {
             showSnackbar({ message: '请先检查冲突', severity: 'error' });
@@ -134,7 +111,8 @@ function Book({ room_id, session_id }: BookProps) {
         }
 
         let resv = {
-            room_id, session_id,
+            room_id,
+            session_id: session.session_id,
             title: data.get('title'),
             note: data.get('note'),
             time_slots: validSlots.map((slot) => ({
@@ -143,7 +121,6 @@ function Book({ room_id, session_id }: BookProps) {
             })),
         }
 
-        console.log(resv);
         let url = `${api_paths.user_resv}/advanced`;
         fetch(url, {
             method: 'POST',
@@ -156,7 +133,7 @@ function Book({ room_id, session_id }: BookProps) {
                 if (res.ok) {
                     showSnackbar({ message: '预约成功', severity: 'success', duration: 2000 });
                     res.json().then((data) => {
-                        navigate(`/reservations?id=${data.resv_id}`);
+                        navigate(`/reservations/${data.resv_id}`);
                     });
                 } else {
                     res.json().then((data) => {
@@ -170,9 +147,7 @@ function Book({ room_id, session_id }: BookProps) {
             });
     }
 
-    if (session === undefined) {
-        return <BackDrop />;
-    } else if (session === null || !session.is_current || session.end_time.isBefore(today)) {
+    if (session === null || (session !== undefined && (!session.is_current || session.end_time.isBefore(today)))) {
         return (
             <Typography variant="h3" align="center" sx={{ mt: 10 }}>
                 当前无可预约
@@ -191,16 +166,18 @@ function Book({ room_id, session_id }: BookProps) {
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                     <RoomView room_id={room_id} date={date} />
                 </Box>
+                {session &&
                 <SelectDateTime
                     date={date} setDate={setDate}
                     room_id={room_id} session={session}
                     slots={slots} setSlots={(slots) => { setConflicts(undefined); setSlots(slots); }}
-                />
+                />}
                 <SlotTable slots={slots} />
+                {session &&
                 <Repeat type={repeatType} setType={setRepeatType} room_id={room_id} session={session}
                     slots={slots} setValidSlots={setValidSlots} 
                     conflicts={conflicts} setConflicts={setConflicts}
-                />
+                />}
                 <Box component="form" onSubmit={handleSubmit}>
                     <TextField {...labelFieldParams} id="title" name="title" label="标题" />
                     <TextField {...descriptionFieldParams} id="note" name="note" label="备注" sx={{ mt: 2 }} />
@@ -208,9 +185,10 @@ function Book({ room_id, session_id }: BookProps) {
                         提交
                     </Button>
                 </Box>
+                <BackDrop open={session === undefined} />
             </Box>
         );
     }
 }
 
-export default NewResv;
+export default AddReservation;

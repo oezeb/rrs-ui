@@ -6,7 +6,7 @@ import {
 } from "@mui/material";
 import TextField from "@mui/material/TextField";
 
-import { descriptionFieldParams, labelFieldParams } from "../../../util";
+import { descriptionFieldParams, labelFieldParams } from "utils/util";
 
 interface AddEditTypeProps {
     title: string;

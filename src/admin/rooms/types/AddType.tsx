@@ -1,7 +1,7 @@
-import { useNavigate } from "../../../Navigate";
-import { useSnackbar } from "../../../SnackbarProvider";
+import { useSnackbar } from "providers/SnackbarProvider";
+import { useNavigate } from "utils/Navigate";
+import { paths as api_paths } from "utils/api";
 import AddEditType from "./AddEditType";
-import { paths as api_paths } from "../../../api";
 
 function AddType() {
     const navigate = useNavigate();

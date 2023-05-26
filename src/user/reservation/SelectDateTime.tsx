@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
+import { useEffect, useState } from "react";
+import { Box } from "@mui/material";
 
+import { paths as api_paths, setting } from "utils/api";
+import { time } from "utils/util";
 import SelectDate from "./SelectDate";
 import SelectTime from "./SelectTime";
-import { paths as api_paths, setting } from "../../api";
-import { time } from "../../util";
 
 export interface Option {
     index: number;
@@ -60,13 +61,17 @@ function SelectDateTime(props: SelectDateTimeProps) {
         });
     }, []);
 
-    return (<>
-        <SelectDate date={date} setDate={setDate} timeWindow={window} />
-        <SelectTime 
-            room_id={room_id} date={date} 
-            timeWindow={window}
-            max_time={max_time}
-        /></>
+    return (
+        <Box>
+            <SelectDate date={date} setDate={setDate} timeWindow={window} />
+            <Box sx={{ mt: 1 }}>
+                <SelectTime 
+                    room_id={room_id} date={date} 
+                    timeWindow={window}
+                    max_time={max_time}
+                />
+            </Box>
+        </Box>
     )
 }
 

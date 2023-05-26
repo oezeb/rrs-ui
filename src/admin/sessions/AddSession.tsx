@@ -1,9 +1,9 @@
 import * as React from "react";
 
-import AddEditSession from "./AddEditSession";
-import { useSnackbar } from "../../SnackbarProvider";
-import { useNavigate } from "../../Navigate";
 import dayjs from "dayjs";
+import { useSnackbar } from "providers/SnackbarProvider";
+import { useNavigate } from "utils/Navigate";
+import AddEditSession from "./AddEditSession";
 
 function AddSession() {
     const navigate = useNavigate();

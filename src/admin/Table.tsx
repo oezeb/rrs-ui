@@ -5,8 +5,8 @@ import {
     Skeleton,
 } from "@mui/material";
 import TableSortLabel from '@mui/material/TableSortLabel';
-import { getComparator } from "../util";
-import { Order } from "../util";
+import { getComparator } from "utils/util";
+import { Order } from "utils/util";
 
 interface TableProps {
     columns: {

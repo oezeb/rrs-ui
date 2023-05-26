@@ -2,12 +2,11 @@ import * as React from "react";
 import { 
     Box,  
     Typography, 
-    List, ListItem, Button, FormControl, InputLabel, Select, MenuItem,
+    List, ListItem, ListItemText, Button, FormControl, InputLabel, Select, MenuItem,
 } from "@mui/material";
 import TextField from "@mui/material/TextField";
 
-import { Item as AddEditLabelItem } from "../AddEditLabel";
-import { paths as api_paths, room_status } from "../../api";
+import { paths as api_paths, room_status } from "utils/api";
 
 interface AddEditRoomProps {
     title: string;
@@ -105,12 +104,25 @@ export const AddEditRoom = (props: AddEditRoomProps) => {
                     />
                 </ListItem>
                 <ListItem>
-                    <Item name="图片" value={<>
+                    {/* <Item name="图片" value={<>
                         <input 
                             type="file" name="image" 
                             accept="image/png, image/jpeg" 
                         />
                     </>} />
+                    {image} */}
+
+                    <ListItemText sx={{ flex: 'none', width: 50 }} >
+                        <Typography fontWeight="bold">
+                            图片：
+                        </Typography>
+                    </ListItemText>
+                    <Box sx={{ flexGrow: 1 }} >
+                        <input
+                            type="file" name="image"
+                            accept="image/png, image/jpeg"
+                        />
+                    </Box>
                     {image}
                 </ListItem>
                 <ListItem>
@@ -122,9 +134,5 @@ export const AddEditRoom = (props: AddEditRoomProps) => {
         </Box>
     );
 }
-
-export const Item = ({name, value}:{name: string, value: JSX.Element}) => (
-    <AddEditLabelItem name={name} value={value} nameWidth={70} />
-);
 
 export default AddEditRoom;

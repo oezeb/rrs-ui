@@ -1,9 +1,9 @@
 import * as React from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { useSnackbar } from "../../../SnackbarProvider";
+import { useSnackbar } from "providers/SnackbarProvider";
 import AddEditType from "./AddEditType";
-import { paths as api_paths } from "../../../api";
+import { paths as api_paths } from "utils/api";
 
 function EditType() {
     const [type, setType] = React.useState<Record<string, any>|null>(null);

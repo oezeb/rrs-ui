@@ -1,10 +1,10 @@
 import * as React from "react";
 
+import { useSnackbar } from "providers/SnackbarProvider";
+import { useNavigate } from "utils/Navigate";
+import { paths as api_paths } from "utils/api";
+import { FileToBase64 } from "utils/util";
 import AddEditRoom from "./AddEditRoom";
-import { useSnackbar } from "../../SnackbarProvider";
-import { useNavigate } from "../../Navigate";
-import { FileToBase64 } from "../../util";
-import { paths as api_paths } from "../../api";
 
 function AddRoom() {
     const navigate = useNavigate();

@@ -1,74 +1,73 @@
-import React from "react";
-import dayjs, { Dayjs } from "dayjs";
 import {
-    Box, 
+    Box,
     Button,
-    Tooltip, 
-    Skeleton, TextField, 
-    Table, TableBody, TableCell, TableRow, TableHead, 
+    Skeleton,
+    Table, TableBody, TableCell,
+    TableHead,
+    TableRow,
+    TextField,
+    Tooltip,
 } from "@mui/material";
+import dayjs, { Dayjs } from "dayjs";
+import React from "react";
 
-import Typography from '@mui/material/Typography';
+import HelpIcon from '@mui/icons-material/Help';
 import Chip from '@mui/material/Chip';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import HelpIcon from '@mui/icons-material/Help';
+import Typography from '@mui/material/Typography';
 
-import { statusColors as resvStatusColors } from "./Resvs";
-import { useSnackbar } from "../SnackbarProvider";
-import { Link } from "../Navigate";
-import { paths as api_paths, resv_status } from "../api";
-import { labelFieldParams, descriptionFieldParams } from "../util";
+import { useSnackbar } from "providers/SnackbarProvider";
+import { Link } from "utils/Navigate";
+import { paths as api_paths, resv_status } from "utils/api";
+import { descriptionFieldParams, labelFieldParams } from "utils/util";
+import { statusColors as resvStatusColors } from "./Reservations";
+import { useParams } from "react-router-dom";
+import { useAuth } from "providers/AuthProvider";
 
-interface ResvDetailsViewProps {
-    resv_id: string;
-    statusList: Record<string, any>[];
-    mobile?: boolean;
-}
-
-function ResvDetails({ resv_id, statusList, mobile }: ResvDetailsViewProps) {
-    const [resv, setResv] = React.useState<Record<string, any> | null>(null);
+function ResvDetails() {
+    const { resv_id } = useParams();
+    const { user } = useAuth();
+    const [resv, setResv] = React.useState<Record<string, any>|null|undefined>(undefined);
     const [room, setRoom] = React.useState<Record<string, any> | null>(null);
     const [privacy, setPrivacy] = React.useState<Record<number, any>>({});
+    const [status, setStatus] = React.useState<Record<number, any>>({});
     const [open, setOpen] = React.useState(false);
     const [slot_id, setSlotId] = React.useState<number | undefined>(undefined); // slot to cancel
     const { showSnackbar } = useSnackbar();
 
-    const updateResv = React.useCallback(async () => {
-        let res = await fetch(api_paths.user_resv + `?resv_id=${resv_id}`);
-        let data = await res.json();
-        if (data.length === 0) {
-            setResv(null);
-            showSnackbar({
-                message: "Reservation not found",
-                severity: "error",
+    React.useEffect(() => {
+        if (resv_id === undefined || user === null) return;
+        if (resv !== undefined) return;
+        fetch(api_paths.user_resv + `?resv_id=${resv_id}&username=${user.username}`)
+            .then((res) => res.json())
+            .then((data) => {
+                setResv({
+                    ...data[0],
+                    create_time: dayjs(data[0].create_time),
+                    slot_id: undefined,
+                    start_time: undefined,
+                    end_time: undefined,
+                    status: undefined,
+                    time_slots: data.map((item: any) => ({
+                        slot_id: item.slot_id,
+                        start_time: dayjs(item.start_time),
+                        end_time: dayjs(item.end_time),
+                        status: item.status,
+                    })),
+                });
+            })
+            .catch((err) => {
+                console.log(err);
+                setResv(null);
             });
-        } else {
-            setResv({
-                ...data[0],
-                create_time: dayjs(data[0].create_time),
-                slot_id: undefined,
-                start_time: undefined,
-                end_time: undefined,
-                status: undefined,
-                time_slots: data.map((item: any) => ({
-                    slot_id: item.slot_id,
-                    start_time: dayjs(item.start_time),
-                    end_time: dayjs(item.end_time),
-                    status: item.status,
-                })),
-            });
-        }
-    }, [resv_id, showSnackbar]);
+    }, [resv_id, resv, user]);
 
     React.useEffect(() => {
-        updateResv();
-    }, [updateResv]);
-
-    React.useEffect(() => {
+        if (resv_id === undefined || user === null || resv === undefined) return;
         if (resv === null) {
             setRoom(null);
         } else {
@@ -78,9 +77,10 @@ function ResvDetails({ resv_id, statusList, mobile }: ResvDetailsViewProps) {
                     setRoom(data[0]);
                 });
         }
-    }, [resv]);
-
+    }, [resv_id, resv, user]);
+    
     React.useEffect(() => {
+        if (resv_id === undefined) return;
         fetch(api_paths.resv_privacy)
             .then(res => res.json())
             .then(data => {
@@ -89,9 +89,16 @@ function ResvDetails({ resv_id, statusList, mobile }: ResvDetailsViewProps) {
                     return acc;
                 }, {}));
             });
-    }, []);
+        fetch(api_paths.resv_status)
+            .then(res => res.json())
+            .then(data => {
+                setStatus(data.reduce((acc: Record<number, any>, item: any) => {
+                    acc[item.status] = item;
+                    return acc;
+                }, {}));
+            });
+    }, [resv_id]);
 
-        
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         let data = new FormData(event.currentTarget);
@@ -113,7 +120,7 @@ function ResvDetails({ resv_id, statusList, mobile }: ResvDetailsViewProps) {
             body: JSON.stringify({title, note}),
         }).then(res => {
             if (res.ok) {
-                updateResv();
+                setResv(undefined);
                 showSnackbar({ message: "修改成功", severity: "success", duration: 2000 });
             } else {
                 showSnackbar({ message: "修改失败", severity: "error" });
@@ -132,7 +139,7 @@ function ResvDetails({ resv_id, statusList, mobile }: ResvDetailsViewProps) {
     const handleCancelConfirm = (confirm: boolean) => {
         setOpen(false);
         if (confirm) {
-            updateResv();
+            setResv(undefined);
         }
     }
 
@@ -140,6 +147,7 @@ function ResvDetails({ resv_id, statusList, mobile }: ResvDetailsViewProps) {
         return time.format("YYYY-MM-DD HH:mm");
     }
 
+    if (resv_id === undefined || user === null) return null;
     return (
         <Box>
             <Typography variant="h5" component="h2" gutterBottom>
@@ -219,10 +227,10 @@ function ResvDetails({ resv_id, statusList, mobile }: ResvDetailsViewProps) {
                                             borderBottom={3}
                                             borderColor={resvStatusColors[slot.status]}
                                         >
-                                            {statusList[slot.status]?.label ?? slot.status}
+                                            {status[slot.status]?.label ?? slot.status}
                                         </Box>
-                                        {statusList[slot.status]?.description &&
-                                        <Tooltip title={statusList[slot.status]?.description}>
+                                        {status[slot.status]?.description &&
+                                        <Tooltip title={status[slot.status]?.description}>
                                             <HelpIcon fontSize="small" sx={{ ml: 1 }} />
                                         </Tooltip>}
                                     </Box>

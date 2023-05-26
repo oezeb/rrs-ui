@@ -1,8 +1,9 @@
 import * as React from "react";
-import Forbidden from "Forbidden";
-import { Navigate } from "Navigate";
-import { paths as api_paths } from "api";
-import { BackDrop } from "App";
+import Forbidden from "utils/Forbidden";
+import { Navigate } from "utils/Navigate";
+import { paths as api_paths } from "utils/api";
+import { BackDrop } from "utils/BackDrop";
+import { to, useLang } from "./LangProvider";
 
 export interface AuthContextProps {
     user: Record<string, any> | null;
@@ -84,13 +85,14 @@ export function useAuth() {
 
 export function RequireAuth({ children, role }: { children: React.ReactNode, role?: number }) {
     const { user, loading } = useAuth();
+    const lang = useLang();
 
     if (loading) {
-        return <BackDrop />;
+        return <BackDrop open />;
     } else if (user) {
         return role !== undefined && user.role < role ? <Forbidden /> : <>{children}</>;
     } else {
-        return <Navigate to="/login" replace />;
+        return <Navigate to={to("/login", lang)} replace />;
     }
 }
 

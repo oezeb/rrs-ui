@@ -1,11 +1,11 @@
-import * as React from "react";
 import { Box, Button, TextField, Typography } from "@mui/material";
+import * as React from "react";
 
-import { email_regex } from "../util";
-import { useSnackbar } from "../SnackbarProvider";
-import { useAuth } from "./AuthProvider";
-import { Link, useNavigate } from "../Navigate";
-import { paths as api_paths } from "../api";
+import { useAuth } from "providers/AuthProvider";
+import { useSnackbar } from "providers/SnackbarProvider";
+import { Link, useNavigate } from "utils/Navigate";
+import { paths as api_paths } from "utils/api";
+import { email_regex } from "utils/util";
 
 function Register() {
     const [error, setError] = React.useState<Record<string, string>>({});
