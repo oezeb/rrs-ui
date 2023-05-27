@@ -13,73 +13,18 @@ import { useParams } from "react-router-dom";
 
 import { BackDrop } from "utils/BackDrop";
 import { useSnackbar } from "providers/SnackbarProvider";
-import { RoomList } from "rooms/Rooms";
 import RoomView from "user/reservation/RoomView";
 import { useNavigate } from "utils/Navigate";
-import { paths as api_paths, room_status } from "utils/api";
+import { paths as api_paths } from "utils/api";
 import { descriptionFieldParams, labelFieldParams } from "utils/util";
 import Repeat, { RepeatType } from "./Repeat";
 import SelectDateTime from "./SelectDateTime";
 import SlotTable from "./SlotTable";
 
 function AddReservation() {
-    const [types, setTypes] = useState<Record<string, any>[]>([]);
     const [session, setSession] = useState<Record<string, any>|null|undefined>(undefined);
     const { room_id } = useParams();
-
-    useEffect(() => {
-        if (room_id === undefined) {
-            let url = api_paths.room_types;
-            fetch(url).then((res) => res.json())
-                .then((data) => {
-                    setTypes(data);
-                })
-                .catch((err) => {
-                    console.log(err);
-                });
-        }
-    }, [room_id]);
-
-    useEffect(() => {
-        fetch(api_paths.sessions + `?is_current=true`)
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.length > 0) {
-                    setSession(data[0]);
-                } else {
-                    throw new Error();
-                }
-            })
-            .catch((err) => {
-                console.log(err);
-                setSession(null);
-            });
-    }, []);
-
-    if (room_id !== undefined) {
-        return  (
-            <Book room_id={room_id} session={session} />
-        );
-    } else {
-        return (<>
-            {types.map((type) => (
-                <RoomList key={type.type} 
-                    type={type} 
-                    link={(room) => `/reservations/add/advanced/${room.room_id}`}
-                    disabled={(room) => room.status !== room_status.available}
-                />
-            ))}
-        </>
-        );
-    }
-}
-
-interface BookProps {
-    room_id: string|number;
-    session?: Record<string, any>|null;
-}
-
-function Book({ room_id, session }: BookProps) {
+    
     const today = dayjs();
     const [date, setDate] = useState(dayjs());
     const [slots, setSlots] = useState<Record<string, any>[]>([]);
@@ -89,6 +34,27 @@ function Book({ room_id, session }: BookProps) {
 
     const { showSnackbar } = useSnackbar();
     let navigate = useNavigate();
+
+    useEffect(() => {
+        if (room_id === undefined) return;
+        fetch(api_paths.sessions + `?is_current=true`)
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.length > 0) {
+                    setSession({
+                        ...data[0],
+                        start_time: dayjs(data[0].start_time),
+                        end_time: dayjs(data[0].end_time),
+                    });
+                } else {
+                    throw new Error();
+                }
+            })
+            .catch((err) => {
+                console.log(err);
+                setSession(null);
+            });
+    }, [room_id]);
 
     useEffect(() => {
         if (repeatType === "none") {
@@ -145,9 +111,10 @@ function Book({ room_id, session }: BookProps) {
                 console.error(err);
                 showSnackbar({ message: '预约失败', severity: 'error' });
             });
-    }
+    };
 
-    if (session === null || (session !== undefined && (!session.is_current || session.end_time.isBefore(today)))) {
+    if (room_id === undefined) return null;
+    else if (session === null || (session !== undefined && (!session.is_current || session.end_time.isBefore(today)))) {
         return (
             <Typography variant="h3" align="center" sx={{ mt: 10 }}>
                 当前无可预约

@@ -86,27 +86,28 @@ function SelectTime(props: SelectTimeProps) {
         }));
 
         if (endOption !== null) {
-            let continuous = true;
-            let below_max_time = true;
-            for (let i = _periods.length - 1; i >= 0; i--) {
+            let i = _periods.length - 1;
+            while (i > endOption.index) {
+                _startOptions[i].disabled = true;
+                i--;
+            }
+
+            i = endOption.index - 1;
+            while (i >= 0) {
                 let p = _periods[i];
-                if (!p.disabled) {
-                    if (i > endOption.index) {
-                        _startOptions[i].disabled = true;
-                    } else {
-                        if (continuous && i < endOption.index && !p.end_time.isSame(_periods[i + 1].start_time)) {
-                            continuous = false;
-                        }
-
-                        if (below_max_time && max_time !== undefined && endOption.time.diff(p.start_time, 'second') > max_time) {
-                            below_max_time = false;
-                        }
-
-                        if (!continuous || !below_max_time) {
-                            _startOptions[i].disabled = true;
-                        }
-                    }
+                if (p.disabled || !p.end_time.isSame(_periods[i + 1].start_time)) {
+                    break; // not continuous
                 }
+
+                if (max_time !== undefined && endOption.time.diff(p.start_time, 'second') > max_time) {
+                    break; // exceed max_time
+                }
+                i--;
+            }
+
+            while (i >= 0) {
+                _startOptions[i].disabled = true;
+                i--;
             }
         }
 
@@ -123,27 +124,28 @@ function SelectTime(props: SelectTimeProps) {
         }});
         
         if (startOption !== null) {
-            let continuous = true;
-            let below_max_time = true;
-            for (let i = 0; i < _periods.length; i++) {
+            let i = 0;
+            while(i < startOption.index) {
+                _endOptions[i].disabled = true;
+                i++;
+            }
+
+            i = startOption.index + 1;
+            while(i < _periods.length) {
                 let p = _periods[i];
-                if (p.disabled === false) {
-                    if (i < startOption.index) {
-                        _endOptions[i].disabled = true;
-                    } else {
-                        if (continuous && i > startOption.index && !p.start_time.isSame(_periods[i - 1].end_time)) {
-                            continuous = false;
-                        }
-
-                        if (below_max_time && max_time !== undefined && p.end_time.diff(startOption.time, 'second') > max_time) {
-                            below_max_time = false;
-                        }
-
-                        if (!continuous || !below_max_time) {
-                            _endOptions[i].disabled = true;
-                        }
-                    }
+                if (p.disabled || !p.start_time.isSame(_periods[i - 1].end_time)) {
+                    break; // not continuous
                 }
+
+                if (max_time !== undefined && p.start_time.diff(startOption.time, 'second') > max_time) {
+                    break; // exceed max_time
+                }
+                i++;
+            }
+
+            while(i < _periods.length) {
+                _endOptions[i].disabled = true;
+                i++;
             }
         }
 

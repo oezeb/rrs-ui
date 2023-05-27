@@ -21,6 +21,7 @@ import AddReservation from "user/reservation/AddReservation";
 import Resvervations from "user/reservation/Reservations";
 import SelectRoom from "user/reservation/SelectRoom";
 import Advanced from "user/reservation/advanced/AddReservation";
+import AdvancedSelectRoom from "user/reservation/advanced/SelectRoom";
 
 import Layout from "layout/Layout";
 import AdminLayout from "admin/Layout";
@@ -44,23 +45,23 @@ function App() {
         <Route path="reservations/:resv_id" element={<RequireAuth role={-1} ><ResvDetails /></RequireAuth>} />,
         <Route path="reservations/add" element={<RequireAuth role={0} ><SelectRoom /></RequireAuth>} />,
         <Route path="reservations/add/:room_id" element={<RequireAuth role={0} ><AddReservation /></RequireAuth>} />,
+        <Route path="reservations/add/advanced" element={<RequireAuth role={1} ><AdvancedSelectRoom /></RequireAuth>} />,
         <Route path="reservations/add/advanced/:room_id" element={<RequireAuth role={1} ><Advanced /></RequireAuth>} />,
     ];
 
     return(
         <LangProvider><AuthProvider><SnackbarProvider><PeriodsProvider>
             <Routes>
-                <Route path="/" element={<Layout />}>
+                <Route path="/en?" element={<Layout />}>
                     {routes}
-                    <Route path="en">{routes}</Route>
                 </Route>
-                <Route path="/admin" element={<RequireAuth role={3}><AdminLayout /></RequireAuth>}>
+                <Route path="/en?/admin" element={<RequireAuth role={3}><AdminLayout /></RequireAuth>}>
                     {admin_routes}
                 </Route>
-                <Route path="/login" element={<AuthLayout />} >
+                <Route path="/en?/login" element={<AuthLayout />} >
                     <Route index element={<Login />} />
                 </Route>
-                <Route path="/register" element={<AuthLayout />} >
+                <Route path="/en?/register" element={<AuthLayout />} >
                     <Route index element={<Register />} />
                 </Route>
             </Routes>

@@ -299,7 +299,7 @@ function Reservations() {
             </Paper>}
             {reservations !== undefined && 
             <Paper sx={{ mt: 1, width: '100%', overflow: 'hidden' }}>
-                <TableContainer sx={{ minWidth: 750, height: "70vh"}}>
+                <TableContainer sx={{ minWidth: 750, height: "65vh"}}>
                     <Table stickyHeader size="small">
                         <TableHead>
                             <TableRow>

@@ -27,7 +27,7 @@ function Home() {
                     margin="auto"
                     marginRight={1}
                 >
-                    {strings[lang]['date']}:
+                    {strings[lang].date}
                 </Typography>
                 <TextField 
                     size='small' 
@@ -92,11 +92,11 @@ function RoomsView(props: RoomsViewProps) {
 }
 
 const strings = {
-    "zh": {
-        "date": "日期",
+    zh: {
+        date: "日期",
     } as const,
-    "en": {
-        "date": "Date",
+    en: {
+        date: "Date",
     } as const,
 } as const;
 

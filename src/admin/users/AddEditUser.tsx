@@ -9,8 +9,9 @@ import {
 import TextField from "@mui/material/TextField";
 import * as React from "react";
 
-import { EmailFieldParams, NameFieldParams, PasswordFieldParams, UsernameFieldParams } from "auth/Register";
+import { EmailFieldParams, NameFieldParams, PasswordFieldParams, UsernameFieldParams } from "utils/util";
 import { paths as api_paths } from "utils/api";
+import { useLang } from "providers/LangProvider";
 
 interface AddEditUserProps {
     title: string;
@@ -27,6 +28,7 @@ interface AddEditUserProps {
 export const AddEditUser = (props: AddEditUserProps) => {
     const { title, username, password, name, email, role, handleSubmit, type } = props;
     const [roles, setRoles] = React.useState<Record<number, any>|undefined>(undefined);
+    const lang = useLang();
 
     React.useEffect(() => {
         fetch(api_paths.admin.user_roles)
@@ -50,12 +52,20 @@ export const AddEditUser = (props: AddEditUserProps) => {
             </Typography>
             <List sx={{ ml: 4 }} dense>
                 <ListItem>
-                    <TextField {...UsernameFieldParams} autoFocus defaultValue={username}
-                        disabled={type === "edit"} />
+                    <TextField {...UsernameFieldParams} 
+                        autoFocus 
+                        label={strings[lang].username}
+                        defaultValue={username}
+                        disabled={type === "edit"}
+                    />
                     {roles !== undefined && 
                     <FormControl sx={{ ml: 1}} fullWidth required>
-                        <InputLabel>级别</InputLabel>
-                        <Select variant="standard" required fullWidth size="small" label="级别" defaultValue={role!==undefined?role:''} name="role">
+                        <InputLabel>{strings[lang].role}</InputLabel>
+                        <Select variant="standard" required fullWidth size="small" 
+                            name="role"
+                            label={strings[lang].role}
+                            defaultValue={role!==undefined?role:''} 
+                        >
                             {Object.values(roles).map((role) => (
                                 <MenuItem key={role.role} value={role.role}>
                                     {role.label}
@@ -65,23 +75,51 @@ export const AddEditUser = (props: AddEditUserProps) => {
                     </FormControl>}
                 </ListItem>
                 <ListItem>
-                    <TextField {...PasswordFieldParams} defaultValue={password} 
-                        disabled={type === "edit"} />
+                    <TextField {...PasswordFieldParams} 
+                        label={strings[lang].password}
+                        defaultValue={password} 
+                        disabled={type === "edit"}
+                    />
                 </ListItem>
                 <ListItem>
-                    <TextField {...NameFieldParams} defaultValue={name} />
+                    <TextField {...NameFieldParams} 
+                        label={strings[lang].name}
+                        defaultValue={name} 
+                    />
                 </ListItem>
                 <ListItem>
-                    <TextField {...EmailFieldParams} defaultValue={email} />
+                    <TextField {...EmailFieldParams} 
+                        label={strings[lang].email}
+                        defaultValue={email}
+                    />
                 </ListItem>
                 <ListItem>
                     <Button fullWidth variant="contained" color="primary" type="submit" sx={{ mt: 2 }} >
-                        提交
+                        {strings[lang].submit}
                     </Button>
                 </ListItem>
             </List>
         </Box>
     );
 };
+
+const strings = {
+    zh: {
+        username: "用户名",
+        role: "角色",
+        password: "密码",
+        name: "姓名",
+        email: "邮箱",
+        submit: "提交",
+    } as const,
+    en: {
+        username: "Username",
+        role: "Role",
+        password: "Password",
+        name: "Name",
+        email: "Email",
+        submit: "Submit",
+    } as const,
+} as const;
 
 export default AddEditUser;

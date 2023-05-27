@@ -155,3 +155,40 @@ export const fetchTranslation = async (url: string, lang_code: string) => {
         return data;
     }
 }
+
+export const UsernameFieldParams = {
+    id: "username",
+    name: "username",
+    inputProps: { minLength: 1, pattern: "[a-zA-Z0-9_]+" },
+    variant: "standard",
+    fullWidth: true,
+    required: true,
+} as const;
+
+export const PasswordFieldParams = {
+    id: "password",
+    name: "password",
+    type: "password",
+    inputProps: { minLength: 1 },
+    variant: "standard",
+    fullWidth: true,
+    required: true,
+} as const;
+
+export const NameFieldParams = {
+    id: "name",
+    name: "name",
+    inputProps: { minLength: 1 },
+    variant: "standard",
+    fullWidth: true,
+    required: true,
+} as const;
+
+export const EmailFieldParams = {
+    id: "email",
+    name: "email",
+    type: "email",
+    inputProps: { pattern: email_regex.source },
+    variant: "standard",
+    fullWidth: true,
+} as const;

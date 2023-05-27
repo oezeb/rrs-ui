@@ -1,14 +1,15 @@
-import React from "react";
 import { Box, Typography } from "@mui/material";
+import { useEffect, useState } from "react";
+
 import { RoomList } from "rooms/Rooms";
-import { room_status, paths as api_paths } from "utils/api";
+import { paths as api_paths, room_status } from "utils/api";
 
 function SelectRoom() {
-    const [types, setTypes] = React.useState<Record<string, any>[]>([]);
+    const [types, setTypes] = useState<Record<string, any>[]>([]);
 
-    React.useEffect(() => {
-        fetch(api_paths.room_types)
-            .then((res) => res.json())
+    useEffect(() => {
+        let url = api_paths.room_types;
+        fetch(url).then((res) => res.json())
             .then((data) => {
                 setTypes(data);
             })
@@ -20,12 +21,12 @@ function SelectRoom() {
     return (
         <Box>
             <Typography variant="h5" component="h2" gutterBottom>
-                预订
+                高级预订
             </Typography>
             {types.map((type) => (
                 <RoomList key={type.type} 
                     type={type} 
-                    link={(room) => `/reservations/add/${room.room_id}`}
+                    link={(room) => `/reservations/add/advanced/${room.room_id}`}
                     disabled={(room) => room.status !== room_status.available}
                 />
             ))}
