@@ -28,7 +28,7 @@ import Typography from '@mui/material/Typography';
 
 import { useSnackbar } from "providers/SnackbarProvider";
 import { useSearchParams } from "react-router-dom";
-import { statusColors as resvStatusColors } from "user/reservation/Reservations";
+import { resvStatusColors } from 'utils/util';
 import { Link } from "utils/Navigate";
 import { paths as api_paths, resv_status } from "utils/api";
 import { descriptionFieldParams, labelFieldParams } from "utils/util";

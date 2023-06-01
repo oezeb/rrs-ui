@@ -8,8 +8,8 @@ import {
 import dayjs, { Dayjs } from "dayjs";
 
 import { useSnackbar } from "providers/SnackbarProvider";
-import { SelectDateTimeProps as _SelectDateTimeProps } from "user/reservation/SelectDateTime";
-import SelectTime from "user/reservation/SelectTime";
+import { SelectDateTimeProps as _SelectDateTimeProps } from "reservations/add/SelectDateTime";
+import SelectTime from "reservations/add/SelectTime";
 
 interface SelectDateTimeProps extends _SelectDateTimeProps {
     session: Record<string, any>;

@@ -4,58 +4,52 @@ import {
     Typography, 
     ListItemText, 
     Button,
-    IconButton,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip,
-    Skeleton,
-    Paper,
 } from "@mui/material";
-import TextField from "@mui/material/TextField";
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
 
-import { time } from "utils/util";
 import { useSnackbar } from "providers/SnackbarProvider";
 import { paths as api_paths } from "utils/api";
 import BinaryDialog from "utils/BinaryDialog";
+import { time } from "utils/util";
+import PeriodTable from "./PeriodTable";
 
 function Periods() {
     const [periods, setPeriods] = React.useState<Record<string, any>[]|undefined>(undefined);
-    const [edited, setEdited] = React.useState<Record<string, any>[]>([]);
-    const [del, setDel] = React.useState<Record<string, any>|null>(null);
+    const [edited, setEdited] = React.useState<Record<string, any>[]|undefined>(undefined);
+    const [del, setDel] = React.useState<Record<string, any>|undefined>(undefined);
 
     const { showSnackbar } = useSnackbar();
 
     React.useEffect(() => {
+        if (periods !== undefined) return;
+        setEdited(undefined);
         fetch(api_paths.admin.periods)
             .then(res => res.json())
             .then(data => {
-                setPeriods(data);
+                setPeriods(data.map((p: Record<string, any>) => ({
+                    ...p,
+                    start_time: time(p.start_time),
+                    end_time: time(p.end_time),
+                })));
             })
             .catch(err => {
                 console.error(err);
                 setPeriods([]);
             });
-    }, []);
+    }, [periods]);
 
     React.useEffect(() => {
-        if (periods === undefined) return;
+        if (periods === undefined || edited !== undefined) return;
         setEdited(periods);
-    }, [periods]);
+    }, [periods, edited]);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (periods === undefined) return;
+        if (periods === undefined || edited === undefined) return;
 
         // start < end
         for (let i = 0; i < edited.length; i++) {
             let p = edited[i];
-            let start = time(p.start_time);
-            let end = time(p.end_time);
-            if (start === null || end === null) {
-                showSnackbar({ message: "时间格式错误", severity: "error" });
-                return;
-            }
-            if (start >= end) {
+            if (p.end_time.lessThan(p.start_time)) {
                 showSnackbar({ message: `第${i + 1}行的开始时间必须早于结束时间`, severity: "error" });
                 return;
             }
@@ -67,7 +61,10 @@ function Periods() {
                 let p1 = periods[i];
                 for (let j = i + 1; j < periods.length; j++) {
                     let p2 = periods[j];
-                    if (!(time(p1.end_time) <= time(p2.start_time) || time(p2.end_time) <= time(p1.start_time))) {
+                    if (p1.end_time.lessThan(p2.start_time) || p1.end_time.equals(p2.start_time)
+                        || p2.end_time.lessThan(p1.start_time) || p2.end_time.equals(p1.start_time)) {
+                        continue;
+                    } else {
                         return { i, j, p1, p2 };
                     }
                 }
@@ -92,20 +89,27 @@ function Periods() {
             promises.push(fetch(api_paths.admin.periods, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(p),
+                body: JSON.stringify({
+                    start_time: p.start_time.format(),
+                    end_time: p.end_time.format(),
+                }),
             }));
         }
         for (let p of edited.filter(p => (
-            p.period_id && ( p.start_time !== periodsDict[p.period_id].start_time 
-                || p.end_time !== periodsDict[p.period_id].end_time
+            p.period_id && ( !p.start_time.equals(periodsDict[p.period_id].start_time)
+                || !p.end_time.equals(periodsDict[p.period_id].end_time)
             )))) {
-            promises.push(fetch(api_paths.admin.periods + `/${p.period_id}`, {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(p),
-            }));
+                promises.push(fetch(api_paths.admin.periods + `/${p.period_id}`, {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        start_time: p.start_time.format(),
+                        end_time: p.end_time.format(),
+                    }),
+                }
+            ));
         }
 
         if (promises.length === 0) {
@@ -115,7 +119,7 @@ function Periods() {
                 .then((res) => {
                     if (res.every(r => r.ok)) {
                         showSnackbar({ message: "保存成功", severity: "success", duration: 2000 });
-                        setPeriods(edited);
+                        setPeriods(undefined);
                     } else {
                         throw new Error();
                     }
@@ -135,87 +139,7 @@ function Periods() {
                 </Typography>} 
                 secondary="用户只能选择一个或多个连续时段预约。时段不能重叠。"
             />
-            <Paper sx={{ my: 1, width: '100%', overflow: 'hidden' }}>
-                <TableContainer sx={{ height: "60vh"}}>
-                    <Table stickyHeader size="small">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell><Typography fontWeight="bold">编号</Typography></TableCell>
-                                <TableCell><Typography fontWeight="bold">开始时间</Typography></TableCell>
-                                <TableCell />
-                                <TableCell><Typography fontWeight="bold">结束时间</Typography></TableCell>
-                                <TableCell><Typography fontWeight="bold">操作</Typography></TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {periods === undefined && Array(12).fill(0).map((_, i) => (
-                                <TableRow key={i}>
-                                    <TableCell><Skeleton /></TableCell>
-                                    <TableCell><Skeleton /></TableCell>
-                                    <TableCell align="center">~</TableCell>
-                                    <TableCell><Skeleton /></TableCell>
-                                    <TableCell><Skeleton /></TableCell>
-                                </TableRow>
-                            ))}
-                            {periods !== undefined && edited.map((p, i) =>(
-                                <TableRow key={i}>
-                                    <TableCell>{i + 1}</TableCell>
-                                    <TableCell>
-                                        <TextField required
-                                            size="small"
-                                            id="start_time"
-                                            type="time"
-                                            variant="standard"
-                                            value={p.start_time}
-                                            onChange={e => {
-                                                let value = e.target.value;
-                                                setEdited(edited.map((p, j) => i === j ? { ...p, start_time: value } : p));
-                                            }}
-                                        />
-                                    </TableCell>
-                                    <TableCell align="center">~</TableCell>
-                                    <TableCell>
-                                        <TextField required
-                                            size="small"
-                                            id="end_time"
-                                            type="time"
-                                            variant="standard"
-                                            value={p.end_time}
-                                            onChange={e => {
-                                                let value = e.target.value;
-                                                setEdited(edited.map((p, j) => i === j ? { ...p, end_time: value } : p));
-                                            }}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <Tooltip title="删除">
-                                            <IconButton
-                                                onClick={() => {
-                                                    if (p.period_id) {
-                                                        setDel(p);
-                                                    } else {
-                                                        setEdited(edited.filter((_, j) => i !== j));
-                                                    }
-                                                }}
-                                                size="small"
-                                            >
-                                                <DeleteIcon fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            </Paper>
-            <Button size="small" fullWidth variant="text" color="primary" startIcon={<AddIcon fontSize="small"/>}
-                                onClick={() => {
-                                    setEdited([...edited, { start_time: '', end_time: '' }]);
-                                }}
-                            >
-                                添加
-                            </Button>
+            <PeriodTable periods={edited} setPeriods={setEdited} setDel={setDel} />
             <Button fullWidth type="submit" variant="contained" sx={{ mt: 2 }}>
                 保存
             </Button>
@@ -226,8 +150,8 @@ function Periods() {
 
 
 interface DeleteDialogProps {
-    del: Record<string, any>|null;
-    setDel: React.Dispatch<React.SetStateAction<Record<string, any>|null>>;
+    del: Record<string, any>|undefined;
+    setDel: React.Dispatch<React.SetStateAction<Record<string, any>|undefined>>;
     setPeriods: React.Dispatch<React.SetStateAction<Record<string, any>[]|undefined>>;
 }
 
@@ -235,7 +159,7 @@ function DeleteDialog({ del, setDel, setPeriods }: DeleteDialogProps) {
     const { showSnackbar } = useSnackbar();
 
     const handleClose = () => {
-        setDel(null);
+        setDel(undefined);
     };
 
     const handleDelete = () => {
@@ -244,7 +168,7 @@ function DeleteDialog({ del, setDel, setPeriods }: DeleteDialogProps) {
         })
             .then(res => {
                 if (res.ok) {
-                    setPeriods(periods => periods?.filter(p => p.period_id !== del?.period_id));
+                    setPeriods(undefined);
                     showSnackbar({ message: "删除成功", severity: "success", duration: 2000 });
                     handleClose();
                 } else {
@@ -259,7 +183,7 @@ function DeleteDialog({ del, setDel, setPeriods }: DeleteDialogProps) {
 
     return (
         <BinaryDialog
-            open={del !== null}
+            open={del !== undefined}
             onConfirm={handleDelete}
             onClose={handleClose}
             title="删除时段"

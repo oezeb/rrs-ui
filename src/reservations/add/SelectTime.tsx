@@ -9,7 +9,7 @@ import { useEffect, useState, useCallback } from "react";
 
 import { usePeriods } from "providers/PeriodsProvider";
 import { paths as api_paths, resv_status } from "utils/api";
-import { TimeWindow, Option as _Option, formatDateTime, optionEqual } from "./SelectDateTime";
+import { TimeWindow, Option as _Option, optionEqual } from "./SelectDateTime";
 
 interface Option extends _Option {
     disabled: boolean;
@@ -30,12 +30,13 @@ function SelectTime(props: SelectTimeProps) {
     const [endOption, setEndOption] = useState<Option|null>(null);
 
     const _periods = usePeriods().periods;
-    
+
     useEffect(() => {
+        let _date = date.format('YYYY-MM-DD');
         setPeriods(_periods.map((p) => ({
             ...p,
-            start_time: dayjs(formatDateTime(date, p.start_time)),
-            end_time: dayjs(formatDateTime(date, p.end_time)),
+            start_time: dayjs(`${_date} ${p.start_time.format()}`),
+            end_time: dayjs(`${_date} ${p.end_time.format()}`),
             disabled: false,
         })));
         setStartOption(null);
@@ -43,24 +44,25 @@ function SelectTime(props: SelectTimeProps) {
     }, [_periods, date]);
 
     useEffect(() => {
-        let url = api_paths.reservations + `?room_id=${room_id}&start_date=${date.format('YYYY-MM-DD')}`;
-        fetch(url)
-        .then((res) => res.json())
-        .then((data) => {
-            setReservations(data.filter((r: Record<string, any>) => (
-                r.status === resv_status.pending || r.status === resv_status.confirmed
-            ))
-                .map((resv: Record<string, any>) => {
-                    return {
-                        ...resv,
-                        start_time: dayjs(resv.start_time),
-                        end_time: dayjs(resv.end_time),
-                    };
-                }));
-        })
-        .catch((err) => {
-            console.error(err);
-        });
+        let _date = date.format('YYYY-MM-DD');
+        fetch(api_paths.reservations + `?room_id=${room_id}&start_date=${_date}`)
+            .then((res) => res.json())
+            .then((data) => {
+                setReservations(data
+                    .filter((r: Record<string, any>) => (
+                        r.status === resv_status.pending || r.status === resv_status.confirmed
+                    ))
+                    .map((resv: Record<string, any>) => {
+                        return {
+                            ...resv,
+                            start_time: dayjs(resv.start_time),
+                            end_time: dayjs(resv.end_time),
+                        };
+                    }));
+            })
+            .catch((err) => {
+                console.error(err);
+            });
     }, [room_id, date]);
 
     const filterPeriods = useCallback(() => {
@@ -158,7 +160,7 @@ function SelectTime(props: SelectTimeProps) {
                 name="start_time"
                 value={startOption}
                 options={startOptions()}
-                label="开始时间"
+                label={strings.zh['start_time']}
                 onChange={(e: any, value: Option | null) => setStartOption(value)}
                 max_time={max_time}
             />
@@ -167,7 +169,7 @@ function SelectTime(props: SelectTimeProps) {
                 name="end_time"
                 value={endOption}
                 options={endOptions()}
-                label="结束时间"
+                label={strings.zh['end_time']}
                 onChange={(e: any, value: Option | null) => setEndOption(value)}
             />
         </Box>
@@ -178,11 +180,11 @@ const timeView = (seconds: number) => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     if (h > 0 && m > 0) {
-        return `${h}小时${m}分钟`;
+        return `${h}${strings.zh['hour']}${m}${strings.zh['minute']}`;
     } else if (h > 0) {
-        return `${h}小时`;
+        return `${h}${strings.zh['hour']}`;
     } else {
-        return `${m}分钟`;
+        return `${m}${strings.zh['minute']}`;
     }
 }
 
@@ -208,10 +210,20 @@ const AutoComplete = ({ name, value, options, label, onChange, max_time }: AutoC
             <TextField {...params} required variant="standard"
                 name={name}
                 label={label}
-                helperText={max_time !== undefined? <>最长预约时间：{timeView(max_time)}</>: null}
+                helperText={max_time !== undefined? `${strings.zh['max_time']}: ${timeView(max_time)}`: null}
             />
         )}
     />
 )
+
+const strings = {
+    zh: {
+        start_time: '开始时间',
+        end_time: '结束时间',
+        hour: '小时',
+        minute: '分钟',
+        max_time: '最长预约时间',
+    } as const,
+} as const;
 
 export default SelectTime;

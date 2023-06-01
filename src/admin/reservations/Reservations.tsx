@@ -18,11 +18,11 @@ import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import MenuItem from '@mui/material/MenuItem';
 
 import dayjs from "dayjs";
-import { statusColors } from "user/reservation/Reservations";
-import { TimeView } from 'user/reservation/ResvTable';
+import { resvStatusColors as statusColors } from 'utils/util';
+import { TimeView } from 'reservations/resv-list/Table';
 import { Link } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";
-import { basicDescendingComparator, compareStartEndTime, getComparator, groupResvTimeSlots } from "utils/util";
+import { descComp, getComparator } from "utils/util";
 import { TableSkeleton } from "../Table";
 import Privacy from "./privacy/Privacy";
 import Status from "./status/Status";
@@ -62,44 +62,61 @@ function Reservations() {
         let url = api_paths.admin.reservations + (args.length ? `?${args.join('&')}` : '');
         let now = dayjs();
         fetch(url).then(res => res.json()).then(data => {
-            // setReservations(data.map((resv: any) => ({
-            //     ...resv,
-            //     start_time: dayjs(resv.start_time),
-            //     end_time: dayjs(resv.end_time),
-            //     create_time: dayjs(resv.create_time),
-            //     update_time: resv.update_time ? dayjs(resv.update_time) : null,
-            // })).sort((a: any, b: any) => (a.start_time.isBefore(b.start_time) ? -1 : 1)).filter((resv: any) => {
-            //     if (time === "全部") {
-            //         return true;
-            //     } else if (time === "当前") {
-            //         return resv.end_time.isAfter(now);
-            //     } else if (time === "历史") {
-            //         return resv.end_time.isBefore(now);
-            //     } else {
-            //         return false;
-            //     }
-            // }));
-            setReservations(groupResvTimeSlots(data).map((resv: any) => ({
-                ...resv,
-                create_time: dayjs(resv.create_time),
-                update_time: resv.update_time ? dayjs(resv.update_time) : null,
-            })).sort((a: any, b: any) => {
-                if (a.time_slots.length && b.time_slots.length) {
-                    return compareStartEndTime(a.time_slots[0], b.time_slots[0]);
-                } else {
-                    return b.time_slots.length - a.time_slots.length;
-                }
-            }).filter((resv: any) => {
-                if (time === "全部") {
-                    return true;
-                } else if (time === "当前") {
-                    return resv.time_slots.some((ts: any) => ts.end_time.isAfter(now));
-                } else if (time === "历史") {
-                    return resv.time_slots.every((ts: any) => ts.end_time.isBefore(now));
-                } else {
-                    return false;
-                }
-            }));
+            setReservations(Object.values(data
+                .reduce((acc: Record<string, any>, resv: any) => {
+                    let slot = {
+                        start_time: dayjs(resv.start_time),
+                        end_time: dayjs(resv.end_time),
+                        status: resv.status,
+                        slot_id: resv.slot_id,
+                    };
+
+                    let key = `${resv.resv_id}-${resv.username}`;
+                    if (acc[key]) {
+                        acc[key].time_slots.push(slot);
+                    } else {
+                        acc[key] = {
+                            ...resv,
+                            time_slots: [slot],
+                        };
+                    }
+                    return acc;
+                }, {}))
+                .map((resv: any) => ({
+                    ...resv,
+                    create_time: dayjs(resv.create_time),
+                    update_time: resv.update_time ? dayjs(resv.update_time) : null,
+                }))
+                .sort((a: any, b: any) => {
+                    if (a.time_slots.length && b.time_slots.length) {
+                        let [ts1, ts2] = [a.time_slots[0], b.time_slots[0]]
+                        if (ts1.start_time.isBefore(ts2.start_time)) {
+                            return -1;
+                        } else if (ts1.start_time.isAfter(ts2.start_time)) {
+                            return 1;
+                        } else if (ts1.end_time.isBefore(ts2.end_time)) {
+                            return -1;
+                        } else if (ts1.end_time.isAfter(ts2.end_time)) {
+                            return 1;
+                        } else {
+                            return 0;
+                        }
+                    } else {
+                        return b.time_slots.length - a.time_slots.length;
+                    }
+                })
+                .filter((resv: any) => {
+                    if (time === "全部") {
+                        return true;
+                    } else if (time === "当前") {
+                        return resv.time_slots.some((ts: any) => ts.end_time.isAfter(now));
+                    } else if (time === "历史") {
+                        return resv.time_slots.every((ts: any) => ts.end_time.isBefore(now));
+                    } else {
+                        return false;
+                    }
+                })
+            );
         });
     }, [status, username, roomId, sessionId, time]);
 
@@ -140,12 +157,12 @@ function Reservations() {
 
     React.useEffect(() => {
         if (reservations === undefined) return;
-        const comparator = getComparator(order, orderBy, descendingComparator);
-        const sorted = reservations.sort(comparator);
+        const _comparator = getComparator(order, orderBy, comparator);
+        const sorted = reservations.sort(_comparator);
         setSorted(sorted);
     }, [order, orderBy, reservations]);
 
-    const descendingComparator = (
+    const comparator = (
         a: Record<string, any>,
         b: Record<string, any>,
         orderBy: string,
@@ -163,7 +180,7 @@ function Reservations() {
                 return 0;
             }
         } else {
-            return basicDescendingComparator(a, b, orderBy);
+            return descComp(a, b, orderBy);
         }
     };
 
@@ -174,8 +191,8 @@ function Reservations() {
             setOrder(isAsc ? 'desc' : 'asc');
             setOrderBy(property);
 
-            const comparator = getComparator(order, orderBy, descendingComparator);
-            const sorted = reservations.sort(comparator);
+            const _comparator = getComparator(order, orderBy, comparator);
+            const sorted = reservations.sort(_comparator);
             setSorted(sorted);
         },
         [order, orderBy, reservations],

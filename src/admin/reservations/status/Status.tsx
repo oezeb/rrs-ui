@@ -9,7 +9,7 @@ import {
 import TableSortLabel from '@mui/material/TableSortLabel';
 import { TableSkeleton } from "admin/Table";
 import * as React from "react";
-import { statusColors } from "user/reservation/Reservations";
+import { resvStatusColors as statusColors } from 'utils/util';
 import { Link } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";
 import { getComparator } from "utils/util";

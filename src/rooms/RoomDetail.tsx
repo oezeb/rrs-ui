@@ -3,21 +3,15 @@ import {  List, ListItem, Box, Tooltip, Skeleton } from "@mui/material";
 
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
-import { useParams } from "react-router-dom";
 import { paths as api_paths } from "utils/api";
+import { roomStatusColors as statusColors } from 'utils/util';
 
-// room status: 0: 不可用、1: 可用
-export const statusColors = ["#FF5733", "#00CC66"];
-
-function RoomDetails() {
+function RoomDetail({ room_id }: { room_id: string|number }) {
     const [room, setRoom] = React.useState<Record<string, any> | null>(null);
     const [roomStatus, setRoomStatus] = React.useState<Record<number, any>>({});
     const [roomTypes, setRoomTypes] = React.useState<Record<number, any>>({});
 
-    const { room_id } = useParams();
-
     React.useEffect(() => {
-        if (room_id === undefined) return;
         fetch(api_paths.rooms + `?room_id=${room_id}`)
             .then(res => res.json())
             .then(data => {
@@ -58,8 +52,6 @@ function RoomDetails() {
         </ListItem>
     );
 
-
-    if (room_id === undefined) return null;
     return (
         <Box>
             <ListItem divider dense>
@@ -81,8 +73,13 @@ function RoomDetails() {
                     </Box>
                 )}
                 <List>
-                    <ListItemView label="房间号" value={room? room.room_id : <Skeleton />} />
-                    <ListItemView label="状态" value={room && roomStatus[room.status] !== undefined ? (
+                    <ListItemView
+                        label={strings.zh['room_id']}
+                        value={room? room.room_id : <Skeleton />} 
+                    />
+                    <ListItemView 
+                        label={strings.zh['status']}
+                        value={room && roomStatus[room.status] !== undefined ? (
                             <Tooltip title={roomStatus[room.status]?.description}>
                                 <Box display="inline"
                                     borderBottom={3}
@@ -91,19 +88,35 @@ function RoomDetails() {
                                     {roomStatus[room.status]?.label ?? room.status}
                                 </Box>
                             </Tooltip>
-                        ) : <Skeleton />} />
-                    <ListItemView label="容量" value={room? room.capacity : <Skeleton />} />
-                    <ListItemView label="类型" value={room && roomTypes[room.type] !== undefined ? (
+                        ) : <Skeleton />} 
+                    />
+                    <ListItemView 
+                        label={strings.zh['capacity']}
+                        value={room? room.capacity : <Skeleton />} 
+                    />
+                    <ListItemView 
+                        label={strings.zh['type']}
+                        value={room && roomTypes[room.type] !== undefined ? (
                             <Tooltip title={roomTypes[room.type]?.description}>
                                 <Box display="inline">
                                     {roomTypes[room.type]?.label ?? room.type}
                                 </Box>
                             </Tooltip>
-                        ) : <Skeleton />} />
+                        ) : <Skeleton />}
+                    />
                 </List>
             </Box>
         </Box>
     );
 }
 
-export default RoomDetails;
+const strings = {
+    zh: {
+        room_id: "房间号",
+        status: "状态",
+        capacity: "容量",
+        type: "类型",
+    } as const,
+} as const;
+
+export default RoomDetail;

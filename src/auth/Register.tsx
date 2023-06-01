@@ -6,11 +6,9 @@ import { useSnackbar } from "providers/SnackbarProvider";
 import { Link, useNavigate } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";
 import { EmailFieldParams, NameFieldParams, PasswordFieldParams, UsernameFieldParams } from "utils/util";
-import { to, useLang } from "providers/LangProvider";
 
 function Register() {
     const [error, setError] = React.useState<Record<string, string>>({});
-    const lang = useLang();
     let navigate = useNavigate();
     let { logout } = useAuth();
     let { showSnackbar } = useSnackbar();
@@ -23,7 +21,7 @@ function Register() {
         const password = data.get('password');
         const confirmPassword = data.get('confirmPassword');
         if (password !== confirmPassword) {
-            setError({ password: strings[lang].passwordNotMatch });
+            setError({ password: strings.zh["passwordNotMatch"] });
             return;
         }
         
@@ -45,18 +43,18 @@ function Register() {
         })
         .then((res) => {
             if (res.status === 201) {
-                showSnackbar({ message: strings[lang].registerSuccess, severity: "success", duration: 2000});
+                showSnackbar({ message: strings.zh["registerSuccess"], severity: "success", duration: 2000});
                 logout(() => {
-                    navigate(to("/login", lang), { replace: true });
+                    navigate("/login", { replace: true });
                 });
             } else if (res.status === 409) {
-                setError({ username: strings[lang].usernameAlreadyExist });
+                setError({ username: strings.zh["usernameAlreadyExist"] });
             } else {
                 throw new Error();
             }
         })
         .catch((err) => {
-            setError({ register: strings[lang].registerFailed });
+            setError({ register: strings.zh["registerFailed"] });
         });
     };
 
@@ -69,7 +67,7 @@ function Register() {
             }}
         >
             <Typography variant="h4" component="h1" gutterBottom>
-                {strings[lang].register}
+                {strings.zh["register"]}
             </Typography>
             <Box
                 component="form"
@@ -82,36 +80,36 @@ function Register() {
             >
                 <TextField {...UsernameFieldParams}
                     autoFocus
-                    label={strings[lang].username}
+                    label={strings.zh["username"]}
                     error={'username' in error}
                     helperText={error.username}
                 />
                 <TextField {...PasswordFieldParams}
-                    label={strings[lang].password}
+                    label={strings.zh["password"]}
                     error={'password' in error}
                 />
                 <TextField {...PasswordFieldParams}
                     id="confirmPassword" 
-                    label={strings[lang].confirmPassword}
+                    label={strings.zh["confirmPassword"]}
                     name="confirmPassword"
                     error={'password' in error}
                     helperText={error.password}
                 />
                 <TextField {...NameFieldParams} 
-                    label={strings[lang].name}
+                    label={strings.zh["name"]}
                 />
                 <TextField {...EmailFieldParams} 
-                    label={strings[lang].email}
+                    label={strings.zh["email"]}
                 />
                 <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-                    {strings[lang].register}
+                    {strings.zh["register"]}
                 </Button>
                 <Box display="flex">
                     <Typography variant="body2" component="p" gutterBottom
                         margin="auto"
                     >
-                        {strings[lang].alreadyHaveAccount}
-                        <Link to={to("/login", lang)}>{strings[lang].login}</Link>
+                        {strings.zh["alreadyHaveAccount"]}
+                        <Link to="/login" >{strings.zh["login"]}</Link>
                     </Typography>
                 </Box>
             </Box>
@@ -133,20 +131,6 @@ const strings = {
         registerFailed: "注册失败",
         registerSuccess: "注册成功",
         usernameAlreadyExist: "用户名已存在",
-    } as const,
-    en: {
-        register: "Register",
-        username: "Username",
-        password: "Password",
-        confirmPassword: "Confirm Password",
-        name: "Name",
-        email: "Email",
-        alreadyHaveAccount: "Already have an account?",
-        login: "Login",
-        passwordNotMatch: "Password not match",
-        registerFailed: "Register failed",
-        registerSuccess: "Register success",
-        usernameAlreadyExist: "Username already exist",
     } as const,
 } as const;
 

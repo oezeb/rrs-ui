@@ -4,7 +4,6 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { EmailFieldParams } from "utils/util";
 import { useAuth } from "providers/AuthProvider";
-import { useLang } from "providers/LangProvider";
 import { useSnackbar } from "providers/SnackbarProvider";
 import * as React from "react";
 
@@ -17,25 +16,23 @@ function Profile() {
     const { user, update } = useAuth();
     const { showSnackbar } = useSnackbar();
 
-    const lang = useLang();
-
     const required_password = data.password !== undefined || data.new_password !== undefined || data.confirm_password !== undefined;
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setMsg({});
         if (Object.keys(data).length === 0) {
-            showSnackbar({ message: strings[lang].informationUnchanged, severity: "warning" });
+            showSnackbar({ message: strings.zh["informationUnchanged"], severity: "warning" });
             return;
         }
 
         if (required_password) {
             if (data.new_password !== data.confirm_password) {
-                setMsg({ confirm_password: strings[lang].passwordsNotMatch });
+                setMsg({ confirm_password: strings.zh["passwordsNotMatch"] });
                 return;
             }
         } else if (data.email === user?.email) {
-            showSnackbar({ message: strings[lang].informationUnchanged, severity: "warning" });
+            showSnackbar({ message: strings.zh["informationUnchanged"], severity: "warning" });
             return;
         }
 
@@ -52,16 +49,16 @@ function Profile() {
                 if (res.ok) {
                     update(res => {
                         setData({});
-                        showSnackbar({ message: strings[lang].updateSuccess, severity: "success", duration: 2000 });
+                        showSnackbar({ message: strings.zh["updateSuccess"], severity: "success", duration: 2000 });
                     })
                 } else if (res.status === 401) {
-                    setMsg({ password: strings[lang].passwordIncorrect });
+                    setMsg({ password: strings.zh["passwordIncorrect"] });
                 } else {
                     throw new Error();
                 }
             })
             .catch((err) => {
-                showSnackbar({ message: strings[lang].updateFailed, severity: "error" });
+                showSnackbar({ message: strings.zh["updateFailed"], severity: "error" });
             });
     };
 
@@ -83,30 +80,30 @@ function Profile() {
     return (
         <Box component="form" onSubmit={handleSubmit}>
             <Typography variant="h5" component="h2" gutterBottom>
-                {strings[lang].personalInformation}
+                {strings.zh["personalInformation"]}
             </Typography>
             <Table sx={{ mb: 3}}>
                 <TableBody>
                     <TableRow>
-                        <TableCell>{strings[lang].username}</TableCell>
+                        <TableCell>{strings.zh["username"]}</TableCell>
                         <TableCell>{user? user.username:<Skeleton />}</TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell>{strings[lang].name}</TableCell>
+                        <TableCell>{strings.zh["name"]}</TableCell>
                         <TableCell>{user? user.name:<Skeleton />}</TableCell>
                     </TableRow>
                     {user?.role > user_role.guest &&
                         <TableRow>
-                            <TableCell>{strings[lang].role}</TableCell>
+                            <TableCell>{strings.zh["role"]}</TableCell>
                             <TableCell>{user? roles[user.role]?.label:<Skeleton />}</TableCell>
                         </TableRow>
                     }
                     <TableRow>
-                        <TableCell>{strings[lang].email}</TableCell>
+                        <TableCell>{strings.zh["email"]}</TableCell>
                         <TableCell>
                             <TextField {...EmailFieldParams}
                                 defaultValue={user?.email} 
-                                placeholder={strings[lang].email}
+                                placeholder={strings.zh["email"]}
                                 label={undefined}
                                 InputProps={{ disableUnderline: true }}
                                 onChange={(e) => {
@@ -118,40 +115,40 @@ function Profile() {
                 </TableBody>
             </Table>
             <Typography variant="h5" component="h2" gutterBottom>
-                {strings[lang].changePassword}
+                {strings.zh["changePassword"]}
             </Typography>
-                <TextField variant='standard' fullWidth id="password" name="password"
-                    type="password"
-                    required={required_password}
-                    label={strings[lang].oldPassword}
-                    error={ 'password' in msg }
-                    helperText={msg.password}
-                    onChange={(e) => {
-                        setData({ ...data, password: e.target.value });
-                    }}
-                />
-                <TextField variant='standard' fullWidth id="new_password" name="new_password"
-                    type="password"
-                    required={required_password}
-                    label={strings[lang].newPassword}
-                    error={ 'confirm_password' in msg }
-                    onChange={(e) => {
-                        setData({ ...data, new_password: e.target.value });
-                    }}
-                />
-                <TextField variant='standard' fullWidth id="confirm_password" name="confirm_password"
-                    type="password"
-                    required={required_password}
-                    label={strings[lang].confirmPassword}
-                    error={ 'confirm_password' in msg }
-                    helperText={msg.confirm_password}
-                    onChange={(e) => {
-                        setData({ ...data, confirm_password: e.target.value });
-                    }}
-                />
-                <Button  type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-                    {strings[lang]['save']}
-                </Button>
+            <TextField variant='standard' fullWidth id="password" name="password"
+                type="password"
+                required={required_password}
+                label={strings.zh["oldPassword"]}
+                error={ 'password' in msg }
+                helperText={msg.password}
+                onChange={(e) => {
+                    setData({ ...data, password: e.target.value });
+                }}
+            />
+            <TextField variant='standard' fullWidth id="new_password" name="new_password"
+                type="password"
+                required={required_password}
+                label={strings.zh["newPassword"]}
+                error={ 'confirm_password' in msg }
+                onChange={(e) => {
+                    setData({ ...data, new_password: e.target.value });
+                }}
+            />
+            <TextField variant='standard' fullWidth id="confirm_password" name="confirm_password"
+                type="password"
+                required={required_password}
+                label={strings.zh["confirmPassword"]}
+                error={ 'confirm_password' in msg }
+                helperText={msg.confirm_password}
+                onChange={(e) => {
+                    setData({ ...data, confirm_password: e.target.value });
+                }}
+            />
+            <Button  type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+                {strings.zh["save"]}
+            </Button>
         </Box>
     );
 }
@@ -174,24 +171,6 @@ const strings = {
         passwordsNotMatch: '两次输入的密码不一致',
         updateFailed: '修改失败',
         updateSuccess: '修改成功',
-    } as const,
-    en: {
-        personalInformation: 'Personal Information',
-        username: 'Username',
-        name: 'Name',
-        role: 'Role',
-        email: 'Email',
-        changePassword: 'Change Password',
-        oldPassword: 'Old Password',
-        newPassword: 'New Password',
-        confirmPassword: 'Confirm Password',
-        save: 'Save',
-
-        informationUnchanged: 'Information unchanged',
-        passwordIncorrect: 'Password incorrect',
-        passwordsNotMatch: 'Passwords not match',
-        updateFailed: 'Change failed',
-        updateSuccess: 'Change succeeded',
     } as const,
 } as const;
 

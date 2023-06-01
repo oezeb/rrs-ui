@@ -56,13 +56,13 @@ function Settings() {
                     case setting.timeWindow:
                         _timeWindow = {
                             ...item,
-                            value: time(item.value).diff(time('00:00'), 'second')
+                            value: time(item.value).totalSeconds
                         };
                         break;
                     case setting.timeLimit:
                         _timeLimit = {
                             ...item,
-                            value: time(item.value).diff(time('00:00'), 'second')
+                            value: time(item.value).totalSeconds
                         };
                         break;
                     case setting.maxDaily:

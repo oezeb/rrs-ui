@@ -3,10 +3,10 @@ import { IconButton, Tooltip } from "@mui/material";
 import * as React from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { BackDrop } from "utils/BackDrop";
+import BackDrop from "utils/BackDrop";
 import { useSnackbar } from "providers/SnackbarProvider";
 import { paths as api_paths } from "utils/api";
-import { FileToBase64 } from "utils/util";
+import { fileToBase64 } from "utils/util";
 import AddEditRoom from "./AddEditRoom";
 
 function EditRoom() {
@@ -88,7 +88,7 @@ function EditRoom() {
             };
             
             if (data.image !== undefined && data.image !== "") {
-                FileToBase64(data.image, (base64) => {
+                fileToBase64(data.image, (base64) => {
                     data.image = base64;
                     update();
                 });

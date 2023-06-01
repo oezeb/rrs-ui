@@ -12,7 +12,7 @@ interface BinaryDialogProps {
     content: JSX.Element | string;
     onConfirm: () => void;
     onClose: () => void;
-}
+};
 
 const BinaryDialog = ({ open, title, content, onConfirm, onClose }: BinaryDialogProps) => {
     return (
@@ -20,17 +20,25 @@ const BinaryDialog = ({ open, title, content, onConfirm, onClose }: BinaryDialog
             <DialogTitle>{title}</DialogTitle>
             <DialogContent>
                 {typeof content === 'string' ?
-                    <DialogContentText>{content}</DialogContentText> :
-                    content}
+                    <DialogContentText>{content}</DialogContentText> : content}
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose}>取消</Button>
+                <Button onClick={onClose}>
+                    {strings.zh['cancel']}
+                </Button>
                 <Button onClick={onConfirm} autoFocus>
-                    确定
+                    {strings.zh['confirm']}
                 </Button>
             </DialogActions>
         </Dialog>
     );
 };
+
+const strings = {
+    zh: {
+        cancel: "取消",
+        confirm: "确定",
+    } as const,
+} as const;
 
 export default BinaryDialog;

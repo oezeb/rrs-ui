@@ -1,4 +1,5 @@
-import { Button } from "@mui/material";
+import ErrorIcon from '@mui/icons-material/Error';
+import { Box, Button } from "@mui/material";
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -23,7 +24,7 @@ function RoomView(props: RoomViewProps) {
     let navigate = useNavigate();
     let location = useLocation();
 
-    let from = location.state?.from || "";
+    let from = location.state?.from || "/";
 
     useEffect(() => {
         let url = api_paths.rooms + `?room_id=${room_id}`;
@@ -45,14 +46,19 @@ function RoomView(props: RoomViewProps) {
         return (<>
             <HomeRoomView date={date} room={room} show_pending={true} />
             <Dialog open={room !== undefined && room.status === room_status.unavailable}>
-                <DialogTitle>预约失败</DialogTitle>
+                <DialogTitle component={Box} sx={{ display: 'flex', alignItems: 'center' }} >
+                    <ErrorIcon color="error" sx={{ mr: 1 }} />
+                    {strings.zh['error']}
+                </DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        该房间暂时不可预订
+                        {strings.zh['unavailable']}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => navigate(from)} autoFocus>返回</Button>
+                    <Button onClick={() => navigate(from)} autoFocus>
+                        {strings.zh['back']}
+                    </Button>
                 </DialogActions>
             </Dialog>
         </>);
@@ -60,5 +66,13 @@ function RoomView(props: RoomViewProps) {
         return <RoomSkeleton />;
     }
 }
+
+const strings = {
+    zh: {
+        error: "错误",
+        unavailable: "该房间暂时不可约，请选择其他房间。",
+        back: "返回",
+    } as const,
+} as const;
 
 export default RoomView;

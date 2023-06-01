@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { Box } from "@mui/material";
 
 import { paths as api_paths, setting } from "utils/api";
-import { time } from "utils/util";
 import SelectDate from "./SelectDate";
 import SelectTime from "./SelectTime";
+import { time } from "utils/util";
 
 export interface Option {
     index: number;
@@ -53,9 +53,7 @@ function SelectDateTime(props: SelectDateTimeProps) {
     useEffect(() => {
         fetch(api_paths.settings + `?id=${setting.timeLimit}`)
         .then((res) => res.json())
-        .then((data) => {
-            setMaxTime(time(data[0].value).diff(time('00:00'), 'second'))
-        })
+        .then((data) => setMaxTime(time(data[0].value).totalSeconds))
         .catch((err) => {
             console.error(err);
         });
@@ -73,10 +71,6 @@ function SelectDateTime(props: SelectDateTimeProps) {
             </Box>
         </Box>
     )
-}
-
-export const formatDateTime = (date: dayjs.Dayjs, time: dayjs.Dayjs) => {
-    return `${date.format('YYYY-MM-DD')} ${time.format('HH:mm')}`;
 }
 
 export default SelectDateTime;

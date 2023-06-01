@@ -3,8 +3,20 @@ import { List, ListItem, ListItemButton, ListItemText, Skeleton, Typography } fr
 import dayjs from "dayjs";
 import { Link } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";
+import { useParams } from "react-router-dom";
+import NoticeDetails from "./NoticeDetails";
 
 function Notices() {
+    const { notice_id } = useParams();
+
+    if (notice_id === undefined) {
+        return <NoticeList />;
+    } else {
+        return <NoticeDetails notice_id={notice_id} />;
+    }
+}
+
+function NoticeList() {
     const [notices, setNotices] = useState<Record<string, any>[]|undefined>(undefined);
 
     useEffect(() => {

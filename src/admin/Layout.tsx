@@ -5,7 +5,6 @@ import { Outlet, useLocation } from "react-router-dom";
 import DateRangeIcon from '@mui/icons-material/DateRange';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import GroupIcon from '@mui/icons-material/Group';
-import LanguageIcon from '@mui/icons-material/Language';
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -17,7 +16,6 @@ import MobileDrawer, { DrawerItem as MobileDrawerItem } from "layout/MobileDrawe
 
 function Layout() {
     const [open, setOpen] = React.useState(true);
-    const [selected, setSelected] = React.useState<number | null>(null);
     const location = useLocation();
 
     const toggleDrawer = () => {
@@ -32,21 +30,19 @@ function Layout() {
         {name: "时段", link: "periods", icon: <TimelapseIcon />},
         {name: "通知", link: "notices", icon: <NotificationsIcon />},
         {name: "设置", link: "settings", icon: <SettingsIcon />},
-        {name: "语言", link: "languages", icon: <LanguageIcon />},
-    ];
+    ] as const;
 
     return (
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
-            <AppBar toggleDrawer={toggleDrawer} showToUser title="管理" onTitleClick={() => setSelected(null)}/>
+            <AppBar toggleDrawer={toggleDrawer} showToUser title="管理界面" homeLink='/admin' />
             <DesktopDrawer open={open} >
                 {drawer_items.map((item, index) => (
                     <DesktopDrawerItem key={index} name={item.name} 
                         link={item.link} 
                         open={open} 
                         icon={item.icon}
-                        onClick={() => setSelected(index)}
-                        selected={location.pathname.includes(item.link)}
+                        selected={location.pathname.startsWith(`/admin/${item.link}`)}
                     />
                 ))}
             </DesktopDrawer>
@@ -55,8 +51,7 @@ function Layout() {
                     <MobileDrawerItem key={index} name={item.name} 
                         link={item.link} 
                         icon={item.icon}
-                        onClick={() => setTimeout(() => { toggleDrawer(); setSelected(index);})}
-                        selected={selected === index}
+                        selected={location.pathname.startsWith(`/admin/${item.link}`)}
                     />
                 ))}
             </MobileDrawer>

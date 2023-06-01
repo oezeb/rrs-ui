@@ -14,7 +14,6 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { Link } from "utils/Navigate";
 import { user_role } from "../utils/api";
-import { to, useLang } from "../providers/LangProvider";
 
 interface UserMenuProps {
     user: Record<string, any>,
@@ -24,7 +23,6 @@ interface UserMenuProps {
 }
 
 const UserMenu = ({ user, logout, showToAdmin, showToUser }: UserMenuProps) => {
-    const lang = useLang();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -52,38 +50,36 @@ const UserMenu = ({ user, logout, showToAdmin, showToUser }: UserMenuProps) => {
                         {user.name}
                     </Typography>
                 </MenuItem>
-                {/* Admin panel */}
                 {user.role >= user_role.admin && showToAdmin &&
-                <MenuItem component={Link} to={to("/admin", lang)} onClick={handleClose}>
+                <MenuItem component={Link} to="/admin" onClick={handleClose}>
                     <AdminPanelSettingsIcon />
                     <Typography variant="body2" sx={{ ml: 2 }}>
-                        {strings[lang]["adminPanel"]}
+                        {strings.zh["adminPanel"]}
                     </Typography>
                 </MenuItem>}
-                {/* User panel */}
                 {showToUser &&
-                <MenuItem component={Link} to={to("/", lang)} onClick={handleClose}>
+                <MenuItem component={Link} to="/" onClick={handleClose}>
                     <PersonIcon />
                     <Typography variant="body2" sx={{ ml: 2 }}>
-                        {strings[lang]["userPanel"]}
+                        {strings.zh["userPanel"]}
                     </Typography>
                 </MenuItem>}
-                <MenuItem component={Link} to={to("/reservations", lang)} onClick={handleClose}>
+                <MenuItem component={Link} to="/reservations" onClick={handleClose}>
                     <EventAvailableIcon />
                     <Typography variant="body2" sx={{ ml: 2 }}>
-                        {strings[lang]["reservations"]}
+                        {strings.zh["reservations"]}
                     </Typography>
                 </MenuItem>
-                <MenuItem component={Link} to={to("/profile", lang)} onClick={handleClose}>
+                <MenuItem component={Link} to="/profile" onClick={handleClose}>
                     <InfoIcon />
                     <Typography variant="body2" sx={{ ml: 2 }}>
-                        {strings[lang]["profile"]}
+                        {strings.zh["profile"]}
                     </Typography>
                 </MenuItem>
                 <MenuItem onClick={() => { handleClose(); logout(); }}>
                     <LogoutIcon />
                     <Typography variant="body2" sx={{ ml: 2 }}>
-                        {strings[lang]["logout"]}
+                        {strings.zh["logout"]}
                     </Typography>
                 </MenuItem>
             </Menu>
@@ -92,19 +88,12 @@ const UserMenu = ({ user, logout, showToAdmin, showToUser }: UserMenuProps) => {
 }
 
 const strings = {
-    "zh": {
+    zh: {
         adminPanel: "管理界面",
         userPanel: "预约界面",
         reservations: "预约记录",
         profile: "个人信息",
         logout: "退出登录"
-    } as const,
-    "en": {
-        adminPanel: "Admin Panel",
-        userPanel: "User Panel",
-        reservations: "Reservations",
-        profile: "Profile",
-        logout: "Logout"
     } as const
 };
 

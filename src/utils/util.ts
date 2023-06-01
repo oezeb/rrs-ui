@@ -1,44 +1,107 @@
-import dayjs from "dayjs";
+import { resv_status, room_status } from './api';
 
 export const email_regex = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
 
-export const time = (t: string) => {
-    const re = /\d+:\d\d?(:\d\d?)?/;
-    const res = re.exec(t);
-    return dayjs(res ? `1970-01-01 ${res[0]}` : null);
+export const resvStatusColors = {
+    [resv_status.pending as number]: "#FFC107" as const,
+    [resv_status.confirmed as number]: "#00CC66" as const,
+    [resv_status.cancelled as number]: "#A9A9A9" as const,
+    [resv_status.rejected as number]: "#FF5733" as const,
+};
+
+export const roomStatusColors = {
+    [room_status.unavailable as number]: "#FF5733" as const,
+    [room_status.available as number]: "#00CC66" as const,
+};
+
+export class Time {
+    /** @class Time
+     * Time class is used to represent time in the format of HH:mm:ss
+     * 
+     * @param time - time in the format of HH:mm:ss or HH:mm or a number of seconds
+     * @example
+     * const t1 = new Time(3600); // 01:00:00
+     * const t2 = new Time('3600'); // 01:00:00
+     * const t3 = new Time('01:00:00'); // 01:00:00
+     * const t4 = new Time('01:00'); // 01:00:00
+     */
+    private _time: number = 0;
+
+    constructor(time: number|string) {
+        if (typeof time === 'number') {
+            this._time = time;
+        } else if (typeof time === 'string') {
+            const re = /(\d+)(?::(\d\d?))?(?::(\d\d)?)?/;
+            const res = re.exec(time);
+            if (res === null) {
+                throw new Error(`Invalid time string: ${time}`);
+            } else {
+                let [hour, minute, second] = res.slice(1).map((x) => parseInt(x));
+                if (isNaN(minute) && isNaN(second)) {
+                    [hour, minute, second] = [0, 0, hour];
+                } else if (isNaN(minute)) {
+                    minute = 0;
+                } else if (isNaN(second)) {
+                    second = 0;
+                }
+                this._time = hour * 3600 + minute * 60 + second;
+            }
+        }
+    }
+
+    get hour() {
+        return Math.floor(this._time / 3600);
+    }
+
+    get minute() {
+        return Math.floor((this._time % 3600) / 60);
+    }
+
+    get second() {
+        return this._time % 60;
+    }
+
+    get totalSeconds() {
+        return this._time;
+    }
+
+    equals(t: Time) {
+        return this.totalSeconds === t.totalSeconds;
+    }
+
+    lessThan(t: Time) {
+        return this.totalSeconds < t.totalSeconds;
+    }
+    
+    format(template: string = 'HH:mm:ss') {
+        let hour = `${this.hour}`.padStart(2, '0');
+        let minute = `${this.minute}`.padStart(2, '0');
+        let second = `${this.second}`.padStart(2, '0');
+
+        template = template.toLowerCase();
+        return template.replace('hh', hour).replace('mm', minute).replace('ss', second);
+    }
 }
 
-export const FileToBase64 = (file: File, callback: (data: string|undefined) => void) => {
+export const time = (t: string|number) => {
+    return new Time(t);
+}
+
+export const fileToBase64 = (file: File, callback: (data: string|undefined) => void) => {
+    // https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsDataURL
+    // Note: To retrieve only the Base64 encoded string, first remove data:*/*;base64, from the result.
     const reader = new FileReader();
     reader.onload = () => {
-        let base64 = reader.result?.toString()
-            .replace('data:', '')
-            .replace(/^.+,/, '');
+        let base64 = reader.result?.toString().split(',')[1];
         callback(base64);
     };
     reader.readAsDataURL(file);
 }
 
-export const compareStartEndTime = (a: any, b: any) => {
-    // used for sorting objects with `start_time` and `end_time` Day.js objects
-    if (a.start_time.isBefore(b.start_time)) {
-        return -1;
-    } else if (a.start_time.isAfter(b.start_time)) {
-        return 1;
-    } else if (a.end_time.isBefore(b.end_time)) {
-        return -1;
-    } else if (a.end_time.isAfter(b.end_time)) {
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
-// use to sort table columns
 export type Order = 'asc' | 'desc';
 export type DescendingComparator<T> = (a: T, b: T, orderBy: keyof T) => number;
 
-export function basicDescendingComparator<T>(a: T, b: T, orderBy: keyof T) {
+export function descComp<T>(a: T, b: T, orderBy: keyof T) {
     if (b[orderBy] < a[orderBy]) {
         return -1;
     }
@@ -47,41 +110,24 @@ export function basicDescendingComparator<T>(a: T, b: T, orderBy: keyof T) {
     }
     return 0;
 }
-  
 
 export function getComparator<T>(
     order: Order,
     orderBy: keyof T,
-    descendingComparator: DescendingComparator<T>=basicDescendingComparator,
+    _descComp: DescendingComparator<T>=descComp,
   ): (
     a: T,
     b: T,
   ) => number {
     return order === 'desc'
-        ? (a, b) => descendingComparator(a, b, orderBy)
-        : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-export const groupResvTimeSlots = (resvs: Record<string, any>[]) => {
-    return Object.values(resvs.reduce((acc: Record<string, any>, resv: any) => {
-        let _key = `${resv.resv_id}-${resv.username}`;
-        if (acc[_key] === undefined) {
-            acc[_key] = resv;
-            acc[_key].time_slots = [];
-        }
-        acc[_key].time_slots.push({
-            start_time: dayjs(resv.start_time),
-            end_time: dayjs(resv.end_time),
-        });
-        return acc;
-    }, {}));
+        ? (a, b) => _descComp(a, b, orderBy)
+        : (a, b) => -_descComp(a, b, orderBy);
 }
 
 export const labelFieldParams = {
     variant: "standard",
     id: "label",
     name: "label",
-    label: "标签",
     required: true,
     size: "small",
     fullWidth: true,
@@ -90,71 +136,12 @@ export const labelFieldParams = {
 export const descriptionFieldParams = {
     id: "description",
     name: "description",
-    label: "描述",
     multiline: true,
     minRows: 3,
     maxRows: 5,
     size: "small",
     fullWidth: true,
 } as const;
-
-export const defaultLanguage: string = "zh";
-
-const _linksMemo: Record<string, any> = {};
-export const links = (lang_code: string, baseURL: string) => {
-  let key = `${lang_code}${baseURL}`;
-  if (!(key in _linksMemo)) {
-    const links: Record<string, any> = {};
-    if (lang_code === defaultLanguage) {
-        links.home = "/";
-        links.login = "/login";
-        links.register = "/register";
-        links.notices = "/notices";
-        links.profile = "/profile";
-        links.reservation = "/reservation";
-    } else {
-        links.home = `/${lang_code}`;
-        links.login = `/${lang_code}/login`;
-        links.register = `/${lang_code}/register`;
-        links.notices = `/${lang_code}/notices`;
-        links.profile = `/${lang_code}/profile`;
-        links.reservation = `/${lang_code}/reservation`;
-    }
-
-    if (defaultLanguage === "en") {
-        links.chineseVersion = `/zh${baseURL}`;
-        links.englishVersion = baseURL;
-    } else {
-        links.chineseVersion = baseURL;
-        links.englishVersion = `/en${baseURL}`;
-    }
-    _linksMemo[key] = links;
-  }
-  return _linksMemo[key];
-}
-
-const _fetch = async (url: string) => {
-    try {
-        const res = await fetch(url);
-        return await res.json();
-    } catch (e) {
-        console.error(e);
-        return null;
-    }
-}
-
-export const fetchTranslation = async (url: string, lang_code: string) => {
-    if (lang_code === defaultLanguage) {
-        return await _fetch(url);
-    } else {
-        let data = await _fetch(url.indexOf('?') > 0 ? 
-            `${url}&lang_code=${lang_code}` : `${url}?lang_code=${lang_code}`);
-        if (data == null || Object.keys(data).length === 0) {
-            data = await _fetch(url);
-        }
-        return data;
-    }
-}
 
 export const UsernameFieldParams = {
     id: "username",

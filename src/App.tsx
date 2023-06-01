@@ -1,72 +1,74 @@
-import React from "react";
-import {
-    Route,
-    Routes,
-} from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 
 import About from "About";
+
+import AdminLayout from "admin/Layout";
+import adminRoutes from "admin/Routes";
+import AuthLayout from "auth/Layout";
 import Login from "auth/Login";
 import Register from "auth/Register";
-
 import Home from "home/Home";
-import NoticeDetails from "notices/NoticeDetails";
+import Layout from "layout/Layout";
 import Notices from "notices/Notices";
 import AuthProvider, { RequireAuth } from "providers/AuthProvider";
-import { PeriodsProvider } from "providers/PeriodsProvider";
+import PeriodsProvider from "providers/PeriodsProvider";
 import SnackbarProvider from "providers/SnackbarProvider";
-import RoomDetails from "rooms/RoomDetails";
 import Rooms from "rooms/Rooms";
-import Profile from "user/Profile";
-import AddReservation from "user/reservation/AddReservation";
-import Resvervations from "user/reservation/Reservations";
-import SelectRoom from "user/reservation/SelectRoom";
-import Advanced from "user/reservation/advanced/AddReservation";
-import AdvancedSelectRoom from "user/reservation/advanced/SelectRoom";
-
-import Layout from "layout/Layout";
-import AdminLayout from "admin/Layout";
-import AuthLayout from "auth/Layout";
-
-import { routes as admin_routes } from "admin/Routes";
-import { LangProvider } from "providers/LangProvider";
-
-import ResvDetails from "user/reservation/ResvDetails";
+import Profile from "Profile";
+import AddReservation from "reservations/add/AddReservation";
+import Reservations from "reservations/Reservations";
+import Advanced from "reservations/add/advanced/AddReservation";
+import { user_role } from "utils/api";
 
 function App() {
-    const routes = [
-        <Route index element={<Home />} />,
-        <Route path="rooms" element={<Rooms />} />,
-        <Route path="rooms/:room_id" element={<RoomDetails />} />,
-        <Route path="notices" element={<Notices />} />,
-        <Route path="notices/:notice_id" element={<NoticeDetails />} />,
-        <Route path="about" element={<About />} />,
-        <Route path="profile" element={<RequireAuth role={-1} ><Profile /></RequireAuth>} />,
-        <Route path="reservations" element={<RequireAuth role={-1} ><Resvervations /></RequireAuth>} />,
-        <Route path="reservations/:resv_id" element={<RequireAuth role={-1} ><ResvDetails /></RequireAuth>} />,
-        <Route path="reservations/add" element={<RequireAuth role={0} ><SelectRoom /></RequireAuth>} />,
-        <Route path="reservations/add/:room_id" element={<RequireAuth role={0} ><AddReservation /></RequireAuth>} />,
-        <Route path="reservations/add/advanced" element={<RequireAuth role={1} ><AdvancedSelectRoom /></RequireAuth>} />,
-        <Route path="reservations/add/advanced/:room_id" element={<RequireAuth role={1} ><Advanced /></RequireAuth>} />,
-    ];
+    const adminLayout = <RequireAuth role={user_role.admin}>
+        <AdminLayout />
+    </RequireAuth>;
 
-    return(
-        <LangProvider><AuthProvider><SnackbarProvider><PeriodsProvider>
+    const profile = <RequireAuth role={user_role.restricted}>
+        <Profile />
+    </RequireAuth>;
+
+    const reservations = <RequireAuth role={user_role.restricted}>
+        <Reservations />
+    </RequireAuth>;
+
+    const addReservation = <RequireAuth role={user_role.guest}>
+        <AddReservation />
+    </RequireAuth>;
+
+    const advanced = <RequireAuth role={user_role.basic}>
+        <Advanced />
+    </RequireAuth>;
+
+    return (
+        <AuthProvider><SnackbarProvider><PeriodsProvider>
             <Routes>
-                <Route path="/en?" element={<Layout />}>
-                    {routes}
+                <Route path="/admin" element={adminLayout}>
+                    {adminRoutes.map((route, i) => <Route key={i} {...route.props} />)}
                 </Route>
-                <Route path="/en?/admin" element={<RequireAuth role={3}><AdminLayout /></RequireAuth>}>
-                    {admin_routes}
-                </Route>
-                <Route path="/en?/login" element={<AuthLayout />} >
+
+                <Route path="/login" element={<AuthLayout />} >
                     <Route index element={<Login />} />
                 </Route>
-                <Route path="/en?/register" element={<AuthLayout />} >
+                <Route path="/register" element={<AuthLayout />} >
                     <Route index element={<Register />} />
                 </Route>
+
+                <Route path="/" element={<Layout />}>
+                    <Route index element={<Home />} />,
+                    <Route path="about" element={<About />} />,
+                    <Route path="notices/:notice_id?" element={<Notices />} />,
+                    <Route path="rooms/:room_id?" element={<Rooms />} />,
+                    
+                    <Route path="profile" element={profile} />,
+                    <Route path="reservations/:resv_id?" element={reservations} />,
+                    <Route path="reservations/add/:room_id?" element={addReservation} />,
+                    <Route path="reservations/add/advanced/:room_id?" element={advanced} />, 
+                </Route>
             </Routes>
-        </PeriodsProvider></SnackbarProvider></AuthProvider></LangProvider>
-    )
-}
+        </PeriodsProvider></SnackbarProvider></AuthProvider>
+    );
+};
 
 export default App;

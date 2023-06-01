@@ -11,14 +11,12 @@ import { Link, useNavigate } from "utils/Navigate";
 import { useSnackbar } from "providers/SnackbarProvider";
 import { useAuth } from "providers/AuthProvider";
 import { PasswordFieldParams, UsernameFieldParams } from "utils/util";
-import { to, useLang } from "providers/LangProvider";
 
 function Login() {
     const [error, setError] = React.useState(false);
     let navigate = useNavigate();
     let location = useLocation();
     const auth = useAuth();
-    const lang = useLang();
     let { showSnackbar } = useSnackbar();
   
     let from = location.state?.from || "";
@@ -54,29 +52,29 @@ function Login() {
             }}
         >
             <Typography variant="h4" component="h1" gutterBottom>
-                {strings[lang].login}
+                {strings.zh["login"]}
             </Typography>
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
                 <TextField {...UsernameFieldParams}
-                    label={strings[lang].username}
+                    label={strings.zh["username"]}
                     error={error}
                     autoFocus
                 />
                 <TextField {...PasswordFieldParams}
-                    label={strings[lang].password}
+                    label={strings.zh["password"]}
                     error={error}
-                    helperText={error ? strings[lang].usernameOrPasswordError : ""}
+                    helperText={error ? strings.zh["usernameOrPasswordError"] : ""}
                 />
                 <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-                    {strings[lang].login}
+                    {strings.zh["login"]}
                 </Button>
                 <Box display="flex">
                     <Typography variant="body2" component="p" gutterBottom
                         margin="auto"
                     >
-                        {strings[lang].noAccount}
-                        <Link to={to("/register", lang)}>
-                            {strings[lang].register}
+                        {strings.zh["noAccount"]}
+                        <Link to="/register" >
+                            {strings.zh["register"]}
                         </Link>
                     </Typography>
                 </Box>
@@ -93,14 +91,6 @@ const strings = {
         usernameOrPasswordError: "用户名或密码错误",
         noAccount: "没有账号？",
         register: "注册",
-    } as const,
-    en: {
-        login: "Login",
-        username: "Username",
-        password: "Password",
-        usernameOrPasswordError: "Username or password error",
-        noAccount: "No account?",
-        register: "Register",
     } as const,
 } as const;
 

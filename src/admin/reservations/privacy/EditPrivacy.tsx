@@ -33,10 +33,14 @@ function EditPrivacy() {
                 <ListItem>
                     <TextField disabled variant="standard" type="number"
                         name="privacy" label="隐私" defaultValue={privacy.privacy} />
-                    <TextField {...labelFieldParams} defaultValue={privacy.label} sx={{ml: 1}} />
+                    <TextField {...labelFieldParams} sx={{ml: 1}}
+                        label="标签" defaultValue={privacy.label} 
+                    />
                 </ListItem>
                 <ListItem>
-                    <TextField {...descriptionFieldParams} defaultValue={privacy.description} sx={{ mt: 1 }} />
+                    <TextField {...descriptionFieldParams} sx={{ mt: 1 }} 
+                        label="描述" defaultValue={privacy.description}
+                    />
                 </ListItem>
                 <ListItem>
                     <Button fullWidth type="submit" variant="contained" sx={{ mt: 2 }}>

@@ -11,7 +11,6 @@ import * as React from "react";
 
 import { EmailFieldParams, NameFieldParams, PasswordFieldParams, UsernameFieldParams } from "utils/util";
 import { paths as api_paths } from "utils/api";
-import { useLang } from "providers/LangProvider";
 
 interface AddEditUserProps {
     title: string;
@@ -28,7 +27,6 @@ interface AddEditUserProps {
 export const AddEditUser = (props: AddEditUserProps) => {
     const { title, username, password, name, email, role, handleSubmit, type } = props;
     const [roles, setRoles] = React.useState<Record<number, any>|undefined>(undefined);
-    const lang = useLang();
 
     React.useEffect(() => {
         fetch(api_paths.admin.user_roles)
@@ -54,16 +52,16 @@ export const AddEditUser = (props: AddEditUserProps) => {
                 <ListItem>
                     <TextField {...UsernameFieldParams} 
                         autoFocus 
-                        label={strings[lang].username}
+                        label={strings.zh["username"]}
                         defaultValue={username}
                         disabled={type === "edit"}
                     />
                     {roles !== undefined && 
                     <FormControl sx={{ ml: 1}} fullWidth required>
-                        <InputLabel>{strings[lang].role}</InputLabel>
+                        <InputLabel>{strings.zh["role"]}</InputLabel>
                         <Select variant="standard" required fullWidth size="small" 
                             name="role"
-                            label={strings[lang].role}
+                            label={strings.zh["role"]}
                             defaultValue={role!==undefined?role:''} 
                         >
                             {Object.values(roles).map((role) => (
@@ -76,26 +74,26 @@ export const AddEditUser = (props: AddEditUserProps) => {
                 </ListItem>
                 <ListItem>
                     <TextField {...PasswordFieldParams} 
-                        label={strings[lang].password}
+                        label={strings.zh["password"]}
                         defaultValue={password} 
                         disabled={type === "edit"}
                     />
                 </ListItem>
                 <ListItem>
                     <TextField {...NameFieldParams} 
-                        label={strings[lang].name}
+                        label={strings.zh["name"]}
                         defaultValue={name} 
                     />
                 </ListItem>
                 <ListItem>
                     <TextField {...EmailFieldParams} 
-                        label={strings[lang].email}
+                        label={strings.zh["email"]}
                         defaultValue={email}
                     />
                 </ListItem>
                 <ListItem>
                     <Button fullWidth variant="contained" color="primary" type="submit" sx={{ mt: 2 }} >
-                        {strings[lang].submit}
+                        {strings.zh["submit"]}
                     </Button>
                 </ListItem>
             </List>
@@ -111,14 +109,6 @@ const strings = {
         name: "姓名",
         email: "邮箱",
         submit: "提交",
-    } as const,
-    en: {
-        username: "Username",
-        role: "Role",
-        password: "Password",
-        name: "Name",
-        email: "Email",
-        submit: "Submit",
     } as const,
 } as const;
 

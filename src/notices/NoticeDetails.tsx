@@ -2,18 +2,15 @@ import { useState, useEffect } from "react";
 import Box from '@mui/material/Box';
 import { List, ListItem, ListItemText, Skeleton, Typography } from "@mui/material";
 import dayjs from "dayjs";
-import { useParams } from "react-router-dom";
 import ReactMarkdown from 'react-markdown'
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import EditIcon from '@mui/icons-material/Edit';
 import { paths as api_paths } from "utils/api";
 
-function NoticeDetails() {
+function NoticeDetails({ notice_id }: { notice_id: string|number }) {
     const [notice, setNotice] = useState<Record<string, any> | null>(null);
-    const { notice_id } = useParams();
 
     useEffect(() => {
-        if (notice_id === undefined) return;
         let url = api_paths.notices + `?notice_id=${notice_id}`;
         fetch(url).then((res) => res.json())
             .then((data) => {
@@ -28,7 +25,6 @@ function NoticeDetails() {
             });
     }, [notice_id]);
 
-    if (notice_id === undefined) return null;
     return (
         <List>
             <ListItem divider dense>

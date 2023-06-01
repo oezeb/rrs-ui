@@ -11,11 +11,9 @@ import { useLocation } from "react-router-dom";
 import AppBar from "./AppBar";
 import DesktopDrawer, { DrawerItem as DesktopDrawerItem } from "./DesktopDrawer";
 import MobileDrawer, { DrawerItem as MobileDrawerItem } from "./MobileDrawer";
-import { useAuth } from "../providers/AuthProvider";
-import { to, useLang } from "../providers/LangProvider";
+import { useAuth } from "providers/AuthProvider";
 
 function Layout() {
-    const lang  = useLang();
     const [open, setOpen] = React.useState(true);
     const location = useLocation();
     const { user } = useAuth();
@@ -27,58 +25,42 @@ function Layout() {
     const mobileOnClick = () => {
         setTimeout(() => { toggleDrawer();});
     };
-
-    const links = {
-        "reservations": to("/reservations/add", lang),
-        "notices": to("/notices", lang),
-        "about": to("/about", lang),
-    } as const;
+    
+    const drawer_items = [
+        {name: strings.zh["reservations"], link: "/reservations/add", icon: <EventAvailableIcon />},
+        {name: strings.zh["notices"], link: "/notices", icon: <NotificationsIcon />},
+        {name: strings.zh["about"], link: "/about", icon: <InfoIcon />},
+    ] as const;
 
     return (
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
-            <AppBar toggleDrawer={toggleDrawer} showToAdmin={true} title={strings[lang]["title"]} />
+            <AppBar toggleDrawer={toggleDrawer} showToAdmin={true} title={strings.zh["title"]} />
             <DesktopDrawer open={open} >
-                {user && 
-                <DesktopDrawerItem name={strings[lang]["reservations"]}
-                    link={links["reservations"]}
-                    icon={<EventAvailableIcon />} 
-                    open={open}
-                    selected={location.pathname.startsWith(to("/reservations", lang))}
-                />}
-                <DesktopDrawerItem name={strings[lang]["notices"]}
-                    link={links["notices"]}
-                    icon={<NotificationsIcon />} 
-                    open={open}
-                    selected={location.pathname.startsWith(links["notices"])}
-                />
-                <DesktopDrawerItem name={strings[lang]["about"]}
-                    link={links["about"]}
-                    icon={<InfoIcon />} 
-                    open={open}
-                    selected={location.pathname.startsWith(links["about"])}
-                />
+                {drawer_items.map((item, index) => {
+                    if (item.name === strings.zh["reservations"] && !user) return null;
+                    return (
+                        <DesktopDrawerItem key={index} name={item.name} 
+                            link={item.link} 
+                            open={open} 
+                            icon={item.icon}
+                            selected={location.pathname.startsWith(item.link)}
+                        />
+                    );
+                })}
             </DesktopDrawer>
             <MobileDrawer toggleDrawer={toggleDrawer} open={open} >
-                {user && 
-                <MobileDrawerItem name={strings[lang]["reservations"]}
-                    link={links["reservations"]}
-                    icon={<EventAvailableIcon />}
-                    onClick={mobileOnClick}
-                    selected={location.pathname.startsWith(to("/reservations", lang))}
-                />}
-                <MobileDrawerItem name={strings[lang]["notices"]}
-                    link={links["notices"]}
-                    icon={<NotificationsIcon />}
-                    onClick={mobileOnClick}
-                    selected={location.pathname.startsWith(links["notices"])}
-                />
-                <MobileDrawerItem name={strings[lang]["about"]}
-                    link={links["about"]}
-                    icon={<InfoIcon />} 
-                    onClick={mobileOnClick}
-                    selected={location.pathname.startsWith(links["about"])}
-                />
+                {drawer_items.map((item, index) => {
+                    if (item.name === strings.zh["reservations"] && !user) return null;
+                    return (
+                        <MobileDrawerItem key={index} name={item.name} 
+                            link={item.link} 
+                            icon={item.icon}
+                            onClick={mobileOnClick}
+                            selected={location.pathname.startsWith(item.link)}
+                        />
+                    );
+                })}
             </MobileDrawer>
             <Box component="main" sx={{ flexGrow: 1 }}>
                 <Toolbar />
@@ -96,12 +78,6 @@ const strings = {
         "reservations": "预约",
         "notices": "通知",
         "about": "关于",
-    } as const,
-    "en": {
-        "title": "Reservation System",
-        "reservations": "Reservations",
-        "notices": "Notices",
-        "about": "About",
     } as const,
 } as const;
 

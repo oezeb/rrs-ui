@@ -2,13 +2,11 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import dayjs, { Dayjs } from "dayjs";
-import { useLang } from "providers/LangProvider";
 import { useEffect, useState } from "react";
 import { paths as api_paths } from "utils/api";
 import RoomView, { RoomSkeleton } from "./RoomView";
 
 function Home() {
-    const lang = useLang();
     const [roomTypes, setRoomTypes] = useState<Record<string, any>[]>([]);
     const [date, setDate] = useState<Dayjs>(dayjs());
     const [prevDate, setPrevDate] = useState<Dayjs>(date);
@@ -27,7 +25,7 @@ function Home() {
                     margin="auto"
                     marginRight={1}
                 >
-                    {strings[lang].date}
+                    {strings.zh["date"]}
                 </Typography>
                 <TextField 
                     size='small' 
@@ -94,9 +92,6 @@ function RoomsView(props: RoomsViewProps) {
 const strings = {
     zh: {
         date: "日期",
-    } as const,
-    en: {
-        date: "Date",
     } as const,
 } as const;
 

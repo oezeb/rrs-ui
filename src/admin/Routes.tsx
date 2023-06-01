@@ -33,7 +33,6 @@ import AddNotice from "./notices/AddNotice";
 import EditNotice from "./notices/EditNotice";
 import Notices from "./notices/Notices";
 
-import Languages from "./languages/Languages";
 import Periods from "./periods/Periods";
 import Settings from "./settings/Settings";
 
@@ -73,7 +72,8 @@ export const routes = [
 
     <Route path="periods" element={<Periods />} />,
     <Route path="settings" element={<Settings />} />,
-    <Route path="languages" element={<Languages />} />,
 
     <Route path="api-docs" element={<SwaggerUI url={paths.docs} />} />
 ];
+
+export default routes;

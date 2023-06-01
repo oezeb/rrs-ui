@@ -3,7 +3,7 @@ import * as React from "react";
 import { useSnackbar } from "providers/SnackbarProvider";
 import { useNavigate } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";
-import { FileToBase64 } from "utils/util";
+import { fileToBase64 } from "utils/util";
 import AddEditRoom from "./AddEditRoom";
 
 function AddRoom() {
@@ -54,7 +54,7 @@ function AddRoom() {
         };
 
         if (data.image) {
-            FileToBase64(data.image, (base64) => {
+            fileToBase64(data.image, (base64) => {
                 data.image = base64;
                 insert();
             });

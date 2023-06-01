@@ -1,11 +1,9 @@
 import { Box, Button, Popover } from '@mui/material';
 import Typography from '@mui/material/Typography';
-import { useLang } from "providers/LangProvider";
 import { useEffect, useState } from 'react';
 import { paths as api_paths, resv_status } from "utils/api";
 
 function ResvPopover({ resv }: { resv: Record<string, any> }) {
-    const lang = useLang();
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
     const [user, setUser] = useState<Record<string, any> | null>(null);
 
@@ -39,7 +37,7 @@ function ResvPopover({ resv }: { resv: Record<string, any> }) {
                     justifyContent: 'flex-start',
                 }}
             >
-                {resv.status === resv_status.pending ? strings[lang]["pending"] : resv.title}
+                {resv.status === resv_status.pending ? strings.zh["pending"] : resv.title}
             </Button>
             <Popover open={open} anchorEl={anchorEl} onClose={handleClose}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
@@ -64,9 +62,6 @@ function ResvPopover({ resv }: { resv: Record<string, any> }) {
 const strings = {
     "zh": {
         pending: "待审核",
-    } as const,
-    "en": {
-        pending: "Pending",
     } as const,
 } as const;
 

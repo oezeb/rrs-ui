@@ -1,3 +1,4 @@
+import React from "react";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import {
     Box,
@@ -21,9 +22,21 @@ import { paths as api_paths, setting } from "utils/api";
 import { descriptionFieldParams, labelFieldParams } from "utils/util";
 import RoomView from "./RoomView";
 import SelectDateTime from "./SelectDateTime";
+import RoomList from "rooms/RoomList";
 
 function AddReservation() {
     const { room_id } = useParams();
+    if (room_id === undefined) {
+        return <RoomList
+            title="预约"
+            link={(room: Record<string, any>) => `/reservations/add/${room.room_id}`}
+        />;
+    } else {
+        return <AddReservationForm room_id={room_id} />;
+    }
+}
+
+function AddReservationForm({ room_id }: { room_id: string|number }) {
     const [date, setDate] = useState(dayjs());
     const { showSnackbar } = useSnackbar();
     let navigate = useNavigate();
@@ -61,7 +74,6 @@ function AddReservation() {
             });
     }
 
-    if (room_id === undefined) return null;
     return (
         <Box component="form" onSubmit={handleSubmit}>
             <ListItemText secondary={<MaxDailyDialog />}>

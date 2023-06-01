@@ -14,10 +14,10 @@ import {
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 
-import { BackDrop } from "utils/BackDrop";
+import BackDrop from "utils/BackDrop";
 import { useSnackbar } from "providers/SnackbarProvider";
-import RoomView from "user/reservation/RoomView";
-import Repeat, { RepeatType } from "user/reservation/advanced/Repeat";
+import RoomView from "reservations/add/RoomView";
+import Repeat, { RepeatType } from "reservations/add/advanced/Repeat";
 import { useNavigate } from "utils/Navigate";
 import { paths as api_paths, resv_privacy } from "utils/api";
 import { descriptionFieldParams, labelFieldParams } from "utils/util";

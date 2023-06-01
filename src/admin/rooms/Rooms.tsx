@@ -14,7 +14,7 @@ import TableSortLabel from '@mui/material/TableSortLabel';
 import * as React from "react";
 
 import { useSnackbar } from "providers/SnackbarProvider";
-import { statusColors } from "rooms/RoomDetails";
+import { roomStatusColors as statusColors } from 'utils/util';
 import BinaryDialog from "utils/BinaryDialog";
 import { Link } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";

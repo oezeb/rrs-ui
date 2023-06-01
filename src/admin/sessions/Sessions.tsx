@@ -19,7 +19,7 @@ import { useSnackbar } from "providers/SnackbarProvider";
 import BinaryDialog from "utils/BinaryDialog";
 import { Link } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";
-import { basicDescendingComparator, getComparator } from "utils/util";
+import { descComp, getComparator } from "utils/util";
 
 function Sessions() {
     const [sessions, setSessions] = React.useState<Record<string, any>[]|undefined>(undefined);
@@ -44,12 +44,12 @@ function Sessions() {
 
     React.useEffect(() => {
         if (sessions === undefined) return;
-        const comparator = getComparator(order, orderBy, descendingComparator);
-        const sorted = [...sessions].sort(comparator);
+        const _comparator = getComparator(order, orderBy, comparator);
+        const sorted = [...sessions].sort(_comparator);
         setSorted(sorted);
     }, [sessions, order, orderBy]);
 
-    const descendingComparator = (
+    const comparator = (
         a: Record<string, any>,
         b: Record<string, any>,
         orderBy: string,
@@ -63,7 +63,7 @@ function Sessions() {
                 return 0;
             }
         } else {
-            return basicDescendingComparator(a, b, orderBy);
+            return descComp(a, b, orderBy);
         }
     };
 
@@ -74,8 +74,8 @@ function Sessions() {
             setOrder(isAsc ? 'desc' : 'asc');
             setOrderBy(property);
 
-            const comparator = getComparator(order, orderBy, descendingComparator);
-            const sorted = [...sessions].sort(comparator);
+            const _comparator = getComparator(order, orderBy, comparator);
+            const sorted = [...sessions].sort(_comparator);
             setSorted(sorted);
         },
         [orderBy, order, sessions],

@@ -19,7 +19,7 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { paths as api_paths } from "utils/api";
-import { statusColors as resvStatusColors } from "user/reservation/Reservations"
+import { resvStatusColors } from 'utils/util';
 
 interface SlotTableProps {
     title?: string;

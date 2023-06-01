@@ -38,8 +38,8 @@ function PeriodsProvider(props: { children: React.ReactNode }) {
     );
 }
 
-function usePeriods() {
+export function usePeriods() {
     return React.useContext(PeriodsProviderContext);
 }
 
-export { PeriodsProvider, usePeriods };
+export default PeriodsProvider;

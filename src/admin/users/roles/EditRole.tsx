@@ -80,10 +80,14 @@ function EditRole() {
                 <ListItem>
                     <TextField disabled variant="standard" type="number"
                         label="角色" defaultValue={role.role} />
-                    <TextField {...labelFieldParams} defaultValue={role.label} sx={{ml: 1}} />
+                    <TextField {...labelFieldParams} sx={{ml: 1}}
+                        label="标签" defaultValue={role.label}
+                    />
                 </ListItem>
                 <ListItem>
-                    <TextField {...descriptionFieldParams} defaultValue={role.description} sx={{ mt: 1 }} />
+                    <TextField {...descriptionFieldParams} sx={{ mt: 1 }}
+                        label="描述" defaultValue={role.description}
+                    />
                 </ListItem>
                 <ListItem>
                     <Button fullWidth type="submit" variant="contained" sx={{ mt: 2 }}>

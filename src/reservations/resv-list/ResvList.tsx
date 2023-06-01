@@ -10,12 +10,10 @@ import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import MenuItem from '@mui/material/MenuItem';
 
 import { paths as api_paths } from "utils/api";
-import ResvsTable from "./ResvTable";
+import { resvStatusColors as statusColors } from 'utils/util';
+import ResvsTable from "./Table";
 
-// 0: 待审核、1: 审核通过、2: 已取消、3: 审核未通过
-export const statusColors = ["#FFC107", "#00CC66", "#A9A9A9", "#FF5733"];
-
-function Resvervations() {
+function ResvList() {
     const [status, setStatus] = React.useState<Record<string, any> | null>(null);
     const [statusOptions, setStatusOptions] = React.useState<Record<string, any>[]>([]);
     const [timeFilter, setTimeFilter] = React.useState<"全部" | "当前" | "历史">("当前");
@@ -97,4 +95,4 @@ function Filter(props: FilterProps) {
     )
 }
 
-export default Resvervations;
+export default ResvList;

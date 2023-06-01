@@ -34,10 +34,14 @@ export const AddEditType = (props: AddEditTypeProps) => {
                     />
                 </ListItem>
                 <ListItem>
-                    <TextField {...labelFieldParams} defaultValue={label} />
+                    <TextField {...labelFieldParams}  
+                        label="标签" defaultValue={label}
+                    />
                 </ListItem>
                 <ListItem>
-                    <TextField {...descriptionFieldParams} defaultValue={description} />
+                    <TextField {...descriptionFieldParams} 
+                        label="描述" defaultValue={description}
+                    />
                 </ListItem>
                 <ListItem>
                     <Button fullWidth variant="contained" type="submit" color="primary">

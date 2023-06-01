@@ -11,19 +11,31 @@ import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { BackDrop } from "utils/BackDrop";
+import BackDrop from "utils/BackDrop";
 import { useSnackbar } from "providers/SnackbarProvider";
-import RoomView from "user/reservation/RoomView";
 import { useNavigate } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";
 import { descriptionFieldParams, labelFieldParams } from "utils/util";
 import Repeat, { RepeatType } from "./Repeat";
 import SelectDateTime from "./SelectDateTime";
 import SlotTable from "./SlotTable";
+import RoomList from 'rooms/RoomList';
+import RoomView from 'reservations/add/RoomView';
 
 function AddReservation() {
-    const [session, setSession] = useState<Record<string, any>|null|undefined>(undefined);
     const { room_id } = useParams();
+    if (room_id === undefined) {
+        return <RoomList
+            title="高级预订"
+            link={(room: Record<string, any>) => `/reservations/advanced/add/${room.room_id}`}
+        />;
+    } else {
+        return <AddReservationForm room_id={room_id} />;
+    }
+}
+
+function AddReservationForm({ room_id }: { room_id: string|number }) {
+    const [session, setSession] = useState<Record<string, any>|null|undefined>(undefined);
     
     const today = dayjs();
     const [date, setDate] = useState(dayjs());
@@ -36,7 +48,6 @@ function AddReservation() {
     let navigate = useNavigate();
 
     useEffect(() => {
-        if (room_id === undefined) return;
         fetch(api_paths.sessions + `?is_current=true`)
             .then((res) => res.json())
             .then((data) => {
@@ -54,7 +65,7 @@ function AddReservation() {
                 console.log(err);
                 setSession(null);
             });
-    }, [room_id]);
+    }, []);
 
     useEffect(() => {
         if (repeatType === "none") {
@@ -113,8 +124,7 @@ function AddReservation() {
             });
     };
 
-    if (room_id === undefined) return null;
-    else if (session === null || (session !== undefined && (!session.is_current || session.end_time.isBefore(today)))) {
+    if (session === null || (session !== undefined && (!session.is_current || session.end_time.isBefore(today)))) {
         return (
             <Typography variant="h3" align="center" sx={{ mt: 10 }}>
                 当前无可预约

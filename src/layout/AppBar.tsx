@@ -11,15 +11,13 @@ import {
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import MenuIcon from '@mui/icons-material/Menu';
 
-import LangMenu from "./LangMenu";
 import UserMenu from "./UserMenu";
 import { useAuth } from "../providers/AuthProvider";
 import { Link, useNavigate } from 'utils/Navigate';
-import { to, useLang } from '../providers/LangProvider';
 
 interface Props {
     title: string;
-    onTitleClick?: () => void;
+    homeLink?: string;
     toggleDrawer?: () => void;
     showMenuButton?: boolean;
     showToAdmin?: boolean,
@@ -27,12 +25,10 @@ interface Props {
 }
 
 function AppBar(props: Props) {
-    const { title, onTitleClick, toggleDrawer, showMenuButton, showToAdmin, showToUser } = props;
+    const { title, homeLink, toggleDrawer, showMenuButton, showToAdmin, showToUser } = props;
     const { user, logout } = useAuth();
     let navigate = useNavigate();
     
-    const lang = useLang();
-
     const handleLogout = () => {
         logout(() => navigate(""));
     }
@@ -47,26 +43,28 @@ function AppBar(props: Props) {
                 <IconButton color="inherit" onClick={toggleDrawer} sx={{ mr: 2 }}>
                     <MenuIcon />
                 </IconButton>}
-                <Button onClick={onTitleClick} variant='text' color='inherit' component={Link} to={to("/", lang)}  sx={{ textTransform: 'none'}}>
+                <Button variant='text' color='inherit' sx={{ textTransform: 'none'}}
+                    component={Link} 
+                    to={homeLink ? homeLink : "/"}
+                >
                     <Typography variant="h6" noWrap component="div">
                         {title}
                     </Typography>
                 </Button>
                 <Box sx={{ flexGrow: 1 }} />
-                <LangMenu />
                 {user ? <UserMenu  user={user} logout={handleLogout} showToAdmin={showToAdmin} showToUser={showToUser} /> : <>
-                    <Tooltip title={strings[lang]["login"]}>
-                        <IconButton color="inherit" component={Link} to={to("/login", lang)}
+                    <Tooltip title={strings.zh["login"]}>
+                        <IconButton color="inherit" component={Link} to="/login"
                             sx={{ display: { xs: 'block', sm: 'none' } }}
                         >
                             <AccountCircleOutlinedIcon />
                         </IconButton>
                     </Tooltip>
-                    <Button color="inherit" component={Link} to={to("/login", lang)}
+                    <Button color="inherit" component={Link} to="/login"
                         sx={{ display: { xs: 'none', sm: 'flex' } }}
                         startIcon={<AccountCircleOutlinedIcon />}
                     >
-                        {strings[lang]["login"]}
+                        {strings.zh["login"]}
                     </Button>
                 </>}
             </Toolbar>
@@ -78,9 +76,6 @@ const strings = {
     "zh": {
         "login": "登录",
     } as const,
-    "en": {
-        "login": "Login",
-    } as const
 };
 
 export default AppBar;

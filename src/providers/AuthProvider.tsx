@@ -1,34 +1,40 @@
 import * as React from "react";
-import Forbidden from "utils/Forbidden";
 import { Navigate } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";
-import { BackDrop } from "utils/BackDrop";
-import { to, useLang } from "./LangProvider";
+import BackDrop from "utils/BackDrop";
 
 export interface AuthContextProps {
-    user: Record<string, any> | null;
-    update: (callback: (res: Response) => void) => void; // update user info
-    login: (username: string, password: string, callback: (res: Response) => void) => void;
-    logout: (callback: (res: Response) => void) => void;
+    user: Record<string, any>|null|undefined;
+    update: (callback?: (res: Response) => void) => void; // update user info
+    login: (username: string, password: string, callback?: (res: Response) => void) => void;
+    logout: (callback?: (res: Response) => void) => void;
 }
 
 const AuthContext = React.createContext<AuthContextProps>(null!);
 
 function AuthProvider(props: React.PropsWithChildren<{}>) {
-    const [user, setUser] = React.useState<Record<string, any> | null>(null);
+    const [user, setUser] = React.useState<Record<string, any>|null|undefined>(undefined);
 
-    const update = async (callback: (res: Response) => void) => {
-        let res = await fetch(api_paths.user);
-        if (res.ok) {
-            let user = await res.json();
-            setUser(user);
-        } else {
+    const update = async (callback?: (res: Response) => void) => {
+        try {
+            let res = await fetch(api_paths.user);
+            if (res.ok) {
+                let user = await res.json();
+                setUser(user);
+            } else {
+                setUser(null);
+            }
+
+            if (callback) {
+                callback(res);
+            }
+        } catch (err) {
+            console.error(err);
             setUser(null);
         }
-        callback(res);
     };
     
-    const login = async (username: string, password: string, callback: (res: Response) => void) => {
+    const login = async (username: string, password: string, callback?: (res: Response) => void) => {
         try {
             let res = await fetch(api_paths.login, {
                 method: "POST",
@@ -39,7 +45,7 @@ function AuthProvider(props: React.PropsWithChildren<{}>) {
 
             if (res.ok) {
                 update(callback);
-            } else {
+            } else if (callback) {
                 callback(res);
             }
         } catch (err) {
@@ -47,17 +53,21 @@ function AuthProvider(props: React.PropsWithChildren<{}>) {
         }
     };
 
-    const logout = async (callback: (res: Response) => void) => {
+    const logout = async (callback?: (res: Response) => void) => {
         let res = await fetch(api_paths.logout, { method: "POST" });
         if (res.ok) {
             setUser(null);
         }
-        callback(res);
+
+        if (callback) {
+            callback(res);
+        }
     };
 
     React.useEffect(() => {
-        update(() => {});
-    }, []);
+        if (user !== undefined) return;
+        update();
+    }, [user]);
 
     return (
         <AuthContext.Provider value={{ user, update, login, logout }}>
@@ -67,33 +77,36 @@ function AuthProvider(props: React.PropsWithChildren<{}>) {
 }
 
 export function useAuth() {
-    const [loading, setLoading] = React.useState(true);
     const auth = React.useContext(AuthContext);
 
     React.useEffect(() => {
-        if (auth.user) {
-            setLoading(false);
-        } else {
-            auth.update((res) => {
-                setLoading(false);
-            });
-        }
+        if (auth.user !== undefined) return;
+        auth.update();
     }, [auth]);
 
-    return { ...auth, loading };
+    return { ...auth };
 }
 
 export function RequireAuth({ children, role }: { children: React.ReactNode, role?: number }) {
-    const { user, loading } = useAuth();
-    const lang = useLang();
+    const { user } = useAuth();
 
-    if (loading) {
+    if (user === undefined) {
         return <BackDrop open />;
-    } else if (user) {
-        return role !== undefined && user.role < role ? <Forbidden /> : <>{children}</>;
+    } else if (user === null) {
+        return <Navigate to="/login" replace />;
+    } else if (role !== undefined && user.role < role) {
+        return <Forbidden />;
     } else {
-        return <Navigate to={to("/login", lang)} replace />;
+        return <>{children}</>;
     }
 }
+
+
+const Forbidden = () => (
+    <div>
+        <h1>403 Forbidden</h1>
+        <p>You do not have access to this page.</p>
+    </div>
+);
 
 export default AuthProvider;

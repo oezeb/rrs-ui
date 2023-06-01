@@ -18,7 +18,7 @@ import { useSnackbar } from "providers/SnackbarProvider";
 import BinaryDialog from "utils/BinaryDialog";
 import { Link } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";
-import { basicDescendingComparator, getComparator } from "utils/util";
+import { descComp, getComparator } from "utils/util";
 
 function Notices() {
     const [notices, setNotices] = React.useState<Record<string, any>[]|undefined>(undefined);
@@ -52,12 +52,12 @@ function Notices() {
 
     React.useEffect(() => {
         if (notices === undefined) return;
-        const comparator = getComparator(order, orderBy, descendingComparator);
-        const sorted = [...notices].sort(comparator);
+        const _comparator = getComparator(order, orderBy, comparator);
+        const sorted = [...notices].sort(_comparator);
         setSorted(sorted);
     }, [notices, order, orderBy]);
 
-    const descendingComparator = (
+    const comparator = (
         a: Record<string, any>,
         b: Record<string, any>,
         orderBy: string,
@@ -75,7 +75,7 @@ function Notices() {
                 return 0;
             }
         } else {
-            return basicDescendingComparator(a, b, orderBy);
+            return descComp(a, b, orderBy);
         }
     };
 
@@ -86,8 +86,8 @@ function Notices() {
             setOrder(isAsc ? "desc" : "asc");
             setOrderBy(property);
         
-            const comparator = getComparator(order, orderBy, descendingComparator);
-            const sorted = [...notices].sort(comparator);
+            const _comparator = getComparator(order, orderBy, comparator);
+            const sorted = [...notices].sort(_comparator);
             setSorted(sorted);
         },
         [order, orderBy, notices],
