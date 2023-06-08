@@ -9,7 +9,7 @@ import {
 import { useSnackbar } from "providers/SnackbarProvider";
 import { paths as api_paths } from "utils/api";
 import BinaryDialog from "utils/BinaryDialog";
-import { time } from "utils/util";
+import { TimeDelta } from "utils/util";
 import PeriodTable from "./PeriodTable";
 
 function Periods() {
@@ -27,8 +27,8 @@ function Periods() {
             .then(data => {
                 setPeriods(data.map((p: Record<string, any>) => ({
                     ...p,
-                    start_time: time(p.start_time),
-                    end_time: time(p.end_time),
+                    start_time: TimeDelta.from(p.start_time),
+                    end_time: TimeDelta.from(p.end_time)
                 })));
             })
             .catch(err => {
@@ -187,7 +187,7 @@ function DeleteDialog({ del, setDel, setPeriods }: DeleteDialogProps) {
             onConfirm={handleDelete}
             onClose={handleClose}
             title="删除时段"
-            content={`确定要删除时段 ${del?.start_time} ~ ${del?.end_time} 吗？`}
+            content={`确定要删除时段 ${del?.start_time.format("HH:mm")} ~ ${del?.end_time.format("HH:mm")} 吗？`}
         />
     );
 }

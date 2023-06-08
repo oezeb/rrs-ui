@@ -160,7 +160,7 @@ function SelectTime(props: SelectTimeProps) {
                 name="start_time"
                 value={startOption}
                 options={startOptions()}
-                label={strings.zh['start_time']}
+                label="开始时间"
                 onChange={(e: any, value: Option | null) => setStartOption(value)}
                 max_time={max_time}
             />
@@ -169,7 +169,7 @@ function SelectTime(props: SelectTimeProps) {
                 name="end_time"
                 value={endOption}
                 options={endOptions()}
-                label={strings.zh['end_time']}
+                label="结束时间"
                 onChange={(e: any, value: Option | null) => setEndOption(value)}
             />
         </Box>
@@ -180,11 +180,11 @@ const timeView = (seconds: number) => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     if (h > 0 && m > 0) {
-        return `${h}${strings.zh['hour']}${m}${strings.zh['minute']}`;
+        return `${h}$小时${m}$分钟`;
     } else if (h > 0) {
-        return `${h}${strings.zh['hour']}`;
+        return `${h}$小时`;
     } else {
-        return `${m}${strings.zh['minute']}`;
+        return `${m}$分钟`;
     }
 }
 
@@ -210,20 +210,10 @@ const AutoComplete = ({ name, value, options, label, onChange, max_time }: AutoC
             <TextField {...params} required variant="standard"
                 name={name}
                 label={label}
-                helperText={max_time !== undefined? `${strings.zh['max_time']}: ${timeView(max_time)}`: null}
+                helperText={max_time !== undefined? `最长预约时间：${timeView(max_time)}`: null}
             />
         )}
     />
-)
-
-const strings = {
-    zh: {
-        start_time: '开始时间',
-        end_time: '结束时间',
-        hour: '小时',
-        minute: '分钟',
-        max_time: '最长预约时间',
-    } as const,
-} as const;
+);
 
 export default SelectTime;

@@ -27,18 +27,18 @@ function Layout() {
     };
     
     const drawer_items = [
-        {name: strings.zh["reservations"], link: "/reservations/add", icon: <EventAvailableIcon />},
-        {name: strings.zh["notices"], link: "/notices", icon: <NotificationsIcon />},
-        {name: strings.zh["about"], link: "/about", icon: <InfoIcon />},
+        { name: "预约", link: "/reservations/add", icon: <EventAvailableIcon /> },
+        { name: "通知", link: "/notices", icon: <NotificationsIcon /> },
+        { name: "关于", link: "/about", icon: <InfoIcon /> },
     ] as const;
 
     return (
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
-            <AppBar toggleDrawer={toggleDrawer} showToAdmin={true} title={strings.zh["title"]} />
+            <AppBar toggleDrawer={toggleDrawer} showToAdmin={true} title="预约系统" />
             <DesktopDrawer open={open} >
                 {drawer_items.map((item, index) => {
-                    if (item.name === strings.zh["reservations"] && !user) return null;
+                    if (item.name === "预约" && !user) return null;
                     return (
                         <DesktopDrawerItem key={index} name={item.name} 
                             link={item.link} 
@@ -51,7 +51,7 @@ function Layout() {
             </DesktopDrawer>
             <MobileDrawer toggleDrawer={toggleDrawer} open={open} >
                 {drawer_items.map((item, index) => {
-                    if (item.name === strings.zh["reservations"] && !user) return null;
+                    if (item.name === "预约" && !user) return null;
                     return (
                         <MobileDrawerItem key={index} name={item.name} 
                             link={item.link} 
@@ -71,14 +71,5 @@ function Layout() {
         </Box>
     );
 }
-
-const strings = {
-    "zh": {
-        "title": "预约系统",
-        "reservations": "预约",
-        "notices": "通知",
-        "about": "关于",
-    } as const,
-} as const;
 
 export default Layout;

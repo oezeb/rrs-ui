@@ -16,6 +16,7 @@ import { useSnackbar } from "providers/SnackbarProvider";
 import { SelectDateTimeProps as _SelectDateTimeProps } from "reservations/add/SelectDateTime";
 import SelectTime from 'reservations/add/SelectTime';
 import { paths as api_paths, resv_status } from "utils/api";
+import { resvStatusColors as statusColors } from 'utils/util';
 
 interface SelectDateTimeProps extends _SelectDateTimeProps {
     session: Record<string, any>;
@@ -26,7 +27,7 @@ interface SelectDateTimeProps extends _SelectDateTimeProps {
 
 const SelectDateTime = (props: SelectDateTimeProps) => {
     const { date, setDate, slots, setSlots, room_id, session } = props;
-    const [resvStatus, setResvStatus] = React.useState<Record<string, any>[]>([]);
+    const [resvStatus, setResvStatus] = React.useState<Record<string, any>[]|undefined>(undefined);
 
     const { showSnackbar } = useSnackbar();
    
@@ -96,16 +97,22 @@ const SelectDateTime = (props: SelectDateTimeProps) => {
                 />
             </Box>
             <SelectTime room_id={room_id} date={date} timeWindow={window} />
+            {resvStatus && 
             <FormControl variant="standard" sx={{ minWidth: 80,  ml: 2 }}>
                 <InputLabel>状态</InputLabel>
                 <Select name='status' defaultValue={resv_status.confirmed}>
-                    {resvStatus.map((status) => (
+                    {Object.values(resvStatus).map((status: any) => (
                         <MenuItem key={status.status} value={status.status}>
-                            {status.label}
+                            <Box component="span"
+                                borderBottom={3} 
+                                borderColor={statusColors[status.status]}
+                            >
+                                {status.label}
+                            </Box>
                         </MenuItem>
                     ))}
                 </Select>
-            </FormControl>           
+            </FormControl>}         
             <Box sx={{ margin: 'auto', ml: 2 }}>
                 <Tooltip title='添加' placement='top'>
                     <IconButton size="small"  type="submit">

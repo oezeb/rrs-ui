@@ -5,27 +5,22 @@ import {
     Box,
     Button,
     IconButton,
-    Paper,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip,
+    Tooltip,
     Typography,
 } from "@mui/material";
 import Switch from '@mui/material/Switch';
-import TableSortLabel from '@mui/material/TableSortLabel';
 import * as React from "react";
 
-import { TableSkeleton } from "admin/Table";
+import Table, { TableSkeleton } from "admin/Table";
 import dayjs from "dayjs";
 import { useSnackbar } from "providers/SnackbarProvider";
 import BinaryDialog from "utils/BinaryDialog";
 import { Link } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";
-import { descComp, getComparator } from "utils/util";
+import { descComp } from "utils/util";
 
 function Sessions() {
     const [sessions, setSessions] = React.useState<Record<string, any>[]|undefined>(undefined);
-    const [orderBy, setOrderBy] = React.useState<string>("session_id");
-    const [order, setOrder] = React.useState<"asc"|"desc">("asc");
-    const [sorted, setSorted] = React.useState<Record<string, any>[]>([]);
     const [del, setDel] = React.useState<Record<string, any>|null>(null);
 
     const {showSnackbar} = useSnackbar();
@@ -41,13 +36,6 @@ function Sessions() {
                 })));
             });
     }, []);
-
-    React.useEffect(() => {
-        if (sessions === undefined) return;
-        const _comparator = getComparator(order, orderBy, comparator);
-        const sorted = [...sessions].sort(_comparator);
-        setSorted(sorted);
-    }, [sessions, order, orderBy]);
 
     const comparator = (
         a: Record<string, any>,
@@ -65,34 +53,6 @@ function Sessions() {
         } else {
             return descComp(a, b, orderBy);
         }
-    };
-
-    const handleRequestSort = React.useCallback(
-        (event: React.MouseEvent<unknown>, property: string) => {
-            if (sessions === undefined) return;
-            const isAsc = orderBy === property && order === 'asc';
-            setOrder(isAsc ? 'desc' : 'asc');
-            setOrderBy(property);
-
-            const _comparator = getComparator(order, orderBy, comparator);
-            const sorted = [...sessions].sort(_comparator);
-            setSorted(sorted);
-        },
-        [orderBy, order, sessions],
-    );
-
-    const SortHeadCell = (props: {field: string, label: string}) => {
-        return (
-            <TableCell sortDirection={orderBy === props.field ? order : false}>
-                <TableSortLabel
-                    active={orderBy === props.field}
-                    direction={orderBy === props.field ? order : "asc"}
-                    onClick={(e) => { handleRequestSort(e, props.field); }}
-                ><Typography fontWeight="bold">
-                    {props.label}
-                </Typography></TableSortLabel>
-            </TableCell>
-        );
     };
 
     const toggleCurrent = (session: Record<string, any>) => {
@@ -131,7 +91,6 @@ function Sessions() {
         { field: 'name', label: '会话名' },
         { field: 'start_time', label: '开始时间' },
         { field: 'end_time', label: '结束时间' },
-        { field: 'is_current', label: '当前会话' },
         { field: 'actions', label: '操作', noSort: true },
     ];
     
@@ -140,65 +99,64 @@ function Sessions() {
             <Typography variant="h5" component="h2" gutterBottom>
                 会话管理
             </Typography>
-            {sessions === undefined &&
-            <Paper sx={{ mt: 1, width: '100%', overflow: 'hidden', height: "70vh"}}>
-                <TableSkeleton rowCount={15} columns={columns.map(column => column.label)} />
-            </Paper>}
             {sessions !== undefined && 
-            <Paper sx={{ mt: 1, width: '100%', overflow: 'hidden' }}>
-                <TableContainer sx={{ height: "70vh"}}>
-                    <Table stickyHeader size="small">
-                        <TableHead>
-                            <TableRow>
-                                {columns.map((col, i) => (
-                                    col.noSort ?
-                                    <TableCell key={i}><Typography fontWeight="bold">{col.label}</Typography></TableCell> :
-                                    <SortHeadCell key={i} field={col.field} label={col.label} />
-                                ))}
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {sorted.map((session, i) => (
-                                <TableRow key={i}>
-                                    <TableCell>{session.session_id}</TableCell>
-                                    <TableCell>{session.name}</TableCell>
-                                    <TableCell>{session.start_time.format("YYYY-MM-DD HH:mm:ss")}</TableCell>
-                                    <TableCell>{session.end_time.format("YYYY-MM-DD HH:mm:ss")}</TableCell>
-                                    <TableCell>{session.is_current ? "是" : "否"}</TableCell>
-                                    <TableCell>
-                                        <Tooltip title="编辑">
-                                            <IconButton size="small"
-                                                component={Link} to={`/admin/sessions/edit?session_id=${session.session_id}`}>
-                                                <EditIcon fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="删除">
-                                            <IconButton size="small"
-                                                onClick={() => { setDel(session); }}>
-                                                <DeleteIcon fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                        <Tooltip title={session.is_current ? "取消当前会话" : "设为当前会话"}>
-                                            <IconButton size="small">
-                                                <Switch size="small"
-                                                    checked={session.is_current}
-                                                    onChange={() => { toggleCurrent(session); }}
-                                                />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            </Paper>}
-            <Box display="flex" justifyContent="flex-end" pt={2}>
-                <Button fullWidth variant="text" color="primary" startIcon={<AddIcon />}
-                    component={Link} to="/admin/sessions/add">
-                    添加会话
-                </Button>
-            </Box>
+            <Table
+                columns={columns}
+                rows={sessions}
+                compare={comparator}
+                height="70vh"
+                minWidth="730px"
+                getValueLabel={(row, field) => {
+                    if (field === "name") {
+                        return(
+                            <Typography variant="inherit" noWrap style={{maxWidth: "130px"}}>
+                                {row[field]}
+                            </Typography>
+                        );
+                    } else if (field === "start_time" || field === "end_time") {
+                        return row[field].format("YYYY-MM-DD HH:mm");
+                    } else if (field === "is_current") {
+                        return row[field] ? "是" : "否";
+                    } else if (field === "actions") {
+                        return (<>
+                            <Tooltip title="编辑">
+                                <IconButton size="small"
+                                    component={Link} to={`/admin/sessions/edit?session_id=${row.session_id}`}>
+                                    <EditIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="删除">
+                                <IconButton size="small"
+                                    onClick={() => { setDel(row); }}>
+                                    <DeleteIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title={row.is_current ? "取消当前会话" : "设为当前会话"}>
+                                <IconButton size="small">
+                                    <Switch size="small"
+                                        checked={row.is_current}
+                                        onChange={() => { toggleCurrent(row); }}
+                                    />
+                                </IconButton>
+                            </Tooltip>
+                        </>);
+                    } else {
+                        return row[field];
+                    }
+                }}
+            />
+            }
+            {sessions === undefined &&
+            <TableSkeleton
+                rowCount={13}
+                columns={columns.map(c => c.label)}
+                height="70vh"
+                minWidth="730px"
+            />}
+            <Button fullWidth variant="text" color="primary" startIcon={<AddIcon />}
+                component={Link} to="/admin/sessions/add">
+                添加会话
+            </Button>
             <DeleteDialog del={del} setDel={setDel} setSessions={setSessions} />
         </Box>
     );

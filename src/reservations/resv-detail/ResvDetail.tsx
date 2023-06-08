@@ -3,6 +3,7 @@ import {
     Button,
     Skeleton,
     TextField,
+    ListItemText,
 } from "@mui/material";
 import dayjs from "dayjs";
 import React from "react";
@@ -12,15 +13,12 @@ import { useSnackbar } from "providers/SnackbarProvider";
 import { paths as api_paths } from "utils/api";
 import { descriptionFieldParams, labelFieldParams } from "utils/util";
 import { useAuth } from "providers/AuthProvider";
-import SlotTable from "./SlotTable";
 import ResvTable from "./ResvTable";
-import CancelResvDialog from "./CancelDialog";
+import SlotTable, { ActionHelper } from "./SlotTable";
 
-function ResvDetails({ resv_id }: { resv_id: string|number }) {
+function ResvDetail({ resv_id }: { resv_id: string|number }) {
     const { user } = useAuth();
-    const [resv, setResv] = React.useState<Record<string, any>|null|undefined>(undefined);
-    const [open, setOpen] = React.useState(false);
-    const [slot_id, setSlotId] = React.useState<number | undefined>(undefined); // slot to cancel
+    const [resv, setResv] = React.useState<Record<string, any>|undefined>(undefined);
     const { showSnackbar } = useSnackbar();
 
     React.useEffect(() => {
@@ -45,7 +43,6 @@ function ResvDetails({ resv_id }: { resv_id: string|number }) {
             })
             .catch((err) => {
                 console.log(err);
-                setResv(null);
             });
     }, [resv_id, resv, user]);
 
@@ -57,7 +54,7 @@ function ResvDetails({ resv_id }: { resv_id: string|number }) {
         let note = data.get("note");
 
         if (resv && title === resv.title && note === resv.note) {
-            showSnackbar({ message: strings.zh['no_change'], severity: "info" });
+            showSnackbar({ message: "信息未改变", severity: "warning" });
             return;
         }
 
@@ -71,37 +68,34 @@ function ResvDetails({ resv_id }: { resv_id: string|number }) {
         }).then(res => {
             if (res.ok) {
                 setResv(undefined);
-                showSnackbar({ message: strings.zh['edit_success'], severity: "success", duration: 2000 });
+                showSnackbar({ message: "修改成功", severity: "success", duration: 2000 });
             } else {
                 throw new Error();
             }
         }).catch(err => {
-            showSnackbar({ message: strings.zh['edit_fail'], severity: "error" });
+            console.log(err);
+            showSnackbar({ message: "修改失败", severity: "error" });
         });
-    }
-
-    const handleCancel = (slot_id?: number) => {
-        setOpen(true);
-        setSlotId(slot_id);
-    }
-
-    const handleCancelConfirm = (confirm: boolean) => {
-        setOpen(false);
-        if (confirm) {
-            setResv(undefined);
-        }
-    }
+    };
 
     return (
         <Box>
             <Typography variant="h5" component="h2" gutterBottom>
-                {strings.zh['resv_details']}
+                预约详情
             </Typography>
             <ResvTable resv={resv} />
-            <Typography variant="h6" component="h2" gutterBottom sx={{ mt: 2 }}>
-                {strings.zh['resv_time']}
-            </Typography>
-            <SlotTable resv={resv} onCancel={handleCancel} />
+            <ListItemText secondary={<ActionHelper only={["cancel"]} />}>
+                <Typography variant="h6" component="h2" gutterBottom sx={{ mt: 2 }}>
+                    预约时间
+                </Typography>
+            </ListItemText>
+            <SlotTable 
+                resv_status_url={api_paths.resv_status}
+                action_url={api_paths.user_resv}
+                resv={resv} 
+                setResv={setResv} 
+                allowedActions={["cancel"]}
+            />
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
                 {resv ?
                 <TextField {...labelFieldParams} 
@@ -115,23 +109,8 @@ function ResvDetails({ resv_id }: { resv_id: string|number }) {
                     保存
                 </Button>
             </Box>
-            <CancelResvDialog resv_id={resv_id} slot_id={slot_id} open={open} onClose={handleCancelConfirm} />
         </Box>
     );
 }
 
-const strings = {
-    zh: {
-        resv_details: "预约详情",
-        resv_time: "预约时间",
-        title: "标题",
-        note: "备注",
-        save: "保存",
-
-        no_change: "未修改",
-        edit_success: "修改成功",
-        edit_fail: "修改失败",
-    } as const,
-} as const;
-
-export default ResvDetails;
+export default ResvDetail;

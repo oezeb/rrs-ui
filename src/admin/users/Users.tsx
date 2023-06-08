@@ -6,27 +6,21 @@ import {
     Button,
     DialogContentText,
     IconButton,
-    Paper,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip,
+    Tooltip,
     Typography,
 } from "@mui/material";
-import TableSortLabel from '@mui/material/TableSortLabel';
-import { TableSkeleton } from "admin/Table";
+import Table, { TableSkeleton } from "admin/Table";
 import { useSnackbar } from "providers/SnackbarProvider";
 import * as React from "react";
 import BinaryDialog from "utils/BinaryDialog";
 import { Link } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";
-import { getComparator } from "utils/util";
 import Roles from "./roles/Roles";
 
 function Users() {
     const [users, setUsers] = React.useState<Record<string, any>[]|undefined>(undefined);
-    const [orderBy, setOrderBy] = React.useState('username');
-    const [order, setOrder] = React.useState<'asc' | 'desc'>('asc');
-    const [sorted, setSorted] = React.useState<Record<string, any>[]>([]);
-    const [reset, setReset] = React.useState<Record<string, any>|null>(null); // user to reset password
     const [userRoles, setUserRoles] = React.useState<Record<string, any>>({});
+    const [reset, setReset] = React.useState<Record<string, any>|null>(null); // user to reset password
 
     React.useEffect(() => {
         fetch(api_paths.admin.users)
@@ -41,13 +35,6 @@ function Users() {
     }, []);
 
     React.useEffect(() => {
-        if (users === undefined) return;
-        const comparator = getComparator(order, orderBy);
-        const sorted = [...users].sort(comparator);
-        setSorted(sorted);
-    }, [users, order, orderBy]);
-
-    React.useEffect(() => {
         fetch(api_paths.admin.user_roles)
             .then(res => res.json())
             .then(data => {
@@ -57,33 +44,6 @@ function Users() {
                 }, {}));
             });
     }, []);
-
-    const onRequestSort = React.useCallback(
-        (event: React.MouseEvent<unknown>, property: string) => {
-            if (users === undefined) return;
-            const isAsc = orderBy === property && order === 'asc';
-            setOrder(isAsc ? 'desc' : 'asc');
-            setOrderBy(property);
-
-            const comparator = getComparator(order, orderBy);
-            const sorted = [...users].sort(comparator);
-            setSorted(sorted);
-        },
-        [order, orderBy, users],
-    );
-
-    const SortHeadCell = (props: {field: string, label: string}) => (
-        <TableCell sortDirection={orderBy === props.field ? order : false}>
-            <TableSortLabel
-                active={orderBy === props.field}
-                direction={orderBy === props.field ? order : "asc"}
-                onClick={(e) => { onRequestSort(e, props.field); }}
-            ><Typography fontWeight="bold">
-                {props.label}
-            </Typography>
-            </TableSortLabel>
-        </TableCell>
-    );
 
     const columns = [
         { field: 'username', label: '用户名' },
@@ -98,51 +58,53 @@ function Users() {
             <Typography variant="h5" component="h2">
                 用户管理
             </Typography>
+            {users !== undefined &&
+            <Table
+                columns={columns}
+                rows={users}
+                height='70vh'
+                minWidth='600px'
+                getValueLabel={(row, field) => {
+                    if (field === 'name') {
+                        return (
+                            <Typography variant="inherit" noWrap sx={{ maxWidth: "70px" }}>
+                                {row[field]}
+                            </Typography>
+                        );
+                    } else if (field === 'role') {
+                        return (
+                            <Typography variant="inherit" noWrap sx={{ maxWidth: "80px" }}>
+                                {userRoles[row[field]]?.label}
+                            </Typography>
+                        );
+                    } else if (field === 'action') {
+                        return (<>
+                            <Tooltip title="编辑">
+                                <IconButton size="small"
+                                    component={Link} to={`/admin/users/edit?username=${row.username}`}>
+                                    <EditIcon fontSize="inherit" />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="重置密码">
+                                <IconButton size="small"
+                                    onClick={() => { setReset(row); }}
+                                >
+                                    <LockResetIcon fontSize="inherit" />
+                                </IconButton>
+                            </Tooltip>
+                        </>);
+                    } else {
+                        return row[field];
+                    }
+                }}
+            />}
             {users === undefined &&
-            <Paper sx={{ mt: 1, width: '100%', overflow: 'hidden', height: "70vh"}}>
-                <TableSkeleton rowCount={15} columns={columns.map(column => column.label)} />
-            </Paper>}
-            { users !== undefined &&
-            <Paper sx={{ mt: 1, width: '100%', overflow: 'hidden' }}>
-                <TableContainer sx={{ minWidth:700, height: "70vh"}}>
-                    <Table stickyHeader size="small">
-                        <TableHead>
-                            <TableRow>
-                                {columns.map((col, i) => (
-                                    col.noSort ?
-                                    <TableCell key={i}><Typography fontWeight="bold">{col.label}</Typography></TableCell> :
-                                    <SortHeadCell key={i} field={col.field} label={col.label} />
-                                ))}
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {sorted.map((row, i) => (
-                                <TableRow key={i}>
-                                    <TableCell>{row.username}</TableCell>
-                                    <TableCell>{row.name}</TableCell>
-                                    <TableCell>{userRoles[row.role]?.label}</TableCell>
-                                    <TableCell>{row.email}</TableCell>
-                                    <TableCell>
-                                        <Tooltip title="编辑">
-                                            <IconButton size="small"
-                                                component={Link} to={`/admin/users/edit?username=${row.username}`}>
-                                                <EditIcon fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="重置密码">
-                                            <IconButton size="small"
-                                                onClick={() => { setReset(row); }}
-                                            >
-                                                <LockResetIcon fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            </Paper>}
+            <TableSkeleton
+                rowCount={15}
+                columns={columns.map(column => column.label)}
+                height='70vh'
+                minWidth='600px'
+            />}
             <Box display="flex" justifyContent="flex-end" pt={2}>
                 <Button fullWidth variant="text" color="primary" startIcon={<AddIcon />}
                     component={Link} to="/admin/users/add"

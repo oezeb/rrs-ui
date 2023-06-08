@@ -37,8 +37,8 @@ export function RoomView(props: RoomViewProps) {
 
     useEffect(() => {
         let _date = date.format('YYYY-MM-DD');
-        let url = api_paths.reservations + `?room_id=${room.room_id}&start_date=${_date}&end_date=${_date}`;
-        fetch(url).then((res) => res.json())
+        fetch(api_paths.reservations + `?room_id=${room.room_id}&start_date=${_date}`)
+            .then((res) => res.json())
             .then((data) => {
                 setReservations(data.filter((r: Record<string, any>) => (
                     (show_pending && r.status === resv_status.pending) || r.status === resv_status.confirmed
@@ -88,7 +88,7 @@ export function RoomView(props: RoomViewProps) {
                         <ListItemButton disabled={room.status !== room_status.available}
                             component={Link}  to={`/reservations/add/${room.room_id}`}>
                             <ListItemText>
-                                {strings.zh["reservation"]}
+                                预约
                             </ListItemText>
                             <ListItemIcon sx={{
                                 minWidth: 0,
@@ -107,11 +107,5 @@ export const RoomSkeleton = () =>(
     <Skeleton width={140} height={244} variant="rectangular" component="div"
         animation="wave" sx={{ margin: 1 }} />
 );
-
-const strings = {
-    "zh": {
-        reservation: "预约",
-    } as const,
-} as const;
 
 export default RoomView;

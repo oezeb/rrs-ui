@@ -1,18 +1,16 @@
 import * as React from "react";
 import { 
-    Box,  
     Typography,
     Button,
     IconButton,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip,
-    Skeleton,
-    Paper,
+    Tooltip,
 } from "@mui/material";
 import TextField from "@mui/material/TextField";
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { time } from "utils/util";
+import { TimeDelta } from "utils/util";
+import Table, { TableSkeleton } from "admin/Table";
 
 interface PeriodTableProps {
     periods: Record<string, any>[]|undefined;
@@ -22,7 +20,7 @@ interface PeriodTableProps {
 }
 
 function PeriodTable({ periods, setPeriods, setDel }: PeriodTableProps) {
-    const lastRow = React.useRef<HTMLTableRowElement|null>(null);
+    const [scrollBottom, setScrollBottom] = React.useState(false);
 
     const handleAdd = () => {
         if (periods === undefined) return;
@@ -31,94 +29,75 @@ function PeriodTable({ periods, setPeriods, setDel }: PeriodTableProps) {
             end_time: null,
         }]);
         setTimeout(() => {
-            if (lastRow.current) lastRow.current.scrollIntoView({ behavior: "smooth" });
+            setScrollBottom(true);
         }, 100);
     };
 
-    const HeadCell = ({ children, ...props }: any) => (
-        <TableCell {...props}>
-            <Typography fontWeight="bold">{children}</Typography>
-        </TableCell>
-    );
+    const handleDelete = (row: Record<string, any>) => {
+        if (row.period_id) {
+            setDel(row);
+        } else {
+            setPeriods(periods?.filter((_, i) => i !== row.no - 1));
+        }
+    };
+
+    const onTimeChange = (row: Record<string, any>, field: string, value: string) => {
+        // field: start_time | end_time
+        setPeriods(periods?.map((p, i) => i !== row.no - 1 ? p : {
+            ...p,
+            [field]: TimeDelta.from(value)
+        }));
+    };
+
+    const columns = [
+        { field: "no", label: "编号", noSort: true },
+        { field: "start_time", label: "开始时间", noSort: true  },
+        { field: "to", label: ""},
+        { field: "end_time", label: "结束时间", noSort: true  },
+        { field: "actions", label: "操作", noSort: true },
+    ];
 
     return (<>
-        <Paper sx={{ my: 1, width: '100%', overflow: 'hidden' }}>
-            <TableContainer sx={{ height: "60vh"}}>
-                <Table stickyHeader size="small">
-                    <TableHead>
-                        <TableRow>
-                            <HeadCell>编号</HeadCell>
-                            <HeadCell>开始时间</HeadCell>
-                            <TableCell />
-                            <HeadCell>结束时间</HeadCell>
-                            <HeadCell>操作</HeadCell>
-                        </TableRow>
-                    </TableHead>
-                    {periods === undefined && <TableBodySkeleton />}
-                    {periods !== undefined && 
-                    <TableBody>
-                        {periods.map((p, i) =>(
-                            <TableRow key={i} ref={i === periods.length - 1 ? lastRow : null}>
-                                <TableCell>{i + 1}</TableCell>
-                                <TableCell>
-                                    <TextField required size="small" type="time" variant="standard"
-                                        id="start_time"
-                                        value={p.start_time?.format("HH:mm")??''}
-                                        onChange={e => setPeriods(periods.map((p, j) => i !== j ? p : { 
-                                            ...p, 
-                                            start_time: time(e.target.value)
-                                        }))}
-                                    />
-                                </TableCell>
-                                <TableCell align="center">~</TableCell>
-                                <TableCell>
-                                    <TextField required size="small" type="time" variant="standard"
-                                        id="end_time"
-                                        value={p.end_time?.format("HH:mm")??''}
-                                        onChange={e => setPeriods(periods.map((p, j) => i !== j ? p : { 
-                                            ...p, 
-                                            end_time: time(e.target.value)
-                                        }))}
-                                    />
-                                </TableCell>
-                                <TableCell>
-                                    <Tooltip title="删除">
-                                        <IconButton size="small"
-                                            onClick={() => p.period_id ? setDel(p) : setPeriods(periods.filter((_, j) => i !== j))}
-                                        >
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
-                                    </Tooltip>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>}
-                </Table>
-            </TableContainer>
-        </Paper>
-        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-            <Button size="small" fullWidth
-                startIcon={<AddIcon />}
-                onClick={handleAdd}
-            >
-                添加时间段
-            </Button>
-        </Box>
+        {periods !== undefined &&
+        <Table
+            columns={columns}
+            rows={periods.map((p, i) => ({...p, no: i + 1 }))}
+            height="60vh"
+            minWidth="500px"
+            scrollBottom={scrollBottom}
+            setScrollBottom={setScrollBottom}
+            getValueLabel={(row, field) => {
+                if (field === "start_time" || field === "end_time") {
+                    return (
+                        <TextField required size="small" type="time" variant="standard"
+                            name={field}
+                            value={row[field]?.format("HH:mm")??''}
+                            onChange={e => onTimeChange(row, field, e.target.value)}
+                        />
+                    );
+                } else if (field === "to") {
+                    return <Typography align="center">~</Typography>;
+                } else if (field === "actions") {
+                    return (
+                        <Tooltip title="删除">
+                            <IconButton size="small" onClick={() => handleDelete(row)}>
+                                <DeleteIcon fontSize="inherit" />
+                            </IconButton>
+                        </Tooltip>
+                    );
+                } else {
+                    return row[field];
+                }
+            }}
+        />}
+        {periods === undefined &&
+        <TableSkeleton rowCount={12} height="60vh" minWidth="600px"
+            columns={columns.map(column => column.label)} 
+        />}
+        <Button size="small" fullWidth startIcon={<AddIcon />} onClick={handleAdd}>
+            添加时间段
+        </Button>
     </>);
 }
-
-const TableBodySkeleton = () => (
-    <TableBody>
-        {Array(12).fill(0).map((_, i) => (
-            <TableRow key={i}>
-                <TableCell><Skeleton /></TableCell>
-                <TableCell><Skeleton /></TableCell>
-                <TableCell align="center">~</TableCell>
-                <TableCell><Skeleton /></TableCell>
-                <TableCell><Skeleton /></TableCell>
-            </TableRow>
-        ))}
-    </TableBody>
-);
 
 export default PeriodTable;

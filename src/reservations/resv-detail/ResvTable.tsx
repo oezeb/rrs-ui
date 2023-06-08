@@ -10,11 +10,11 @@ import { useAuth } from "providers/AuthProvider";
 import { Link } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";
 
-interface ResvDetailsProps {
+interface ResvTableProps {
     resv?: Record<string, any> | null;
 }
 
-function ResvDetails({ resv }: ResvDetailsProps) {
+function ResvTable({ resv }: ResvTableProps) {
     const { user } = useAuth();
     const [room, setRoom] = React.useState<Record<string, any> | null>(null);
 
@@ -59,4 +59,4 @@ function ResvDetails({ resv }: ResvDetailsProps) {
     );
 }
 
-export default ResvDetails;
+export default ResvTable;

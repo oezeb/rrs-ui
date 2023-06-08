@@ -24,21 +24,14 @@ const BinaryDialog = ({ open, title, content, onConfirm, onClose }: BinaryDialog
             </DialogContent>
             <DialogActions>
                 <Button onClick={onClose}>
-                    {strings.zh['cancel']}
+                    取消
                 </Button>
                 <Button onClick={onConfirm} autoFocus>
-                    {strings.zh['confirm']}
+                    确定
                 </Button>
             </DialogActions>
         </Dialog>
     );
 };
-
-const strings = {
-    zh: {
-        cancel: "取消",
-        confirm: "确定",
-    } as const,
-} as const;
 
 export default BinaryDialog;

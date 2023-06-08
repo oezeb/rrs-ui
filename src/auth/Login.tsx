@@ -52,29 +52,29 @@ function Login() {
             }}
         >
             <Typography variant="h4" component="h1" gutterBottom>
-                {strings.zh["login"]}
+                登录
             </Typography>
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
                 <TextField {...UsernameFieldParams}
-                    label={strings.zh["username"]}
+                    label="用户名"
                     error={error}
                     autoFocus
                 />
                 <TextField {...PasswordFieldParams}
-                    label={strings.zh["password"]}
+                    label="密码"
                     error={error}
-                    helperText={error ? strings.zh["usernameOrPasswordError"] : ""}
+                    helperText={error ? "用户名或密码错误" : ""}
                 />
                 <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-                    {strings.zh["login"]}
+                    登录
                 </Button>
                 <Box display="flex">
                     <Typography variant="body2" component="p" gutterBottom
                         margin="auto"
                     >
-                        {strings.zh["noAccount"]}
+                        没有账号？
                         <Link to="/register" >
-                            {strings.zh["register"]}
+                            注册
                         </Link>
                     </Typography>
                 </Box>
@@ -82,16 +82,5 @@ function Login() {
         </Box>
     );
 }
-
-const strings = {
-    zh: {
-        login: "登录",
-        username: "用户名",
-        password: "密码",
-        usernameOrPasswordError: "用户名或密码错误",
-        noAccount: "没有账号？",
-        register: "注册",
-    } as const,
-} as const;
 
 export default Login;

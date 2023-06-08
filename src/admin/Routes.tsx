@@ -2,8 +2,8 @@ import { Route } from "react-router-dom";
 import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
 
-import AddReservation from "./reservations/AddReservation";
-import EditReservation from "./reservations/EditReservation";
+import AddReservation from "./reservations/add/AddReservation";
+import EditReservation from "./reservations/edit/EditReservation";
 import Reservations from "./reservations/Reservations";
 import EditPrivacy from "./reservations/privacy/EditPrivacy";
 import ResvPrivacy from "./reservations/privacy/Privacy";

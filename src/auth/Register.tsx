@@ -21,7 +21,7 @@ function Register() {
         const password = data.get('password');
         const confirmPassword = data.get('confirmPassword');
         if (password !== confirmPassword) {
-            setError({ password: strings.zh["passwordNotMatch"] });
+            setError({ password: "两次输入的密码不一致" });
             return;
         }
         
@@ -43,18 +43,18 @@ function Register() {
         })
         .then((res) => {
             if (res.status === 201) {
-                showSnackbar({ message: strings.zh["registerSuccess"], severity: "success", duration: 2000});
+                showSnackbar({ message: "注册成功", severity: "success", duration: 2000});
                 logout(() => {
                     navigate("/login", { replace: true });
                 });
             } else if (res.status === 409) {
-                setError({ username: strings.zh["usernameAlreadyExist"] });
+                setError({ username: "用户名已存在" });
             } else {
                 throw new Error();
             }
         })
         .catch((err) => {
-            setError({ register: strings.zh["registerFailed"] });
+            setError({ register: "注册失败" });
         });
     };
 
@@ -67,7 +67,7 @@ function Register() {
             }}
         >
             <Typography variant="h4" component="h1" gutterBottom>
-                {strings.zh["register"]}
+                注册
             </Typography>
             <Box
                 component="form"
@@ -80,58 +80,41 @@ function Register() {
             >
                 <TextField {...UsernameFieldParams}
                     autoFocus
-                    label={strings.zh["username"]}
+                    label="用户名"
                     error={'username' in error}
                     helperText={error.username}
                 />
                 <TextField {...PasswordFieldParams}
-                    label={strings.zh["password"]}
+                    label="密码"
                     error={'password' in error}
                 />
                 <TextField {...PasswordFieldParams}
                     id="confirmPassword" 
-                    label={strings.zh["confirmPassword"]}
+                    label="确认密码"
                     name="confirmPassword"
                     error={'password' in error}
                     helperText={error.password}
                 />
                 <TextField {...NameFieldParams} 
-                    label={strings.zh["name"]}
+                    label="姓名"
                 />
                 <TextField {...EmailFieldParams} 
-                    label={strings.zh["email"]}
+                    label="邮箱"
                 />
                 <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-                    {strings.zh["register"]}
+                    注册
                 </Button>
                 <Box display="flex">
                     <Typography variant="body2" component="p" gutterBottom
                         margin="auto"
                     >
-                        {strings.zh["alreadyHaveAccount"]}
-                        <Link to="/login" >{strings.zh["login"]}</Link>
+                        已有账号？
+                        <Link to="/login" >登录</Link>
                     </Typography>
                 </Box>
             </Box>
         </Box>
     );
 }
-
-const strings = {
-    zh: {
-        register: "注册",
-        username: "用户名",
-        password: "密码",
-        confirmPassword: "确认密码",
-        name: "姓名",
-        email: "邮箱",
-        alreadyHaveAccount: "已有账号？",
-        login: "登录",
-        passwordNotMatch: "两次输入的密码不一致",
-        registerFailed: "注册失败",
-        registerSuccess: "注册成功",
-        usernameAlreadyExist: "用户名已存在",
-    } as const,
-} as const;
 
 export default Register;

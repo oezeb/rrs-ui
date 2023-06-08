@@ -4,11 +4,12 @@ import { useSearchParams } from "react-router-dom";
 import { Box, Button, List, ListItem, TextField, Typography } from "@mui/material";
 import { paths as api_paths } from "utils/api";
 import { descriptionFieldParams, labelFieldParams } from "utils/util";
+import { useSnackbar } from "providers/SnackbarProvider";
 
 function EditStatus() {
     const [status, setStatus] = React.useState<Record<string, any>|null>(null);
     const [searchParams] = useSearchParams();
-    // const {showSnackbar} = useSnackbar();
+    const {showSnackbar} = useSnackbar();
 
     let id = searchParams.get('status');
 
@@ -22,6 +23,42 @@ function EditStatus() {
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        if (!status) return;
+
+        let form = new FormData(event.currentTarget);
+        let label = (form.get('label') as string).trim();
+        let description = (form.get('description') as string).trim();
+
+        let data: Record<string, any> = {};
+        if (label !== status.label) {
+            data.label = label;
+        }
+        if (description !== status.description) {
+            data.description = description;
+        }
+
+        if (Object.keys(data).length === 0) {
+            showSnackbar({message: "未修改任何内容", severity: "warning"});
+        } else {
+            fetch(api_paths.admin.resv_status + `/${status.status}`, { 
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => {
+                if (res.ok) {
+                    setStatus({...status, ...data});
+                    showSnackbar({message: "修改成功", severity: "success"});
+                } else {
+                    throw new Error();
+                }
+            })
+            .catch(err => {
+                showSnackbar({message: "修改失败", severity: "error"});
+            });
+        }
     };
 
     return (<>{status &&

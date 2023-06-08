@@ -11,6 +11,7 @@ import {
     Tooltip,
 } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
+import log from 'loglevel';
 
 import { useSnackbar } from "providers/SnackbarProvider";
 import { paths as api_paths, resv_status } from "utils/api";
@@ -46,6 +47,8 @@ const Repeat = (props: RepeatProps) => {
         setConflicts(undefined);
         let promises: Promise<any>[] = [];
         for (let slot of genSlots(slots, type, until)) {
+            log.debug(slot);
+
             let _has_conflict = async () => {
                 let res = await hasConflict(slot, room_id);
                 return { slot, has_conflict: res };
@@ -110,9 +113,11 @@ const Repeat = (props: RepeatProps) => {
                 </Box>
                 <Box sx={{ ml: 2 }}>
                     <Tooltip title='验证' placement="top">
+                    <span>
                         <IconButton size="small" disabled={type === "none"} type="submit">
                             <DoneIcon fontSize="small" color={conflicts === undefined ? undefined : conflicts.length > 0 ? "error" : "success"}/>
                         </IconButton>
+                    </span>
                     </Tooltip>
                 </Box>
             </Box>
@@ -133,13 +138,14 @@ const hasConflict = async (slot: Record<string, any>, room_id: string|number) =>
         try {
             let res = await fetch(url);
             let data = await res.json();
-            console.log(date.format('YYYY-MM-DD'), data);
+            log.debug(data);
             let no_conflict = data.every((r: Record<string, any>) => (
-                r.status === resv_status.cancelled || resv_status.rejected ||
+                r.status === resv_status.cancelled || r.status === resv_status.rejected ||
                 r.start_time >= slot.end_time || r.end_time <= slot.start_time
             ));
 
-            if (!no_conflict) {
+
+            if (no_conflict === false) {
                 return true;
             }
         } catch (err) {
@@ -159,6 +165,7 @@ const genSlots = (slots: Record<string, any>[], repeatType: RepeatType, until: D
                 start = start.add(1, 'week');
                 end = end.add(1, 'week');
                 new_slots.push({
+                    ...slot,
                     start_time: start,
                     end_time: end,
                 });

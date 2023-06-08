@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
+import log from "loglevel";
 
 import BackDrop from "utils/BackDrop";
 import { useSnackbar } from "providers/SnackbarProvider";
@@ -25,12 +26,11 @@ import SelectDateTime from "./SelectDateTime";
 import SlotTable from "./SlotTable";
 
 function AddResvervation() {
-    const [users, setUsers] = useState<Record<string, any>[]>([]);
-    const [rooms, setRooms] = useState<Record<string, any>[]>([]);
-    const [roomTypes, setRoomTypes] = useState<Record<string, any>[]>([]);
-    // const [resvStatus, setResvStatus] = useState<Record<string, any>[]>([]);
-    const [resvPrivacy, setResvPrivacy] = useState<Record<string, any>[]>([]);
-    const [sessions, setSessions] = useState<Record<string, any>[]>([]);
+    const [users, setUsers] = useState<Record<string, any>[]|undefined>(undefined);
+    const [rooms, setRooms] = useState<Record<string, any>[]|undefined>(undefined);
+    const [roomTypes, setRoomTypes] = useState<Record<string, any>[]|undefined>(undefined);
+    const [resvPrivacy, setResvPrivacy] = useState<Record<string, any>[]|undefined>(undefined);
+    const [sessions, setSessions] = useState<Record<string, any>[]|undefined>(undefined);
     
     const [room, setRoom] = useState<Record<string, any>|null|undefined>(undefined);
     const [session, setSession] = useState<Record<string, any>|null|undefined>(undefined);
@@ -53,7 +53,6 @@ function AddResvervation() {
             get(api_paths.admin.users, setUsers),
             get(api_paths.admin.rooms, setRooms),
             get(api_paths.admin.room_types, setRoomTypes),
-            // get(api_paths.admin.resv_status, setResvStatus),
             get(api_paths.admin.resv_privacy, setResvPrivacy),
             get(api_paths.admin.sessions, setSessions),
         ];
@@ -62,17 +61,18 @@ function AddResvervation() {
     }, []);
 
     useEffect(() => {
-        if (rooms.length > 0) {
+        if (rooms && rooms.length > 0) {
             setRoom(rooms[0]);
         } else {
             setRoom(null);
         }
-        let session = sessions.find((s) => s.is_current);
-        if (session !== undefined || sessions.length > 0) {
-            setSession(session || sessions[0]);
-        } else {
-            setSession(null);
-        }
+        let session: any = sessions?.find((s) => s.is_current);
+        if (session === undefined && sessions && sessions.length > 0) {
+            session = sessions[0];
+        } else if (session === undefined) {
+            session = null;
+        } 
+        setSession(session);
     }, [rooms, sessions]);
 
 
@@ -89,6 +89,7 @@ function AddResvervation() {
                     </ListItemText>
                 </ListItem>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 2, justifyContent: "center" }}>
+                    {rooms && roomTypes && 
                     <FormControl fullWidth>
                         <InputLabel>选择房间</InputLabel>
                         {room &&
@@ -106,7 +107,8 @@ function AddResvervation() {
                                 ];
                             })}
                         </Select>}
-                    </FormControl>
+                    </FormControl>}
+                    {sessions && 
                     <FormControl fullWidth>
                         <InputLabel>选择会话</InputLabel>
                         {session &&
@@ -118,7 +120,19 @@ function AddResvervation() {
                                 </MenuItem>
                             ))}
                         </Select>}
-                    </FormControl>
+                    </FormControl>}
+                    {resvPrivacy &&
+                    <FormControl fullWidth>
+                        <InputLabel>选择隐私</InputLabel>
+                        <Select size="small" label="选择隐私设置" defaultValue={resv_privacy.public}>
+                            {resvPrivacy.map((privacy) => (
+                                <MenuItem key={privacy.privacy} value={privacy.privacy}>
+                                    {privacy.label}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>}
+                    {users &&
                     <FormControl fullWidth>
                         <InputLabel>选择用户</InputLabel>
                         <Select size="small" label="选择用户" defaultValue="">
@@ -128,17 +142,7 @@ function AddResvervation() {
                                 </MenuItem>
                             ))}
                         </Select>
-                    </FormControl>
-                    <FormControl fullWidth>
-                        <InputLabel>选择隐私设置</InputLabel>
-                        <Select size="small" label="选择隐私设置" defaultValue={resv_privacy.public}>
-                            {resvPrivacy.map((privacy) => (
-                                <MenuItem key={privacy.privacy} value={privacy.privacy}>
-                                    {privacy.label}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                    </FormControl>}
                 </Box>
                 {room && session &&
                 <Book 
@@ -214,14 +218,13 @@ function Book({ room_id, session_id }: BookProps) {
             title: data.get('title'),
             note: data.get('note'),
             time_slots: validSlots.map((slot) => ({
+                ...slot,
                 start_time: slot.start_time.format('YYYY-MM-DD HH:mm:ss'),
                 end_time: slot.end_time.format('YYYY-MM-DD HH:mm:ss'),
             })),
         }
 
-        console.log(resv);
-        let url = `${api_paths.user_resv}/advanced`;
-        fetch(url, {
+        fetch(api_paths.admin.reservations, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -235,10 +238,9 @@ function Book({ room_id, session_id }: BookProps) {
                         navigate(`/reservations?id=${data.resv_id}`);
                     });
                 } else {
-                    res.json().then((data) => {
-                        console.error(data);
+                    res.text().then((text) => {
+                        throw new Error(text);
                     });
-                    throw new Error("预约失败")
                 }
             }).catch((err) => {
                 console.error(err);

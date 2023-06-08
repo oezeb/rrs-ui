@@ -4,30 +4,24 @@ import EditIcon from '@mui/icons-material/Edit';
 import {
     Box,
     Button,
-    IconButton,
-    Paper,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip,
+    IconButton, 
+    Tooltip,
     Typography,
 } from "@mui/material";
-import TableSortLabel from '@mui/material/TableSortLabel';
 import * as React from "react";
 
-import { TableSkeleton } from "admin/Table";
+import Table, { TableSkeleton } from "admin/Table";
 import dayjs from "dayjs";
 import { useSnackbar } from "providers/SnackbarProvider";
 import BinaryDialog from "utils/BinaryDialog";
 import { Link } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";
-import { descComp, getComparator } from "utils/util";
+import { descComp } from "utils/util";
 
 function Notices() {
     const [notices, setNotices] = React.useState<Record<string, any>[]|undefined>(undefined);
-    const [orderBy, setOrderBy] = React.useState<string>("notice_id");
-    const [order, setOrder] = React.useState<"asc"|"desc">("asc");
-    const [sorted, setSorted] = React.useState<Record<string, any>[]>([]);
-    const [del, setDel] = React.useState<Record<string, any>|null>(null);
-
     const [users, setUsers] = React.useState<Record<string, any>>({});
+    const [del, setDel] = React.useState<Record<string, any>|null>(null);
 
     React.useEffect(() => {
         fetch(api_paths.admin.notices)
@@ -49,13 +43,6 @@ function Notices() {
                 }, {}));
             });
     }, []);
-
-    React.useEffect(() => {
-        if (notices === undefined) return;
-        const _comparator = getComparator(order, orderBy, comparator);
-        const sorted = [...notices].sort(_comparator);
-        setSorted(sorted);
-    }, [notices, order, orderBy]);
 
     const comparator = (
         a: Record<string, any>,
@@ -79,34 +66,6 @@ function Notices() {
         }
     };
 
-    const handleRequestSort = React.useCallback(
-        (event: React.MouseEvent<unknown>, property: string) => {
-            if (notices === undefined) return;
-            const isAsc = orderBy === property && order === "asc";
-            setOrder(isAsc ? "desc" : "asc");
-            setOrderBy(property);
-        
-            const _comparator = getComparator(order, orderBy, comparator);
-            const sorted = [...notices].sort(_comparator);
-            setSorted(sorted);
-        },
-        [order, orderBy, notices],
-    );
-
-    const SortHeadCell = (props: {field: string, label: string}) => {
-        return (
-            <TableCell sortDirection={orderBy === props.field ? order : false}>
-                <TableSortLabel
-                    active={orderBy === props.field}
-                    direction={orderBy === props.field ? order : "asc"}
-                    onClick={(e) => { handleRequestSort(e, props.field); }}
-                ><Typography fontWeight="bold">
-                    {props.label}
-                </Typography></TableSortLabel>
-            </TableCell>
-        );
-    };
-
     const columns = [
         { field: "notice_id", label: "公告号" },
         { field: "username", label: "作者" },
@@ -121,59 +80,62 @@ function Notices() {
             <Typography variant="h5" component="h2" gutterBottom>
                 公告管理
             </Typography>
-            {notices === undefined && 
-            <Paper sx={{ mt: 1, width: '100%', overflow: 'hidden', height: "70vh"}}>
-                <TableSkeleton rowCount={15} columns={columns.map(column => column.label)} />
-            </Paper>}
             {notices !== undefined &&
-            <Paper sx={{ mt: 1, width: '100%', overflow: 'hidden' }}>
-                <TableContainer sx={{ minWidth: 750, height: "70vh"}}>
-                    <Table stickyHeader size="small">
-                        <TableHead>
-                            <TableRow>
-                                {columns.map((col, i) => (
-                                    col.noSort ?
-                                    <TableCell key={i}><Typography fontWeight="bold">{col.label}</Typography></TableCell> :
-                                    <SortHeadCell key={i} field={col.field} label={col.label} />
-                                ))}
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {sorted.map((notice) => (
-                                <TableRow key={notice.notice_id}>
-                                    <TableCell>{notice.notice_id}</TableCell>
-                                    <TableCell>{users[notice.username]?.name}</TableCell>
-                                    <TableCell>{notice.title}</TableCell>
-                                    <TableCell>{notice.create_time.format("YYYY-MM-DD HH:mm:ss")}</TableCell>
-                                    <TableCell>{notice.update_time?.format("YYYY-MM-DD HH:mm:ss")}</TableCell>
-                                    <TableCell>
-                                        <Tooltip title="编辑">
-                                            <IconButton 
-                                                component={Link} 
-                                                to={`/admin/notices/edit?notice_id=${notice.notice_id}&username=${notice.username}`}
-                                                size="small"
-                                            >
-                                                <EditIcon fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="删除">
-                                            <IconButton onClick={() => { setDel(notice); }}>
-                                                <DeleteIcon fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            </Paper>}
-            <Box display="flex" justifyContent="flex-end" pt={2}>
-                <Button fullWidth variant="text" color="primary" startIcon={<AddIcon />}
-                    component={Link} to="/admin/notices/add" >
-                    添加公告
-                </Button>
-            </Box>
+            <Table
+                columns={columns}
+                rows={notices}
+                compare={comparator}
+                minWidth="800px"
+                height="70vh"
+                getValueLabel={(row, field) => {
+                    if (field === "create_time" || field === "update_time") {
+                        return row[field]?.format("YYYY-MM-DD HH:mm");
+                    } else if (field === "username") {
+                        return (
+                            <Typography  variant="inherit" noWrap sx={{ maxWidth: 70 }}>
+                                {users[row[field]]?.name}
+                            </Typography>
+                        );
+                    } else if (field === "title") {
+                        return (
+                            <Typography  variant="inherit" noWrap sx={{ maxWidth: 100 }}>
+                                {row[field]}
+                            </Typography>
+                        );
+                    } else if (field === "actions") {
+                        return (<>
+                            <Tooltip title="编辑">
+                                <IconButton 
+                                    component={Link} 
+                                    to={`/admin/notices/edit?notice_id=${row.notice_id}&username=${row.username}`}
+                                    size="small"
+                                >
+                                    <EditIcon fontSize="inherit" />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="删除">
+                                <IconButton onClick={() => { setDel(row); }} size='small'>
+                                    <DeleteIcon fontSize="inherit" />
+                                </IconButton>
+                            </Tooltip>
+                        </>);
+                    } else {
+                        return row[field];
+                    }
+                }}
+            />}
+            {notices === undefined && 
+            <TableSkeleton
+                rowCount={15} 
+                columns={columns.map(column => column.label)} 
+                minWidth='800px'
+                height='70vh'
+            />}
+            <Button fullWidth 
+                startIcon={<AddIcon />}
+                component={Link} to="/admin/notices/add" >
+                添加公告
+            </Button>
             <DeleteDialog del={del} setDel={setDel} setNotices={setNotices} />
         </Box>
     );

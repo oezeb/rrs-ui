@@ -24,9 +24,7 @@ function Home() {
                     variant="h6" component="h2"
                     margin="auto"
                     marginRight={1}
-                >
-                    {strings.zh["date"]}
-                </Typography>
+                >日期：</Typography>
                 <TextField 
                     size='small' 
                     variant='outlined'
@@ -88,11 +86,5 @@ function RoomsView(props: RoomsViewProps) {
         </Box>
     );
 }
-
-const strings = {
-    zh: {
-        date: "日期",
-    } as const,
-} as const;
 
 export default Home;

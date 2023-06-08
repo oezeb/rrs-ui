@@ -74,11 +74,11 @@ function RoomDetail({ room_id }: { room_id: string|number }) {
                 )}
                 <List>
                     <ListItemView
-                        label={strings.zh['room_id']}
+                        label="房间号"
                         value={room? room.room_id : <Skeleton />} 
                     />
                     <ListItemView 
-                        label={strings.zh['status']}
+                        label="状态"
                         value={room && roomStatus[room.status] !== undefined ? (
                             <Tooltip title={roomStatus[room.status]?.description}>
                                 <Box display="inline"
@@ -91,11 +91,11 @@ function RoomDetail({ room_id }: { room_id: string|number }) {
                         ) : <Skeleton />} 
                     />
                     <ListItemView 
-                        label={strings.zh['capacity']}
+                        label="容量"
                         value={room? room.capacity : <Skeleton />} 
                     />
                     <ListItemView 
-                        label={strings.zh['type']}
+                        label="类型"
                         value={room && roomTypes[room.type] !== undefined ? (
                             <Tooltip title={roomTypes[room.type]?.description}>
                                 <Box display="inline">
@@ -109,14 +109,5 @@ function RoomDetail({ room_id }: { room_id: string|number }) {
         </Box>
     );
 }
-
-const strings = {
-    zh: {
-        room_id: "房间号",
-        status: "状态",
-        capacity: "容量",
-        type: "类型",
-    } as const,
-} as const;
 
 export default RoomDetail;

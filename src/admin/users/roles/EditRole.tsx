@@ -31,9 +31,7 @@ function EditRole() {
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (!role) {
-            return;
-        }
+        if (!role) return;
 
         let form = new FormData(event.currentTarget);
         let label = (form.get('label') as string).trim();
@@ -48,7 +46,7 @@ function EditRole() {
         }
 
         if (Object.keys(data).length === 0) {
-            showSnackbar({message: "未修改任何内容", severity: "warning", duration: 2000});
+            showSnackbar({message: "未修改任何内容", severity: "warning"});
         } else {
             fetch(api_paths.admin.user_roles + `/${role.role}`, { 
                 method: 'PATCH',
@@ -62,11 +60,11 @@ function EditRole() {
                     setRole({...role, ...data});
                     showSnackbar({message: "修改成功", severity: "success", duration: 2000});
                 } else {
-                    throw new Error("修改失败");
+                    throw new Error();
                 }
             })
             .catch(err => {
-                showSnackbar({message: err.message, severity: "error", duration: 2000});
+                showSnackbar({message: err.message, severity: "error"});
             });
         }
     }

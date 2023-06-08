@@ -1,9 +1,7 @@
-import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import {
     Collapse,
-    IconButton,
     List,
     ListItemButton,
     ListItemIcon,
@@ -20,9 +18,11 @@ import { useState } from "react";
 interface SlotTableProps {
     title?: string;
     slots: Record<string, any>[];
+
+    action?: (slot: Record<string, any>) => React.ReactNode;
 }
 
-const SlotTable = ({ title, slots }: SlotTableProps) => {
+const SlotTable = ({ title, slots, action }: SlotTableProps) => {
     const [open, setOpen] = useState(true);
     return (
         <List>
@@ -39,7 +39,7 @@ const SlotTable = ({ title, slots }: SlotTableProps) => {
                             <TableCell>编号</TableCell>
                             <TableCell>开始时间</TableCell>
                             <TableCell>结束时间</TableCell>
-                            <TableCell>操作</TableCell>
+                            {action && <TableCell>操作</TableCell>}
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -48,11 +48,7 @@ const SlotTable = ({ title, slots }: SlotTableProps) => {
                                 <TableCell>{index + 1}</TableCell>
                                 <TableCell>{slot.start_time.format("YYYY-MM-DD HH:mm")}</TableCell>
                                 <TableCell>{slot.end_time.format("YYYY-MM-DD HH:mm")}</TableCell>
-                                <TableCell>
-                                    <IconButton size="small">
-                                        <DeleteIcon fontSize="small"/>
-                                    </IconButton>
-                                </TableCell>
+                                {action && <TableCell>{action(slot)}</TableCell>}
                             </TableRow>
                         ))}
                         {slots.length === 0 && (

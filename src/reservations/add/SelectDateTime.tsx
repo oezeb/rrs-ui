@@ -5,7 +5,7 @@ import { Box } from "@mui/material";
 import { paths as api_paths, setting } from "utils/api";
 import SelectDate from "./SelectDate";
 import SelectTime from "./SelectTime";
-import { time } from "utils/util";
+import { TimeDelta } from "utils/util";
 
 export interface Option {
     index: number;
@@ -53,7 +53,7 @@ function SelectDateTime(props: SelectDateTimeProps) {
     useEffect(() => {
         fetch(api_paths.settings + `?id=${setting.timeLimit}`)
         .then((res) => res.json())
-        .then((data) => setMaxTime(time(data[0].value).totalSeconds))
+        .then((data) => setMaxTime(TimeDelta.from(data[0].value).totalSeconds))
         .catch((err) => {
             console.error(err);
         });

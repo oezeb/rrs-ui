@@ -37,7 +37,7 @@ function ResvPopover({ resv }: { resv: Record<string, any> }) {
                     justifyContent: 'flex-start',
                 }}
             >
-                {resv.status === resv_status.pending ? strings.zh["pending"] : resv.title}
+                {resv.status === resv_status.pending ? "待审核" : resv.title}
             </Button>
             <Popover open={open} anchorEl={anchorEl} onClose={handleClose}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
@@ -58,11 +58,5 @@ function ResvPopover({ resv }: { resv: Record<string, any> }) {
         </Box>
     );
 };
-
-const strings = {
-    "zh": {
-        pending: "待审核",
-    } as const,
-} as const;
 
 export default ResvPopover;

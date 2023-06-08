@@ -33,7 +33,7 @@ function Layout() {
     ] as const;
 
     return (
-        <Box sx={{ display: 'flex' }}>
+        <Box display="flex">
             <CssBaseline />
             <AppBar toggleDrawer={toggleDrawer} showToUser title="管理界面" homeLink='/admin' />
             <DesktopDrawer open={open} >
@@ -52,12 +52,13 @@ function Layout() {
                         link={item.link} 
                         icon={item.icon}
                         selected={location.pathname.startsWith(`/admin/${item.link}`)}
+                        onClick={toggleDrawer}
                     />
                 ))}
             </MobileDrawer>
-            <Box component="main" sx={{ flexGrow: 1 }}>
+            <Box component="main" sx={{ flexGrow: 1, width: "100%", overflow: "auto", margin: "auto" }}>
                 <Toolbar />
-                <Box  sx={{ p: 3, margin: "auto" }}>
+                <Box  sx={{ m: 3 }}>
                     <Outlet />
                 </Box>
             </Box>

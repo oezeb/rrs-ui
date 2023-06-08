@@ -1,5 +1,5 @@
 import React from "react";
-import { time } from "utils/util";
+import { TimeDelta } from "utils/util";
 import { paths as api_paths } from "utils/api";
 
 interface PeriodsProviderContextType {
@@ -18,8 +18,8 @@ function PeriodsProvider(props: { children: React.ReactNode }) {
         let json = await res.json();
         let periods = json.map((p: any) => ({
             ...p,
-            start_time: time(p.start_time),
-            end_time: time(p.end_time),
+            start_time: TimeDelta.from(p.start_time),
+            end_time: TimeDelta.from(p.end_time)
         }));
         return periods;
     }, []);

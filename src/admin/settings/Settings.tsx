@@ -8,7 +8,7 @@ import * as React from "react";
 
 import { useSnackbar } from "providers/SnackbarProvider";
 import { paths as api_paths, setting } from "utils/api";
-import { time } from "utils/util";
+import { TimeDelta } from "utils/util";
 import MaxDaily from "./MaxDaily";
 import TimeLimit from "./TimeLimit";
 import { hms } from "./TimeView";
@@ -56,13 +56,13 @@ function Settings() {
                     case setting.timeWindow:
                         _timeWindow = {
                             ...item,
-                            value: time(item.value).totalSeconds
+                            value: TimeDelta.from(item.value).totalSeconds
                         };
                         break;
                     case setting.timeLimit:
                         _timeLimit = {
                             ...item,
-                            value: time(item.value).totalSeconds
+                            value: TimeDelta.from(item.value).totalSeconds
                         };
                         break;
                     case setting.maxDaily:

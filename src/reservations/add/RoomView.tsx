@@ -48,16 +48,16 @@ function RoomView(props: RoomViewProps) {
             <Dialog open={room !== undefined && room.status === room_status.unavailable}>
                 <DialogTitle component={Box} sx={{ display: 'flex', alignItems: 'center' }} >
                     <ErrorIcon color="error" sx={{ mr: 1 }} />
-                    {strings.zh['error']}
+                    错误
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        {strings.zh['unavailable']}
+                        该房间暂时不可约，请选择其他房间。
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => navigate(from)} autoFocus>
-                        {strings.zh['back']}
+                        返回
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -66,13 +66,5 @@ function RoomView(props: RoomViewProps) {
         return <RoomSkeleton />;
     }
 }
-
-const strings = {
-    zh: {
-        error: "错误",
-        unavailable: "该房间暂时不可约，请选择其他房间。",
-        back: "返回",
-    } as const,
-} as const;
 
 export default RoomView;

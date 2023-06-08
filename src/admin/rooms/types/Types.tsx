@@ -5,26 +5,20 @@ import {
     Box,
     Button,
     IconButton,
-    Paper,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip,
+    Tooltip,
     Typography,
 } from "@mui/material";
-import TableSortLabel from '@mui/material/TableSortLabel';
 import * as React from "react";
 
-import { TableSkeleton } from "admin/Table";
+import Table, { TableSkeleton } from "admin/Table";
 import { useSnackbar } from "providers/SnackbarProvider";
 import BinaryDialog from "utils/BinaryDialog";
 import { Link } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";
-import { getComparator } from "utils/util";
 
 function Types() {
     const [roomTypes, setRoomTypes] = React.useState<Record<string, any>[]|undefined>(undefined);
     const [del, setDel] = React.useState<Record<string, any>|null>(null);
-    const [orderBy, setOrderBy] = React.useState<string>("type");
-    const [order, setOrder] = React.useState<"asc"|"desc">("asc");
-    const [sorted, setSorted] = React.useState<Record<string, any>[]>([]);
 
     React.useEffect(() => {
         fetch(api_paths.admin.room_types)
@@ -33,41 +27,6 @@ function Types() {
                 setRoomTypes(data);
             });
     }, []);
-
-    React.useEffect(() => {
-        if (roomTypes === undefined) return;
-        const comparator = getComparator(order, orderBy);
-        const sorted = [...roomTypes].sort(comparator);
-        setSorted(sorted);
-    }, [roomTypes, order, orderBy]);
-
-    const handleRequestSort = React.useCallback(
-        (event: React.MouseEvent<unknown>, property: string) => {
-            if (roomTypes === undefined) return;
-            const isAsc = orderBy === property && order === "asc";
-            setOrder(isAsc ? "desc" : "asc");
-            setOrderBy(property);
-
-            const comparator = getComparator(order, orderBy);
-            const sorted = [...roomTypes].sort(comparator);
-            setSorted(sorted);
-        },
-        [orderBy, order, roomTypes]
-    );
-
-    const SortHeadCell = (props: {field: string, label: string}) => {
-        return (
-            <TableCell sortDirection={orderBy === props.field ? order : false}>
-                <TableSortLabel
-                    active={orderBy === props.field}
-                    direction={orderBy === props.field ? order : "asc"}
-                    onClick={(e) => { handleRequestSort(e, props.field); }}
-                ><Typography fontWeight="bold">
-                    {props.label}
-                </Typography></TableSortLabel>
-            </TableCell>
-        );
-    };
 
     const columns = [
         {field: "type", label: "类型"},
@@ -80,52 +39,50 @@ function Types() {
             <Typography variant="h5" component="h2" gutterBottom>
                 房间类型
             </Typography>
+            {roomTypes !== undefined && 
+            <Table
+                columns={columns}
+                rows={roomTypes}
+                height="70vh"
+                minWidth="300px"
+                getValueLabel={(row, field) => {
+                    if (field === "label") {
+                        return (
+                            <Typography variant="inherit" noWrap sx={{ maxWidth: "70px" }}>
+                                {row[field]}
+                            </Typography>
+                        );
+                    } else if (field === "action") {
+                        return (<>
+                            <Tooltip title="删除">
+                                <IconButton size="small" onClick={() => setDel(row)}>
+                                    <DeleteIcon fontSize="inherit" />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="编辑">
+                                <IconButton size="small"
+                                    component={Link} to={`/admin/rooms/types/edit?type=${row.type}`}
+                                >
+                                    <EditIcon fontSize="inherit" />
+                                </IconButton>
+                            </Tooltip>
+                        </>);
+                    } else {
+                        return row[field];
+                    }
+                }}
+            />}
             {roomTypes === undefined &&
-            <Paper sx={{ mt: 1, width: '100%', overflow: 'hidden', height: "70vh"}}>
-                <TableSkeleton rowCount={15} columns={columns.map(column => column.label)} />
-            </Paper>}
-            {roomTypes !== undefined &&
-            <Paper sx={{ mt: 1, width: '100%', overflow: 'hidden' }}>
-                <TableContainer sx={{ minWidth: 600, height: "70vh"}}>
-                    <Table stickyHeader size="small">
-                        <TableHead>
-                            <TableRow>
-                                <SortHeadCell field="type" label="类型" />
-                                <SortHeadCell field="label" label="标签" />
-                                <TableCell><Typography fontWeight="bold">操作</Typography></TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {sorted.map((roomType: Record<string, any>, i) => (
-                                <TableRow key={i}>
-                                    <TableCell>{roomType.type}</TableCell>
-                                    <TableCell>{roomType.label}</TableCell>
-                                    <TableCell>
-                                        <Tooltip title="删除">
-                                            <IconButton size="small" onClick={() => setDel(roomType)}>
-                                                <DeleteIcon fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="编辑">
-                                            <IconButton size="small"
-                                                component={Link} to={`/admin/rooms/types/edit?type=${roomType.type}`}
-                                            >
-                                                <EditIcon fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            </Paper>}
-            <Box display="flex" justifyContent="flex-end" pt={2}>
-                <Button fullWidth variant="text" color="primary" startIcon={<AddIcon />}
-                    component={Link} to="/admin/rooms/types/add">
-                    添加类型
-                </Button>
-            </Box>
+            <TableSkeleton
+                rowCount={13}
+                columns={columns.map(column => column.label)}
+                height="70vh"
+                minWidth="300px"
+            />}
+            <Button fullWidth variant="text" color="primary" startIcon={<AddIcon />}
+                component={Link} to="/admin/rooms/types/add">
+                添加类型
+            </Button>
             <DeleteDialog del={del} setDel={setDel} setRoomTypes={setRoomTypes} />
         </Box>
     );

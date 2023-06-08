@@ -7,7 +7,7 @@ function Rooms() {
     
     return room_id === undefined ? (
         <RoomList 
-            title={strings.zh['list_title']} 
+            title="房间列表"
             link={(room) => `/rooms/${room.room_id}`} 
         />
     ) : (
@@ -16,11 +16,5 @@ function Rooms() {
         />
     );
 }
-
-const strings = {
-    zh: {
-        list_title: "房间列表",
-    } as const,
-} as const;
 
 export default Rooms;

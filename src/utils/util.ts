@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { resv_status, room_status } from './api';
 
 export const email_regex = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
@@ -14,62 +15,42 @@ export const roomStatusColors = {
     [room_status.available as number]: "#00CC66" as const,
 };
 
-export class Time {
-    /** @class Time
-     * Time class is used to represent time in the format of HH:mm:ss
-     * 
-     * @param time - time in the format of HH:mm:ss or HH:mm or a number of seconds
-     * @example
-     * const t1 = new Time(3600); // 01:00:00
-     * const t2 = new Time('3600'); // 01:00:00
-     * const t3 = new Time('01:00:00'); // 01:00:00
-     * const t4 = new Time('01:00'); // 01:00:00
-     */
-    private _time: number = 0;
+interface TimeDeltaParams {
+    days?: number|string,
+    hours?: number|string,
+    minutes?: number|string,
+    seconds?: number|string,
+}
 
-    constructor(time: number|string) {
-        if (typeof time === 'number') {
-            this._time = time;
-        } else if (typeof time === 'string') {
-            const re = /(\d+)(?::(\d\d?))?(?::(\d\d)?)?/;
-            const res = re.exec(time);
-            if (res === null) {
-                throw new Error(`Invalid time string: ${time}`);
-            } else {
-                let [hour, minute, second] = res.slice(1).map((x) => parseInt(x));
-                if (isNaN(minute) && isNaN(second)) {
-                    [hour, minute, second] = [0, 0, hour];
-                } else if (isNaN(minute)) {
-                    minute = 0;
-                } else if (isNaN(second)) {
-                    second = 0;
-                }
-                this._time = hour * 3600 + minute * 60 + second;
-            }
+export class TimeDelta {
+    private _totalSeconds: number = 0;
+
+    constructor({ days=0, hours=0, minutes=0, seconds=0 }: TimeDeltaParams) {
+        this._totalSeconds = +days * 24 * 3600 + +hours * 3600 + +minutes * 60 + +seconds;
+    }
+
+    static from(str: string) {
+        /**
+         * @param {string} str - A string in the format of 'HH:mm:ss' or 'HH:mm' or 'ss'
+         */
+        let [hour, minute, second] = str.split(':').map(Number);
+        if (minute === undefined && second === undefined) {
+            second = hour;
+            hour = 0;
         }
+        return new TimeDelta({ hours: hour, minutes: minute, seconds: second });
     }
 
-    get hour() {
-        return Math.floor(this._time / 3600);
-    }
+    get hour() { return Math.floor(this._totalSeconds / 3600); }
+    get minute() { return Math.floor((this._totalSeconds % 3600) / 60); }
+    get second() { return this._totalSeconds % 60; }
+    get totalSeconds() { return this._totalSeconds; }
 
-    get minute() {
-        return Math.floor((this._time % 3600) / 60);
-    }
-
-    get second() {
-        return this._time % 60;
-    }
-
-    get totalSeconds() {
-        return this._time;
-    }
-
-    equals(t: Time) {
+    equals(t: TimeDelta) {
         return this.totalSeconds === t.totalSeconds;
     }
 
-    lessThan(t: Time) {
+    lessThan(t: TimeDelta) {
         return this.totalSeconds < t.totalSeconds;
     }
     
@@ -81,10 +62,10 @@ export class Time {
         template = template.toLowerCase();
         return template.replace('hh', hour).replace('mm', minute).replace('ss', second);
     }
-}
 
-export const time = (t: string|number) => {
-    return new Time(t);
+    toString() {
+        return this.format();
+    }
 }
 
 export const fileToBase64 = (file: File, callback: (data: string|undefined) => void) => {
@@ -122,6 +103,50 @@ export function getComparator<T>(
     return order === 'desc'
         ? (a, b) => _descComp(a, b, orderBy)
         : (a, b) => -_descComp(a, b, orderBy);
+}
+
+
+export type TimeFilter = "全部" | "当前" | "历史";
+
+export const selectTimeSlot = (
+    time_slots: Record<string, any>[],
+    timeFilter?: TimeFilter,
+) => {
+    if (time_slots.length === 0) return null;
+    let now = dayjs();
+    let time_slot = null;
+    if (timeFilter !== undefined) {
+        if (timeFilter === "当前" || timeFilter === "全部") {
+            time_slot = time_slots.find((ts) => {
+                return ts.end_time.isAfter(now)
+            });
+        } else if (timeFilter === "历史") {
+            time_slot = time_slots.find((ts) => {
+                return ts.end_time.isBefore(now)
+            });
+        }
+    }
+    return time_slot ?? time_slots[0];
+}
+
+export const compareTimeSlot = (a: Record<string, any>|null, b: Record<string, any>|null) => {  
+    if (a === null && b === null) {
+        return 0;
+    } else if (a === null) {
+        return -1;
+    } else if (b === null) {
+        return 1;
+    } else if (a.start_time.isBefore(b.start_time)) {
+        return -1;
+    } else if (a.start_time.isAfter(b.start_time)) {
+        return 1;
+    } else if (a.end_time.isBefore(b.end_time)) {
+        return -1;
+    } else if (a.end_time.isAfter(b.end_time)) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 export const labelFieldParams = {

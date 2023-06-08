@@ -22,17 +22,17 @@ function Profile() {
         event.preventDefault();
         setMsg({});
         if (Object.keys(data).length === 0) {
-            showSnackbar({ message: strings.zh["informationUnchanged"], severity: "warning" });
+            showSnackbar({ message: "信息未改变", severity: "warning" });
             return;
         }
 
         if (required_password) {
             if (data.new_password !== data.confirm_password) {
-                setMsg({ confirm_password: strings.zh["passwordsNotMatch"] });
+                setMsg({ confirm_password: "两次输入的密码不一致" });
                 return;
             }
         } else if (data.email === user?.email) {
-            showSnackbar({ message: strings.zh["informationUnchanged"], severity: "warning" });
+            showSnackbar({ message: "信息未改变", severity: "warning" });
             return;
         }
 
@@ -49,16 +49,16 @@ function Profile() {
                 if (res.ok) {
                     update(res => {
                         setData({});
-                        showSnackbar({ message: strings.zh["updateSuccess"], severity: "success", duration: 2000 });
+                        showSnackbar({ message: "修改成功", severity: "success", duration: 2000 });
                     })
                 } else if (res.status === 401) {
-                    setMsg({ password: strings.zh["passwordIncorrect"] });
+                    setMsg({ password: "密码错误" });
                 } else {
                     throw new Error();
                 }
             })
             .catch((err) => {
-                showSnackbar({ message: strings.zh["updateFailed"], severity: "error" });
+                showSnackbar({ message: "修改失败", severity: "error" });
             });
     };
 
@@ -80,30 +80,30 @@ function Profile() {
     return (
         <Box component="form" onSubmit={handleSubmit}>
             <Typography variant="h5" component="h2" gutterBottom>
-                {strings.zh["personalInformation"]}
+                个人信息
             </Typography>
             <Table sx={{ mb: 3}}>
                 <TableBody>
                     <TableRow>
-                        <TableCell>{strings.zh["username"]}</TableCell>
+                        <TableCell>用户名</TableCell>
                         <TableCell>{user? user.username:<Skeleton />}</TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell>{strings.zh["name"]}</TableCell>
+                        <TableCell>姓名</TableCell>
                         <TableCell>{user? user.name:<Skeleton />}</TableCell>
                     </TableRow>
                     {user?.role > user_role.guest &&
                         <TableRow>
-                            <TableCell>{strings.zh["role"]}</TableCell>
+                            <TableCell>角色</TableCell>
                             <TableCell>{user? roles[user.role]?.label:<Skeleton />}</TableCell>
                         </TableRow>
                     }
                     <TableRow>
-                        <TableCell>{strings.zh["email"]}</TableCell>
+                        <TableCell>邮箱</TableCell>
                         <TableCell>
                             <TextField {...EmailFieldParams}
                                 defaultValue={user?.email} 
-                                placeholder={strings.zh["email"]}
+                                placeholder="邮箱"
                                 label={undefined}
                                 InputProps={{ disableUnderline: true }}
                                 onChange={(e) => {
@@ -115,12 +115,12 @@ function Profile() {
                 </TableBody>
             </Table>
             <Typography variant="h5" component="h2" gutterBottom>
-                {strings.zh["changePassword"]}
+                修改密码
             </Typography>
             <TextField variant='standard' fullWidth id="password" name="password"
                 type="password"
                 required={required_password}
-                label={strings.zh["oldPassword"]}
+                label="原密码"
                 error={ 'password' in msg }
                 helperText={msg.password}
                 onChange={(e) => {
@@ -130,7 +130,7 @@ function Profile() {
             <TextField variant='standard' fullWidth id="new_password" name="new_password"
                 type="password"
                 required={required_password}
-                label={strings.zh["newPassword"]}
+                label="新密码"
                 error={ 'confirm_password' in msg }
                 onChange={(e) => {
                     setData({ ...data, new_password: e.target.value });
@@ -139,7 +139,7 @@ function Profile() {
             <TextField variant='standard' fullWidth id="confirm_password" name="confirm_password"
                 type="password"
                 required={required_password}
-                label={strings.zh["confirmPassword"]}
+                label="确认密码"
                 error={ 'confirm_password' in msg }
                 helperText={msg.confirm_password}
                 onChange={(e) => {
@@ -147,31 +147,10 @@ function Profile() {
                 }}
             />
             <Button  type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-                {strings.zh["save"]}
+                保存
             </Button>
         </Box>
     );
 }
-
-const strings = {
-    zh: {
-        personalInformation: '个人信息',
-        username: '用户名',
-        name: '姓名',
-        role: '角色',
-        email: '邮箱',
-        changePassword: '修改密码',
-        oldPassword: '原密码',
-        newPassword: '新密码',
-        confirmPassword: '确认密码',
-        save: '保存',
-
-        informationUnchanged: '信息未改变',
-        passwordIncorrect: '密码错误',
-        passwordsNotMatch: '两次输入的密码不一致',
-        updateFailed: '修改失败',
-        updateSuccess: '修改成功',
-    } as const,
-} as const;
 
 export default Profile;

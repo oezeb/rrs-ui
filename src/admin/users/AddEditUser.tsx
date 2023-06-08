@@ -52,16 +52,16 @@ export const AddEditUser = (props: AddEditUserProps) => {
                 <ListItem>
                     <TextField {...UsernameFieldParams} 
                         autoFocus 
-                        label={strings.zh["username"]}
+                        label="用户名"
                         defaultValue={username}
                         disabled={type === "edit"}
                     />
                     {roles !== undefined && 
                     <FormControl sx={{ ml: 1}} fullWidth required>
-                        <InputLabel>{strings.zh["role"]}</InputLabel>
+                        <InputLabel>角色</InputLabel>
                         <Select variant="standard" required fullWidth size="small" 
                             name="role"
-                            label={strings.zh["role"]}
+                            label="角色"
                             defaultValue={role!==undefined?role:''} 
                         >
                             {Object.values(roles).map((role) => (
@@ -74,42 +74,31 @@ export const AddEditUser = (props: AddEditUserProps) => {
                 </ListItem>
                 <ListItem>
                     <TextField {...PasswordFieldParams} 
-                        label={strings.zh["password"]}
+                        label="密码"
                         defaultValue={password} 
                         disabled={type === "edit"}
                     />
                 </ListItem>
                 <ListItem>
                     <TextField {...NameFieldParams} 
-                        label={strings.zh["name"]}
+                        label="姓名"
                         defaultValue={name} 
                     />
                 </ListItem>
                 <ListItem>
                     <TextField {...EmailFieldParams} 
-                        label={strings.zh["email"]}
+                        label="邮箱"
                         defaultValue={email}
                     />
                 </ListItem>
                 <ListItem>
                     <Button fullWidth variant="contained" color="primary" type="submit" sx={{ mt: 2 }} >
-                        {strings.zh["submit"]}
+                        提交
                     </Button>
                 </ListItem>
             </List>
         </Box>
     );
 };
-
-const strings = {
-    zh: {
-        username: "用户名",
-        role: "角色",
-        password: "密码",
-        name: "姓名",
-        email: "邮箱",
-        submit: "提交",
-    } as const,
-} as const;
 
 export default AddEditUser;
