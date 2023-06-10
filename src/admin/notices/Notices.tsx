@@ -4,14 +4,14 @@ import EditIcon from '@mui/icons-material/Edit';
 import {
     Box,
     Button,
-    IconButton, 
+    IconButton,
     Tooltip,
     Typography,
 } from "@mui/material";
+import Table, { TableSkeleton } from "utils/Table";
+import dayjs from "dayjs";
 import * as React from "react";
 
-import Table, { TableSkeleton } from "admin/Table";
-import dayjs from "dayjs";
 import { useSnackbar } from "providers/SnackbarProvider";
 import BinaryDialog from "utils/BinaryDialog";
 import { Link } from "utils/Navigate";
@@ -75,6 +75,45 @@ function Notices() {
         { field: "actions", label: "操作", noSort: true },
     ];
 
+    const renderValue = (row: Record<string, any>, field: string) => {
+        switch (field) {
+            case "username":
+                return (
+                <Typography noWrap sx={{ maxWidth: 70 }}>
+                    {users[row[field]]?.name}
+                </Typography>
+                );
+            case "title":
+                return (
+                <Typography noWrap sx={{ maxWidth: 100 }}>
+                    {row[field]}
+                </Typography>
+                );
+            case "create_time":
+            case "update_time":
+                return row[field]?.format("YYYY-MM-DD HH:mm");
+            case "actions":
+                return (<>
+                    <Tooltip title="编辑">
+                        <IconButton
+                            component={Link}
+                            to={`/admin/notices/edit/${row.notice_id}/${row.username}`}
+                            size="small"
+                        >
+                            <EditIcon fontSize="inherit" />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="删除">
+                        <IconButton onClick={() => { setDel(row); }} size="small">
+                            <DeleteIcon fontSize="inherit" />
+                        </IconButton>
+                    </Tooltip>
+                </>);
+            default:
+                return row[field];
+        }
+    };
+
     return(
         <Box>
             <Typography variant="h5" component="h2" gutterBottom>
@@ -87,42 +126,7 @@ function Notices() {
                 compare={comparator}
                 minWidth="800px"
                 height="70vh"
-                getValueLabel={(row, field) => {
-                    if (field === "create_time" || field === "update_time") {
-                        return row[field]?.format("YYYY-MM-DD HH:mm");
-                    } else if (field === "username") {
-                        return (
-                            <Typography  variant="inherit" noWrap sx={{ maxWidth: 70 }}>
-                                {users[row[field]]?.name}
-                            </Typography>
-                        );
-                    } else if (field === "title") {
-                        return (
-                            <Typography  variant="inherit" noWrap sx={{ maxWidth: 100 }}>
-                                {row[field]}
-                            </Typography>
-                        );
-                    } else if (field === "actions") {
-                        return (<>
-                            <Tooltip title="编辑">
-                                <IconButton 
-                                    component={Link} 
-                                    to={`/admin/notices/edit?notice_id=${row.notice_id}&username=${row.username}`}
-                                    size="small"
-                                >
-                                    <EditIcon fontSize="inherit" />
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title="删除">
-                                <IconButton onClick={() => { setDel(row); }} size='small'>
-                                    <DeleteIcon fontSize="inherit" />
-                                </IconButton>
-                            </Tooltip>
-                        </>);
-                    } else {
-                        return row[field];
-                    }
-                }}
+                getValueLabel={renderValue}
             />}
             {notices === undefined && 
             <TableSkeleton

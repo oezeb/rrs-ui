@@ -19,7 +19,7 @@ interface SlotTableProps {
     title?: string;
     slots: Record<string, any>[];
 
-    action?: (slot: Record<string, any>) => React.ReactNode;
+    action?: (slot: Record<string, any>, index: number) => React.ReactNode;
 }
 
 const SlotTable = ({ title, slots, action }: SlotTableProps) => {
@@ -48,7 +48,7 @@ const SlotTable = ({ title, slots, action }: SlotTableProps) => {
                                 <TableCell>{index + 1}</TableCell>
                                 <TableCell>{slot.start_time.format("YYYY-MM-DD HH:mm")}</TableCell>
                                 <TableCell>{slot.end_time.format("YYYY-MM-DD HH:mm")}</TableCell>
-                                {action && <TableCell>{action(slot)}</TableCell>}
+                                {action && <TableCell>{action(slot, index)}</TableCell>}
                             </TableRow>
                         ))}
                         {slots.length === 0 && (

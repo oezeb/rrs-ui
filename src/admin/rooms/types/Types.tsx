@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import * as React from "react";
 
-import Table, { TableSkeleton } from "admin/Table";
+import Table, { TableSkeleton } from "utils/Table";
 import { useSnackbar } from "providers/SnackbarProvider";
 import BinaryDialog from "utils/BinaryDialog";
 import { Link } from "utils/Navigate";
@@ -34,6 +34,34 @@ function Types() {
         {field: "action", label: "操作", noSort: true}
     ];
 
+    const renderValue = (row: Record<string, any>, field: string) => {
+        switch (field) {
+            case "label":
+                return (
+                    <Typography noWrap sx={{ maxWidth: "70px" }}>
+                        {row[field]}
+                    </Typography>
+                );
+            case "action":
+                return (<>
+                    <Tooltip title="删除">
+                        <IconButton size="small" onClick={() => setDel(row)}>
+                            <DeleteIcon fontSize="inherit" />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="编辑">
+                        <IconButton size="small"
+                            component={Link} to={`/admin/rooms/types/edit/${row.type}`}
+                        >
+                            <EditIcon fontSize="inherit" />
+                        </IconButton>
+                    </Tooltip>
+                </>);
+            default:
+                return row[field];
+        }
+    };
+
     return(
         <Box>
             <Typography variant="h5" component="h2" gutterBottom>
@@ -45,32 +73,7 @@ function Types() {
                 rows={roomTypes}
                 height="70vh"
                 minWidth="300px"
-                getValueLabel={(row, field) => {
-                    if (field === "label") {
-                        return (
-                            <Typography variant="inherit" noWrap sx={{ maxWidth: "70px" }}>
-                                {row[field]}
-                            </Typography>
-                        );
-                    } else if (field === "action") {
-                        return (<>
-                            <Tooltip title="删除">
-                                <IconButton size="small" onClick={() => setDel(row)}>
-                                    <DeleteIcon fontSize="inherit" />
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title="编辑">
-                                <IconButton size="small"
-                                    component={Link} to={`/admin/rooms/types/edit?type=${row.type}`}
-                                >
-                                    <EditIcon fontSize="inherit" />
-                                </IconButton>
-                            </Tooltip>
-                        </>);
-                    } else {
-                        return row[field];
-                    }
-                }}
+                getValueLabel={renderValue}
             />}
             {roomTypes === undefined &&
             <TableSkeleton

@@ -21,11 +21,14 @@ export const AddEditSession = (props: AddEditSessionProps) => {
     const { title, session_id, name, startTime, endTime, handleSubmit, type } = props;
 
     return (
-        <Box component="form" onSubmit={handleSubmit}>
-            <Typography variant="h5" component="h2" gutterBottom>
-                {title}
-            </Typography>
-            <List sx={{ ml: 4 }} dense>
+        <Box component="form" onSubmit={handleSubmit}sx={{ maxWidth: 700, margin: "auto" }} >
+            
+            <List dense>
+                <ListItem divider sx={{ mb: 2 }}>
+                    <Typography variant="h5" component="h2" gutterBottom>
+                        {title}
+                    </Typography>
+                </ListItem>
                 <ListItem>
                     <TextField size="small" variant="standard" type="number" fullWidth
                         name="session_id" label="会话号" defaultValue={session_id}

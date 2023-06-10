@@ -92,6 +92,8 @@ export function descComp<T>(a: T, b: T, orderBy: keyof T) {
     return 0;
 }
 
+export const dayjsComp = (a: dayjs.Dayjs, b: dayjs.Dayjs) => a.isBefore(b) ? -1 : a.isAfter(b) ? 1 : 0;
+
 export function getComparator<T>(
     order: Order,
     orderBy: keyof T,

@@ -43,7 +43,7 @@ function AddRoom() {
                 if (res.ok) {
                     let json = await res.json();
                     showSnackbar({message: "添加成功", severity: "success", duration: 2000});
-                    navigate(`/admin/rooms/edit?room_id=${json.room_id}`);
+                    navigate(`/admin/rooms/edit/${json.room_id}`);
                 } else {
                     throw new Error("添加失败");
                 }

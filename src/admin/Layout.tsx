@@ -14,6 +14,8 @@ import AppBar from "layout/AppBar";
 import DesktopDrawer, { DrawerItem as DesktopDrawerItem } from "layout/DesktopDrawer";
 import MobileDrawer, { DrawerItem as MobileDrawerItem } from "layout/MobileDrawer";
 
+const apiDocIcon = require("assets/noun-api-3828604.png");
+
 function Layout() {
     const [open, setOpen] = React.useState(true);
     const location = useLocation();
@@ -21,6 +23,10 @@ function Layout() {
     const toggleDrawer = () => {
         setOpen(oldOpen => !oldOpen);
     };
+
+    const ApiDocIcon = () => (
+        <img src={apiDocIcon} alt="api-doc" style={{ width: "1.8em" }} />
+    );
 
     const drawer_items = [
         {name: "预订", link: "reservations", icon: <EventAvailableIcon />},
@@ -30,6 +36,7 @@ function Layout() {
         {name: "时段", link: "periods", icon: <TimelapseIcon />},
         {name: "通知", link: "notices", icon: <NotificationsIcon />},
         {name: "设置", link: "settings", icon: <SettingsIcon />},
+        {name: "文档", link: "api-docs", icon: <ApiDocIcon />},
     ] as const;
 
     return (

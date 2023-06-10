@@ -35,7 +35,7 @@ function AddType() {
             }
         }).then(data => {
             showSnackbar({message: "添加成功", severity: "success", duration: 2000});
-            navigate(`/admin/rooms/types/edit?type=${data.type}`);
+            navigate(`/admin/rooms/types/edit/${data.type}`);
         }).catch(err => {
             console.log(err);
             showSnackbar({message: "添加失败", severity: "error"});

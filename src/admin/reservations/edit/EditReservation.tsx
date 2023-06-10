@@ -11,29 +11,27 @@ import React from "react";
 import Typography from '@mui/material/Typography';
 
 import { useSnackbar } from "providers/SnackbarProvider";
-import { useSearchParams } from "react-router-dom";
-import SlotTable, { ActionHelper } from "reservations/resv-detail/SlotTable";
+import { useParams } from "react-router-dom";
 import { paths as api_paths } from "utils/api";
 import { descriptionFieldParams, labelFieldParams } from "utils/util";
 import ResvTable from "./ResvTable";
+import SlotTable, { ActionHelper } from "./SlotTable";
 
 function EditReservation() {
-    const [searchParams] = useSearchParams();
+    const {resv_id, username } = useParams();
 
-    const resv_id = searchParams.get('resv_id');
-
-    return (<>{resv_id &&
-        <ResvDetails resv_id={resv_id}/>
+    return (<>{resv_id && username &&
+        <ResvDetails resv_id={resv_id} username={username} />
     }</>);
 }
 
-function ResvDetails({ resv_id }: { resv_id: string|number }) {
+function ResvDetails({ resv_id, username }: { resv_id: string|number, username: string }) {
     const [resv, setResv] = React.useState<Record<string, any> | undefined>(undefined);
     const { showSnackbar } = useSnackbar();
 
     React.useEffect(() => {
         if (resv !== undefined) return;
-        fetch(api_paths.admin.reservations + `?resv_id=${resv_id}`)
+        fetch(api_paths.admin.reservations + `?resv_id=${resv_id}&username=${username}`)
             .then(res => res.json())
             .then(data => setResv({
                 ...data[0],
@@ -53,27 +51,28 @@ function ResvDetails({ resv_id }: { resv_id: string|number }) {
             .catch(err => {
                 console.log(err);
             });
-    }, [resv_id, resv]);
+    }, [resv_id, username, resv]);
         
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         let data = new FormData(event.currentTarget);
+        if (resv === undefined) return;
         
-        let title = data.get("title");
-        let note = data.get("note");
+        let title = (data.get("title") as string).trim();
+        let note = (data.get("note") as string).trim();
+        let privacy = data.get("privacy");
 
-        if (resv && title === resv.title && note === resv.note) {
+        if (title === resv.title && note === resv.note && privacy === `${resv.privacy}`) {
             showSnackbar({ message: "未修改", severity: "info" });
             return;
         }
 
-
-        fetch(api_paths.user_resv + `/${resv_id}`, {
+        fetch(api_paths.admin.reservations + `/${resv_id}/${username}`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({title, note}),
+            body: JSON.stringify({title, note, privacy})
         }).then(res => {
             if (res.ok) {
                 setResv(undefined);
@@ -87,7 +86,7 @@ function ResvDetails({ resv_id }: { resv_id: string|number }) {
     };
 
     return (
-        <Box>
+        <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 700, margin: "auto" }} >
             <Typography variant="h5" component="h2" gutterBottom>
                 预约详情
             </Typography>
@@ -97,25 +96,23 @@ function ResvDetails({ resv_id }: { resv_id: string|number }) {
                     预约时间
                 </Typography>
             </ListItemText>
-            <SlotTable 
-                resv_status_url={api_paths.admin.resv_status}
-                action_url={api_paths.admin.reservations}
-                resv={resv} 
-                setResv={setResv} 
-            />
-            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-                {resv ?
-                <TextField {...labelFieldParams} 
-                    id="title" name="title" label="标题" defaultValue={resv.title}/> :
-                <Skeleton />}
-                {resv ?
-                <TextField {...descriptionFieldParams} 
-                    id="note" name="note" label="备注" defaultValue={resv.note} sx={{ mt: 2 }} /> :
-                <Skeleton variant="rectangular" sx={{ mt: 2, height: 100 }} />}
-                <Button  type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-                    保存
-                </Button>
+            <Box sx={{ my: 2 }}>
+                <SlotTable 
+                    resv={resv} 
+                    setResv={setResv} 
+                />
             </Box>
+            {resv ?
+            <TextField {...labelFieldParams} 
+                id="title" name="title" label="标题" defaultValue={resv.title}/> :
+            <Skeleton />}
+            {resv ?
+            <TextField {...descriptionFieldParams} 
+                id="note" name="note" label="备注" defaultValue={resv.note} sx={{ mt: 2 }} /> :
+            <Skeleton variant="rectangular" sx={{ mt: 2, height: 100 }} />}
+            <Button  type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+                保存
+            </Button>
         </Box>
     );
 }

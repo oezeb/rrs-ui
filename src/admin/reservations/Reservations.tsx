@@ -9,17 +9,21 @@ import {
 import * as React from "react";
 
 import EditIcon from '@mui/icons-material/Edit';
+import Badge from '@mui/material/Badge';
 
-import { resvStatusColors as statusColors } from 'utils/util';
-import { TimeView } from 'reservations/Reservations';
 import { Link } from "utils/Navigate";
+import Table, { TableSkeleton } from "utils/Table";
 import { paths as api_paths } from "utils/api";
-import { descComp } from "utils/util";
-import Table, { TableSkeleton } from "../Table";
+import { 
+    TimeFilter, 
+    compareTimeSlot, 
+    descComp, 
+    selectTimeSlot, 
+    resvStatusColors as statusColors 
+} from 'utils/util';
+import FilterWidget from './FilterWidget';
 import Privacy from "./privacy/Privacy";
 import Status from "./status/Status";
-import { TimeFilter, compareTimeSlot, selectTimeSlot } from 'utils/util';
-import FilterView from 'reservations/resv-list/FilterView';
 
 function Reservations() {
     const [reservations, setReservations] = React.useState<Record<string, any>[]|undefined>(undefined);
@@ -80,15 +84,59 @@ function Reservations() {
         { field: 'actions', label: '操作', noSort: true },
     ];
 
+    const renderValue = (row: Record<string, any>, field: string) => {
+        const Text = (props: {text: React.ReactNode, maxWidth: string}) => (
+            <Typography noWrap sx={{ maxWidth: props.maxWidth }}>
+                {props.text}
+            </Typography>
+        );
+
+        switch (field) {
+            case 'username':
+                return <Text text={users[row[field]]?.name} maxWidth="70px" />;
+            case 'title':
+                return <Text text={row[field]} maxWidth="130px" />;
+            case 'status':
+                return (
+                    <Typography noWrap sx={{ maxWidth: "70px" }}>
+                        <Box component="span" 
+                            borderBottom={3} 
+                            borderColor={statusColors[row.status]}
+                        >
+                            {resvStatus[row.status]?.label}
+                        </Box>
+                    </Typography>
+                );
+            case 'privacy':
+                return <Text text={resvPrivacy[row.privacy]?.label} maxWidth="70px" />;
+            case 'room_id':
+                return <Text text={rooms[row.room_id]?.name} maxWidth="100px" />;
+            case 'session_id':
+                return <Text text={sessions[row.session_id]?.name} maxWidth="130px" />;
+            case 'time_slots':
+                return <TimeView resv={row} timeFilter={timeFilter} />;
+            case 'actions':
+                return (
+                    <Tooltip title="编辑">
+                        <IconButton size="small"
+                            component={Link} to={`/admin/reservations/edit/${row.resv_id}/${row.username}`}
+                        >
+                            <EditIcon fontSize="inherit" />
+                        </IconButton>
+                    </Tooltip>
+                );
+            default:
+                return row[field];
+        }
+    };
+
     return (
         <Box>
             <Typography variant="h5" component="h2" gutterBottom>
                 预订管理
             </Typography>
-            <FilterView
-                url={api_paths.admin.reservations}
-                reservations={reservations}
-                setReservations={setReservations}
+            <FilterWidget
+                reservations={reservations} setReservations={setReservations}
                 
                 resvStatus={resvStatus}
                 resvPrivacy={resvPrivacy}
@@ -96,69 +144,16 @@ function Reservations() {
                 rooms={rooms}
                 sessions={sessions}
 
-                time={timeFilter}
-                setTime={setTimeFilter}
+                time={timeFilter} setTime={setTimeFilter}
             />
             {reservations !== undefined && 
             <Table
                 columns={columns}
                 rows={reservations}
                 compare={comparator}
-                height='70vh'
+                height='65vh'
                 minWidth='1200px'
-                getValueLabel={(row, field) => {
-                    if (field === 'username') {
-                        return (
-                            <Typography variant="inherit" noWrap sx={{ maxWidth: "70px" }}>
-                                {users[row[field]]?.name}
-                            </Typography>
-                        );
-                    } else if (field === 'title' || field === 'session_id') {
-                        return(
-                            <Typography variant="inherit" noWrap style={{maxWidth: "130px"}}>
-                                {row[field]}
-                            </Typography>
-                        );
-                    } else if (field === 'status') {
-                        return (
-                            <Typography variant="inherit" noWrap sx={{ maxWidth: "70px" }}>
-                                <Box component="span" 
-                                    borderBottom={3} 
-                                    borderColor={statusColors[row.status]}
-                                >
-                                    {resvStatus[row.status]?.label}
-                                </Box>
-                            </Typography>
-                        );
-                    } else if (field === 'privacy') {
-                        return (
-                            <Typography variant="inherit" noWrap sx={{ maxWidth: "70px" }}>
-                                {resvPrivacy[row.privacy]?.label}
-                            </Typography>
-                        );
-                    } else if (field === 'room_id') {
-                        return (
-                            <Typography variant="inherit" noWrap sx={{ maxWidth: "100px" }}>
-                                {rooms[row.room_id]?.name}
-                            </Typography>
-                        );
-                    } else if (field === 'time_slots') {
-                        return (
-                            <TimeView resv={row} timeFilter={timeFilter} />
-                        );
-                    } else if (field === 'actions') {
-                        return (
-                            <Tooltip title="编辑">
-                                <IconButton size="small"
-                                    component={Link} to={`/admin/reservations/edit?resv_id=${row.resv_id}`}>
-                                    <EditIcon fontSize="inherit" />
-                                </IconButton>
-                            </Tooltip>
-                        );
-                    } else {
-                        return row[field];
-                    }
-                }}
+                getValueLabel={renderValue}
             />}
             {reservations === undefined &&
             <TableSkeleton
@@ -182,5 +177,22 @@ function Reservations() {
         </Box>
     );
 }
+
+const TimeView = ({ resv, mobile, timeFilter }: { resv: any, mobile?: boolean, timeFilter?: TimeFilter }) => {
+    const ts = selectTimeSlot(resv.time_slots, timeFilter);
+    if (ts === null) return <Box>无</Box>
+
+    return (
+        <Badge badgeContent={2}  max={1} color="info"
+            invisible={resv.time_slots.length <= 1}
+            >
+            <Box display="inline">
+                {ts.start_time.format("YYYY-MM-DD HH:mm")}
+                {mobile ? <br /> : " 至 "}
+                {ts.end_time.format("YYYY-MM-DD HH:mm")}
+            </Box>
+        </Badge>
+    );
+};
 
 export default Reservations;

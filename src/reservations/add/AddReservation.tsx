@@ -1,4 +1,3 @@
-import React from "react";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import {
     Box,
@@ -13,16 +12,17 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 
 import { useSnackbar } from "providers/SnackbarProvider";
-import { Link, useNavigate } from "utils/Navigate";
-import { paths as api_paths, setting } from "utils/api";
-import { descriptionFieldParams, labelFieldParams } from "utils/util";
-import RoomView from "./RoomView";
-import SelectDateTime from "./SelectDateTime";
 import RoomList from "rooms/RoomList";
+import { Link, useNavigate } from "utils/Navigate";
+import { paths as api_paths, setting, user_role } from "utils/api";
+import { descriptionFieldParams, labelFieldParams } from "utils/util";
+import RoomWidget from "./RoomWidget";
+import SelectDateTime from "./SelectDateTime";
+import { useAuth } from 'providers/AuthProvider';
 
 function AddReservation() {
     const { room_id } = useParams();
@@ -39,6 +39,7 @@ function AddReservation() {
 function AddReservationForm({ room_id }: { room_id: string|number }) {
     const [date, setDate] = useState(dayjs());
     const { showSnackbar } = useSnackbar();
+    const { user } = useAuth();
     let navigate = useNavigate();
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -82,7 +83,7 @@ function AddReservationForm({ room_id }: { room_id: string|number }) {
                 </Typography>
             </ListItemText>
             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                <RoomView room_id={room_id} date={date} />
+                <RoomWidget room_id={room_id} date={date} />
             </Box>
             <SelectDateTime date={date} setDate={setDate} room_id={room_id} />
             <TextField {...labelFieldParams} id="title" name="title" label="预约标题" />
@@ -90,12 +91,13 @@ function AddReservationForm({ room_id }: { room_id: string|number }) {
             <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
                 提交
             </Button>
+            {user && user.role >= user_role.basic &&
             <Button  fullWidth variant="text" sx={{ mt: 3, mb: 2 }}
                 endIcon={<NavigateNextIcon />}
                 component={Link} to={`/reservations/add/advanced/${room_id}`}
             >
                 高级预约选项
-            </Button>
+            </Button>}
         </Box>
     );
 }

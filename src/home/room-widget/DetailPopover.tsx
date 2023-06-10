@@ -3,7 +3,7 @@ import Typography from '@mui/material/Typography';
 import { useEffect, useState } from 'react';
 import { paths as api_paths, resv_status } from "utils/api";
 
-function ResvPopover({ resv }: { resv: Record<string, any> }) {
+const DetailPopover = ({ resv }: { resv: Record<string, any> }) => {
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
     const [user, setUser] = useState<Record<string, any> | null>(null);
 
@@ -59,4 +59,4 @@ function ResvPopover({ resv }: { resv: Record<string, any> }) {
     );
 };
 
-export default ResvPopover;
+export default DetailPopover;

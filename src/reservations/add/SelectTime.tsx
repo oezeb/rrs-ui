@@ -1,6 +1,6 @@
 import {
     Box,
-    Autocomplete as MuiAutocomplete,
+    Autocomplete,
     TextField,
     Typography
 } from "@mui/material";
@@ -32,6 +32,8 @@ function SelectTime(props: SelectTimeProps) {
     const _periods = usePeriods().periods;
 
     useEffect(() => {
+        setStartOption(null);
+        setEndOption(null);
         let _date = date.format('YYYY-MM-DD');
         setPeriods(_periods.map((p) => ({
             ...p,
@@ -39,30 +41,25 @@ function SelectTime(props: SelectTimeProps) {
             end_time: dayjs(`${_date} ${p.end_time.format()}`),
             disabled: false,
         })));
-        setStartOption(null);
-        setEndOption(null);
     }, [_periods, date]);
 
     useEffect(() => {
         let _date = date.format('YYYY-MM-DD');
         fetch(api_paths.reservations + `?room_id=${room_id}&start_date=${_date}`)
             .then((res) => res.json())
-            .then((data) => {
-                setReservations(data
-                    .filter((r: Record<string, any>) => (
-                        r.status === resv_status.pending || r.status === resv_status.confirmed
-                    ))
-                    .map((resv: Record<string, any>) => {
-                        return {
-                            ...resv,
-                            start_time: dayjs(resv.start_time),
-                            end_time: dayjs(resv.end_time),
-                        };
-                    }));
-            })
-            .catch((err) => {
-                console.error(err);
-            });
+            .then((data) => setReservations(data
+                .filter((r: Record<string, any>) => (
+                    r.status === resv_status.pending || r.status === resv_status.confirmed
+                ))
+                .map((resv: Record<string, any>) => {
+                    return {
+                        ...resv,
+                        start_time: dayjs(resv.start_time),
+                        end_time: dayjs(resv.end_time),
+                    };
+                })
+            ))
+            .catch((err) => console.error(err));
     }, [room_id, date]);
 
     const filterPeriods = useCallback(() => {
@@ -154,66 +151,53 @@ function SelectTime(props: SelectTimeProps) {
         return _endOptions;
     };
 
+    const AutoCompleteProps = {
+        fullWidth: true, size: "small" as const,
+        getOptionLabel: (option: Option) => option.time.format('HH:mm'),
+        isOptionEqualToValue: (v1: Option, v2: Option) => optionEqual(v1, v2),
+        getOptionDisabled: (option: Option) => option.disabled,
+    };
+
+    const timeView = (seconds: number) => {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        if (h > 0 && m > 0) {
+            return `${h}小时${m}分钟`;
+        } else if (h > 0) {
+            return `${h}小时`;
+        } else {
+            return `${m}分钟`;
+        }
+    };
+
     return (
         <Box display="flex" width="100%">
-            <AutoComplete
-                name="start_time"
+            <Autocomplete {...AutoCompleteProps}
                 value={startOption}
                 options={startOptions()}
-                label="开始时间"
                 onChange={(e: any, value: Option | null) => setStartOption(value)}
-                max_time={max_time}
+                renderInput={(params) => (
+                    <TextField {...params} required variant="standard"
+                        name="start_time"
+                        label="开始时间"
+                        helperText={max_time !== undefined? `最长预约时间：${timeView(max_time)}`: null}
+                    />
+                )}
             />
             <Box><Typography variant="h6" sx={{ margin: 2 }}>~</Typography></Box>
-            <AutoComplete
-                name="end_time"
+            <Autocomplete {...AutoCompleteProps}
                 value={endOption}
                 options={endOptions()}
-                label="结束时间"
                 onChange={(e: any, value: Option | null) => setEndOption(value)}
+                renderInput={(params) => (
+                    <TextField {...params} required variant="standard"
+                        name="end_time"
+                        label="结束时间"
+                    />
+                )}
             />
         </Box>
     );
 }
-
-const timeView = (seconds: number) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    if (h > 0 && m > 0) {
-        return `${h}$小时${m}$分钟`;
-    } else if (h > 0) {
-        return `${h}$小时`;
-    } else {
-        return `${m}$分钟`;
-    }
-}
-
-interface AutoCompleteProps {
-    name: string;
-    value: Option | null;
-    options: Option[];
-    label: string;
-    onChange: (event: any, value: Option | null) => void;
-    max_time?: number;
-}
-
-const AutoComplete = ({ name, value, options, label, onChange, max_time }: AutoCompleteProps) => (
-    <MuiAutocomplete fullWidth size="small" 
-        getOptionLabel={(option) => option.time.format('HH:mm')}
-        isOptionEqualToValue={(v1, v2) => optionEqual(v1, v2)}
-        getOptionDisabled={(option) => option.disabled}
-        
-        value={value} 
-        options={options}
-        onChange={onChange}
-        renderInput={(params) => (
-            <TextField {...params} required variant="standard"
-                name={name}
-                label={label}
-                helperText={max_time !== undefined? `最长预约时间：${timeView(max_time)}`: null}
-            />
-        )}
-    />
-);
 
 export default SelectTime;

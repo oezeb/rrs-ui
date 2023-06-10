@@ -46,7 +46,7 @@ function AddSession() {
             })
             .then(data => {
                 showSnackbar({message: "添加成功", severity: "success", duration: 2000});
-                navigate(`/admin/sessions/edit?session_id=${data.session_id}`);
+                navigate(`/admin/sessions/edit/${data.session_id}`);
             })
             .catch(err => {
                 console.log(err);

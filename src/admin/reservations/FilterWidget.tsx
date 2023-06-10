@@ -8,16 +8,15 @@ import * as React from "react";
 
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import MenuItem from '@mui/material/MenuItem';
-import log from 'loglevel';
 
 import dayjs from "dayjs";
 import { resvStatusColors as statusColors } from 'utils/util';
 import { TimeFilter } from "utils/util";
+import { paths as api_paths } from "utils/api";
 
 export type Filter = "username" | "room_id" | "session_id" | "status" | "privacy" | "time";
 
-interface FilterViewProps {
-    url: string;
+interface FilterWidgetProps {
     reservations?: Record<string, any>[];
     setReservations: React.Dispatch<React.SetStateAction<Record<string, any>[]|undefined>>;
     
@@ -29,13 +28,10 @@ interface FilterViewProps {
 
     time: TimeFilter;
     setTime: (time: TimeFilter) => void;
-
-    filters?: Filter[];
 };
 
-const FilterView = (props: FilterViewProps) => {
-    log.info("FilterView.tsx: FilterView()");
-    const { url, reservations, setReservations, resvStatus, resvPrivacy, users, rooms, sessions } = props;
+const FilterWidget = (props: FilterWidgetProps) => {
+    const { reservations, setReservations, resvStatus, resvPrivacy, users, rooms, sessions } = props;
     const { time, setTime } = props;
     const [username, setUsername] = React.useState<string|null>(null);
     const [roomId, setRoomId] = React.useState<string|null>(null);
@@ -43,32 +39,28 @@ const FilterView = (props: FilterViewProps) => {
     const [status, setStatus] = React.useState<Record<string, any>|null>(null);
     const [privacy, setPrivacy] = React.useState<Record<string, any>|null>(null);
 
-    const { current: filters } = React.useRef(
-        new Set(props.filters || ["username", "room_id", "session_id", "status", "privacy", "time"])
-    );
-
     React.useEffect(() => {
         let args = [];
-        if (filters.has("username") && username !== null) {
+        if (username !== null) {
             args.push(`username=${username}`);
         }
-        if (filters.has("room_id") && roomId !== null) {
+        if (roomId !== null) {
             args.push(`room_id=${roomId}`);
         }
-        if (filters.has("session_id") && sessionId !== null) {
+        if (sessionId !== null) {
             args.push(`session_id=${sessionId}`);
         }
-        if (filters.has("status") && status != null) {
+        if (status != null) {
             args.push(`status=${status.status}`);
         }
-        if (filters.has("privacy") && privacy != null) {
+        if (privacy != null) {
             args.push(`privacy=${privacy.privacy}`);
         }
 
-        let _url = url + (args.length ? `?${args.join('&')}` : '');
         let now = dayjs();
-        fetch(_url).then(res => res.json()).then(data => {
-            setReservations(Object.values(data
+        fetch(api_paths.admin.reservations + (args.length ? `?${args.join('&')}` : ''))
+            .then(res => res.json())
+            .then(data => setReservations(Object.values(data
                 .reduce((acc: Record<string, any>, resv: any) => {
                     let slot = {
                         start_time: dayjs(resv.start_time),
@@ -94,7 +86,7 @@ const FilterView = (props: FilterViewProps) => {
                     update_time: resv.update_time ? dayjs(resv.update_time) : null,
                 }))
                 .filter((resv: any) => {
-                    if (filters.has("time") === false || time === "全部") {
+                    if (time === "全部") {
                         return true;
                     } else if (time === "当前") {
                         return resv.time_slots.some((ts: any) => ts.end_time.isAfter(now));
@@ -104,9 +96,11 @@ const FilterView = (props: FilterViewProps) => {
                         return false;
                     }
                 })
-            );
-        });
-    }, [url, username, roomId, sessionId, status, privacy, time, setReservations, filters]);
+            ))
+            .catch(err => {
+                console.log(err)
+            });
+    }, [username, roomId, sessionId, status, privacy, time, setReservations]);
 
     
     return (
@@ -116,7 +110,6 @@ const FilterView = (props: FilterViewProps) => {
                 筛选
                 <FilterAltIcon fontSize="small" />:
             </Box>
-            {filters.has("time") && 
             <FormControl sx={{ ml: 1 }}>
                 <InputLabel>时间</InputLabel>
                 <Select autoWidth size="small" value={time} label="时间">
@@ -126,8 +119,8 @@ const FilterView = (props: FilterViewProps) => {
                         </MenuItem>
                     ))}
                 </Select>
-            </FormControl>}
-            {filters.has("status") && resvStatus && 
+            </FormControl>
+            {resvStatus && 
             <FormControl sx={{ ml: 1 }}>
                 <InputLabel>状态</InputLabel>
                 <Select autoWidth size="small" label="状态" value={status?.label ?? "全部"}>
@@ -147,7 +140,7 @@ const FilterView = (props: FilterViewProps) => {
                     ))}
                 </Select>
             </FormControl>}
-            {filters.has("privacy") && resvPrivacy && 
+            {resvPrivacy && 
             <FormControl sx={{ ml: 1 }}>
                 <InputLabel>隐私</InputLabel>
                 <Select autoWidth size="small" label="隐私" value={privacy?.label ?? "全部"}>
@@ -162,7 +155,6 @@ const FilterView = (props: FilterViewProps) => {
                     ))}
                 </Select>
             </FormControl>}
-            {filters.has("username") &&
             <FormControl sx={{ ml: 1 }}>
                 <InputLabel>用户</InputLabel>
                 <Select autoWidth size="small" label="用户" value={username ?? "全部"}>
@@ -176,8 +168,7 @@ const FilterView = (props: FilterViewProps) => {
                         </MenuItem>
                     ))}
                 </Select>
-            </FormControl>}
-            {filters.has("room_id") &&
+            </FormControl>
             <FormControl sx={{ ml: 1 }}>
                 <InputLabel>房间</InputLabel>
                 <Select autoWidth size="small" label="房间" value={roomId ?? "全部"}>
@@ -191,8 +182,7 @@ const FilterView = (props: FilterViewProps) => {
                         </MenuItem>
                     ))}
                 </Select>
-            </FormControl>}
-            {filters.has("session_id") &&
+            </FormControl>
             <FormControl sx={{ ml: 1 }}>
                 <InputLabel>会话</InputLabel>
                 <Select autoWidth size="small" label="会话" value={sessionId ?? "全部"}>
@@ -206,9 +196,9 @@ const FilterView = (props: FilterViewProps) => {
                         </MenuItem>
                     ))}
                 </Select>
-            </FormControl>}
+            </FormControl>
         </Box>
     );
 }
 
-export default FilterView;
+export default FilterWidget;

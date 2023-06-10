@@ -12,7 +12,7 @@ import { Order } from "utils/util";
 interface TableProps {
     columns: {
         field: string;
-        label: string;
+        label: React.ReactNode;
         noSort?: boolean;
     }[];
     rows: Record<string, any>[];
@@ -22,6 +22,7 @@ interface TableProps {
     defaultOrderBy?: string;
     
     height?: string;
+    maxHeight?: string;
     minWidth?: string;
 
     scrollTop?: boolean;
@@ -32,7 +33,7 @@ interface TableProps {
 
 function Table(props: TableProps) {
     const { columns, rows, compare, defaultOrder, defaultOrderBy } = props;
-    const { height, minWidth } = props;
+    const { height, maxHeight, minWidth } = props;
     const { scrollTop, scrollBottom, setScrollTop, setScrollBottom } = props;
 
     const [orderBy, setOrderBy] = React.useState(defaultOrderBy || columns[0].field);
@@ -74,7 +75,7 @@ function Table(props: TableProps) {
 
     return (
         <Paper sx={{ my: 1, width: '100%', overflow: 'auto' }}>
-            <TableContainer sx={{ height: height }}>
+            <TableContainer sx={{ height: height, maxHeight: maxHeight }}>
                 <MuiTable stickyHeader size="small" sx={{ minWidth: minWidth }}>
                     <TableHead>
                         <TableRow>
@@ -109,7 +110,7 @@ function Table(props: TableProps) {
 
 interface HeadCellProps {
     field: string;
-    label: string;
+    label: React.ReactNode;
 
     onRequestSort: (event: React.MouseEvent<unknown>, property: string) => void;
     orderBy: string;
@@ -133,7 +134,7 @@ export const HeadCell = (props: HeadCellProps) => {
 };
 
 interface TableSkeletonProps {
-    columns: string[];
+    columns: React.ReactNode[];
     rowCount: number;
     height?: string;
     minWidth?: string;

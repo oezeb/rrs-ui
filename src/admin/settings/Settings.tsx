@@ -202,20 +202,22 @@ function Settings() {
 
     return (
         <Box component="form" onSubmit={handleSubmit}>
-            <ListItemText primary={
-                <Typography variant="h5" component="h2" gutterBottom>
-                    设置
-                </Typography>} 
-                secondary={<><BoldItalic text="标签" />和<BoldItalic text="描述" />会在用户界面中显示。</>}
-            />
-            <List>
-                <TimeWindow timeWindow={timeWindow} title={titles[setting.timeWindow]} />
-                <TimeLimit timeLimit={timeLimit} title={titles[setting.timeLimit]} />
-                <MaxDaily maxDaily={maxDaily} title={titles[setting.maxDaily]} />
-            </List>
-            <Button fullWidth type="submit" variant="contained" sx={{ mt: 2 }}>
-                保存
-            </Button>
+            <Box sx={{ p: 3, maxWidth: 700, margin: "auto" }} >
+                <ListItemText primary={
+                    <Typography variant="h5" component="h2" gutterBottom>
+                        设置
+                    </Typography>} 
+                    secondary={<><BoldItalic text="标签" />和<BoldItalic text="描述" />会在用户界面中显示。</>}
+                />
+                <List>
+                    <TimeWindow timeWindow={timeWindow} title={titles[setting.timeWindow]} />
+                    <TimeLimit timeLimit={timeLimit} title={titles[setting.timeLimit]} />
+                    <MaxDaily maxDaily={maxDaily} title={titles[setting.maxDaily]} />
+                </List>
+                <Button fullWidth type="submit" variant="contained" sx={{ mt: 2 }}>
+                    保存
+                </Button>
+            </Box>
         </Box>
     );
 };

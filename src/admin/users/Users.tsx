@@ -9,7 +9,7 @@ import {
     Tooltip,
     Typography,
 } from "@mui/material";
-import Table, { TableSkeleton } from "admin/Table";
+import Table, { TableSkeleton } from "utils/Table";
 import { useSnackbar } from "providers/SnackbarProvider";
 import * as React from "react";
 import BinaryDialog from "utils/BinaryDialog";
@@ -50,8 +50,44 @@ function Users() {
         { field: 'name', label: '姓名' },
         { field: 'role', label: '角色' },
         { field: 'email', label: '邮箱' },
-        { field: 'action', label: '操作', noSort: true },
+        { field: 'actions', label: '操作', noSort: true },
     ];
+
+    const renderValue = (row: Record<string, any>, field: string) => {
+        switch (field) {
+            case 'name':
+                return (
+                    <Typography noWrap sx={{ maxWidth: "70px" }}>
+                        {row[field]}
+                    </Typography>
+                );
+            case 'role':
+                return (
+                    <Typography noWrap sx={{ maxWidth: "80px" }}>
+                        {userRoles[row[field]]?.label}
+                    </Typography>
+                );
+            case 'actions':
+                return (<>
+                    <Tooltip title="编辑">
+                        <IconButton size="small"
+                            component={Link} to={`/admin/users/edit/${row.username}`}
+                        >
+                            <EditIcon fontSize="inherit" />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="重置密码">
+                        <IconButton size="small"
+                            onClick={() => { setReset(row); }}
+                        >
+                            <LockResetIcon fontSize="inherit" />
+                        </IconButton>
+                    </Tooltip>
+                </>);
+            default:
+                return row[field];
+        }
+    };
 
     return (
         <Box>
@@ -64,39 +100,7 @@ function Users() {
                 rows={users}
                 height='70vh'
                 minWidth='600px'
-                getValueLabel={(row, field) => {
-                    if (field === 'name') {
-                        return (
-                            <Typography variant="inherit" noWrap sx={{ maxWidth: "70px" }}>
-                                {row[field]}
-                            </Typography>
-                        );
-                    } else if (field === 'role') {
-                        return (
-                            <Typography variant="inherit" noWrap sx={{ maxWidth: "80px" }}>
-                                {userRoles[row[field]]?.label}
-                            </Typography>
-                        );
-                    } else if (field === 'action') {
-                        return (<>
-                            <Tooltip title="编辑">
-                                <IconButton size="small"
-                                    component={Link} to={`/admin/users/edit?username=${row.username}`}>
-                                    <EditIcon fontSize="inherit" />
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title="重置密码">
-                                <IconButton size="small"
-                                    onClick={() => { setReset(row); }}
-                                >
-                                    <LockResetIcon fontSize="inherit" />
-                                </IconButton>
-                            </Tooltip>
-                        </>);
-                    } else {
-                        return row[field];
-                    }
-                }}
+                getValueLabel={renderValue}
             />}
             {users === undefined &&
             <TableSkeleton

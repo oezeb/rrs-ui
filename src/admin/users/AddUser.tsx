@@ -33,7 +33,7 @@ function AddUser() {
             .then(res => {
                 if (res.ok) {
                     showSnackbar({message: "添加成功", severity: "success", duration: 2000});
-                    navigate(`/admin/users/edit?username=${data.username}`);
+                    navigate(`/admin/users/edit/${data.username}`);
                 } else if (res.status === 409) {
                     showSnackbar({message: "用户名已存在", severity: "error"});
                 } else {

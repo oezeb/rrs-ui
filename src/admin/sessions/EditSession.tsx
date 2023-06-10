@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import dayjs from "dayjs";
 import { useSnackbar } from "providers/SnackbarProvider";
@@ -8,10 +8,8 @@ import AddEditSession from "./AddEditSession";
 
 function EditSession() {
     const [session, setSession] = React.useState<Record<string, any>|null>(null);
-    const [searchParams] = useSearchParams();
+    const { session_id } = useParams();
     const {showSnackbar} = useSnackbar();
-
-    let session_id = searchParams.get('session_id');
 
     React.useEffect(() => {
         fetch(api_paths.admin.sessions + `?session_id=${session_id}`)

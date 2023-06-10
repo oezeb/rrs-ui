@@ -1,7 +1,7 @@
 import DeleteIcon from '@mui/icons-material/Delete';
 import { IconButton, Tooltip } from "@mui/material";
 import * as React from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import BackDrop from "utils/BackDrop";
 import { useSnackbar } from "providers/SnackbarProvider";
@@ -13,10 +13,8 @@ function EditRoom() {
     const [room, setRoom] = React.useState<Record<string, any>|null>(null);
     const [delImage, setDelImage] = React.useState<boolean>(false);
     const [loading, setLoading] = React.useState<boolean>(false);
-    const [searchParams] = useSearchParams();
+    const { room_id } = useParams();
     const {showSnackbar} = useSnackbar();
-
-    let room_id = searchParams.get('room_id');
 
     React.useEffect(() => {
         fetch(api_paths.admin.rooms + `?room_id=${room_id}`)

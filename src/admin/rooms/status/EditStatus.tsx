@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import { Box, Button, List, ListItem, TextField, Typography } from "@mui/material";
 import { useSnackbar } from "providers/SnackbarProvider";
@@ -8,18 +8,17 @@ import { descriptionFieldParams, labelFieldParams } from "utils/util";
 
 function EditStatus() {
     const [status, setStatus] = React.useState<Record<string, any>|null>(null);
-    const [searchParams] = useSearchParams();
+    const params = useParams();
     const {showSnackbar} = useSnackbar();
 
-    let id = searchParams.get('status');
     
     React.useEffect(() => {
-        fetch(api_paths.admin.room_status + `?status=${id}`)
+        fetch(api_paths.admin.room_status + `?status=${params.status}`)
             .then(res => res.json())
             .then(res => {
                 setStatus(res[0]);
             });
-    }, [id]);
+    }, [params.status]);
     
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -62,11 +61,13 @@ function EditStatus() {
     };
 
     return (<>{status &&
-        <Box component="form" onSubmit={handleSubmit}>
-            <Typography variant="h5" component="h2" gutterBottom>
-                编辑房间状态
-            </Typography>
-            <List sx={{ ml: 4 }} dense>
+        <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 700, margin: "auto" }} >
+            <List dense>
+                <ListItem divider sx={{ mb: 2 }}>
+                    <Typography variant="h5" component="h2" gutterBottom>
+                        编辑房间状态
+                    </Typography>
+                </ListItem>
                 <ListItem>
                     <TextField disabled variant="standard" type="number"
                         name="status" label="状态" defaultValue={status.status} />

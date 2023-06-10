@@ -10,7 +10,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { TimeDelta } from "utils/util";
-import Table, { TableSkeleton } from "admin/Table";
+import Table, { TableSkeleton } from "utils/Table";
 
 interface PeriodTableProps {
     periods: Record<string, any>[]|undefined;
@@ -57,6 +57,33 @@ function PeriodTable({ periods, setPeriods, setDel }: PeriodTableProps) {
         { field: "actions", label: "操作", noSort: true },
     ];
 
+    const renderValue = (row: Record<string, any>, field: string) => {
+        switch (field) {
+            case "start_time":
+            case "end_time":
+                return (
+                    <TextField required size="small" variant="standard"
+                        type="time"
+                        name={field}
+                        value={row[field]?.format("HH:mm") ?? ""}
+                        onChange={(e) => onTimeChange(row, field, e.target.value)}
+                    />
+                );
+            case "to":
+                return <Typography align="center">~</Typography>;
+            case "actions":
+                return (
+                    <Tooltip title="删除">
+                        <IconButton size="small" onClick={() => handleDelete(row)}>
+                            <DeleteIcon fontSize="inherit" />
+                        </IconButton>
+                    </Tooltip>
+                );
+            default:
+              return row[field];
+        }
+    };
+
     return (<>
         {periods !== undefined &&
         <Table
@@ -66,29 +93,7 @@ function PeriodTable({ periods, setPeriods, setDel }: PeriodTableProps) {
             minWidth="500px"
             scrollBottom={scrollBottom}
             setScrollBottom={setScrollBottom}
-            getValueLabel={(row, field) => {
-                if (field === "start_time" || field === "end_time") {
-                    return (
-                        <TextField required size="small" type="time" variant="standard"
-                            name={field}
-                            value={row[field]?.format("HH:mm")??''}
-                            onChange={e => onTimeChange(row, field, e.target.value)}
-                        />
-                    );
-                } else if (field === "to") {
-                    return <Typography align="center">~</Typography>;
-                } else if (field === "actions") {
-                    return (
-                        <Tooltip title="删除">
-                            <IconButton size="small" onClick={() => handleDelete(row)}>
-                                <DeleteIcon fontSize="inherit" />
-                            </IconButton>
-                        </Tooltip>
-                    );
-                } else {
-                    return row[field];
-                }
-            }}
+            getValueLabel={renderValue}
         />}
         {periods === undefined &&
         <TableSkeleton rowCount={12} height="60vh" minWidth="600px"

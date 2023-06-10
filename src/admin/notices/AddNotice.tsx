@@ -1,6 +1,7 @@
+import * as React from "react";
+
 import { useAuth } from "providers/AuthProvider";
 import { useSnackbar } from "providers/SnackbarProvider";
-import * as React from "react";
 import { useNavigate } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";
 import AddEditNotice from "./AddEditNotice";
@@ -35,7 +36,7 @@ function AddNotice() {
                 }
             })
             .then(data => {
-                navigate(`/admin/notices/edit?notice_id=${data.notice_id}&username=${user.username}`);
+                navigate(`/admin/notices/edit/${data.notice_id}/${user.username}`);
             })
             .catch(err => {
                 showSnackbar({message: "添加公告失败", severity: "error"});

@@ -3,25 +3,21 @@ import {
     Box,
     IconButton,
     Skeleton,
-    Table, TableBody, TableCell,
-    TableHead,
-    TableRow,
     Tooltip,
     Typography,
     useMediaQuery,
     useTheme,
 } from "@mui/material";
 import React from "react";
-import log from 'loglevel';
 
 import { TimeView } from "reservations/Reservations";
 import { Link } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";
-import { TimeFilter, resvStatusColors as statusColors } from 'utils/util';
-import FilterView from "./FilterView";
+import { TimeFilter, dayjsComp, descComp, selectTimeSlot, resvStatusColors as statusColors } from 'utils/util';
+import FilterWidget from "./FilterWidget";
+import Table, { TableSkeleton } from 'utils/Table';
 
 function ResvList() {
-    log.info("ResvList.tsx: ResvList()");
     const [reservations, setReservations] = React.useState<Record<string, any>[]|undefined>(undefined);
     const [resvStatus, setResvStatus] = React.useState<Record<string, any>>({});
     const [rooms, setRooms] = React.useState<Record<string, any>>({});
@@ -50,57 +46,83 @@ function ResvList() {
         Promise.all(promises);
     }, []);
 
+    const comparator = (
+        a: Record<string, any>,
+        b: Record<string, any>,
+        orderBy: string,
+    ) => {
+        if (orderBy === "time") {
+            const a_ts = selectTimeSlot(a.time_slots, timeFilter);
+            const b_ts = selectTimeSlot(b.time_slots, timeFilter);
+            
+            if (a_ts === null || b_ts === null) return 0;
+            let start_comp = dayjsComp(a_ts.start_time, b_ts.start_time);
+            return start_comp === 0 ? dayjsComp(a_ts.end_time, b_ts.end_time) : start_comp;
+        } else {
+            return descComp(a, b, orderBy);
+        }
+    };
+
+    const columns = [
+        { field: "resv_id", label: "编号" },
+        { field: "title", label: "标题" },
+        { field: "room_id", label: "房间" },
+        { field: "time", label: "时间" },
+        { field: "status", label: "状态" },
+        { field: "detail", label: "详情", noSort: true },
+    ]
+
+    const renderValue = (row: Record<string, any>, field: string) => {
+        switch (field) {
+            case "room_id":
+                return rooms[row.room_id]?.name ?? <Skeleton />;
+            case "time":
+                return <TimeView resv={row} mobile={mobile} timeFilter={timeFilter} />;
+            case "status":
+                return <Box component="span" 
+                    borderBottom={3} 
+                    borderColor={statusColors[row.status]}
+                >
+                    {resvStatus[row.status]?.label ?? row.status}
+                </Box>;
+            case "detail":
+                return (
+                    <Tooltip title="查看详情">
+                        <IconButton component={Link} to={`/reservations/${row.resv_id}`}
+                            size={mobile? "small": "medium"}
+                        >
+                            <NavigateNextIcon />
+                        </IconButton>
+                    </Tooltip>
+                );
+            default:
+                return row[field];
+        }
+    };
+
     return (
         <Box>
             <Typography variant="h5" component="h2" gutterBottom>
                 预约记录
             </Typography>
-            <FilterView
-                url={api_paths.user_resv}
-                reservations={reservations}
+            <FilterWidget
                 setReservations={setReservations}
-
-                filters={["time", "status"]}
-
                 time={timeFilter}
                 setTime={setTimeFilter}
-
                 resvStatus={resvStatus}
             />
-            <Table stickyHeader size="small">
-                <TableHead>
-                    <TableRow>
-                        {["标题", "房间", "时间", "状态", "详情"]
-                            .map((text) => <TableCell key={text}>{text}</TableCell>)}
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {reservations && reservations.map((resv, i) => (
-                        <TableRow key={i}>
-                            <TableCell>{resv.title}</TableCell>
-                            <TableCell>{rooms[resv.resv_id]?.name??<Skeleton />}</TableCell>
-                            <TableCell><TimeView resv={resv} mobile={mobile} timeFilter={timeFilter} /></TableCell>
-                            <TableCell>
-                                <Box component="span" 
-                                    borderBottom={3} 
-                                    borderColor={statusColors[resv.status]}
-                                >
-                                    {resvStatus[resv.status]?.label ?? resv.status}
-                                </Box>
-                            </TableCell>
-                            <TableCell>
-                                <Tooltip title="查看详情">
-                                    <IconButton component={Link} to={`/reservations/${resv.resv_id}`}
-                                        size={mobile? "small": "medium"}
-                                    >
-                                        <NavigateNextIcon />
-                                    </IconButton>
-                                </Tooltip>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+            {reservations &&
+            <Table
+                columns={columns}
+                rows={reservations}
+                compare={comparator}
+                getValueLabel={renderValue}
+            />}
+            {reservations === undefined &&
+            <TableSkeleton
+                rowCount={10}
+                columns={columns.map((col) => col.label)}
+            />}
         </Box>
     );
 }

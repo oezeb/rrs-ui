@@ -6,28 +6,29 @@ import dayjs, { Dayjs } from 'dayjs';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 import { useAuth } from 'providers/AuthProvider';
-import ResvsView from './RoomResvView';
 import { usePeriods } from 'providers/PeriodsProvider';
 import { Link } from 'utils/Navigate';
 import { paths as api_paths, resv_status, room_status } from "utils/api";
+import RoomWidgetContent from './RoomWidgetContent';
 
-interface RoomViewProps {
+interface RoomWidgetProps {
     date: Dayjs;
     room: Record<string, any>;
     show_pending: boolean; // show pending reservations
     resv_button?: boolean;
 }
 
-export function RoomView(props: RoomViewProps) {
+function RoomWidget(props: RoomWidgetProps) {
     const { date, room, show_pending, resv_button } = props;
-    const [periods, setPeriods] = useState<Record<string, any>[]>([]); 
-    const [reservations, setReservations] = useState<Record<string, any>[]>([]);
+    const [periods, setPeriods] = useState<Record<string, any>[]|undefined>(undefined); 
+    const [reservations, setReservations] = useState<Record<string, any>[]|undefined>(undefined);
     const { user } = useAuth();
     
     const _periods = usePeriods().periods;
 
     useEffect(() => {
         let _date = date.format('YYYY-MM-DD');
+        setPeriods(undefined);
         setPeriods(_periods.map((p: Record<string, any>) => ({
             ...p,
             start_time: dayjs(`${_date} ${p.start_time.format()}`),
@@ -37,6 +38,7 @@ export function RoomView(props: RoomViewProps) {
 
     useEffect(() => {
         let _date = date.format('YYYY-MM-DD');
+        setReservations(undefined);
         fetch(api_paths.reservations + `?room_id=${room.room_id}&start_date=${_date}`)
             .then((res) => res.json())
             .then((data) => {
@@ -62,8 +64,13 @@ export function RoomView(props: RoomViewProps) {
             })
             .catch((err) => {
                 console.error(err);
+                setReservations([]);
             });
     }, [room.room_id, date, show_pending]);
+
+    if (periods === undefined || reservations === undefined) {
+        return <RoomWidgetSkeleton />;
+    }
 
     return (
         <Box width={140}  margin={1} >
@@ -77,7 +84,7 @@ export function RoomView(props: RoomViewProps) {
                     <EventSeatIcon fontSize='inherit' />{room.capacity}
                 </Typography>
                 <Box height={200} position="relative" bgcolor={'#f5f5f5'}>
-                    <ResvsView periods={periods} reservations={reservations} />
+                    <RoomWidgetContent periods={periods} reservations={reservations} />
                 </Box>
             </Box>
             {user && resv_button && (
@@ -103,9 +110,13 @@ export function RoomView(props: RoomViewProps) {
     )
 }
 
-export const RoomSkeleton = () =>(
-    <Skeleton width={140} height={244} variant="rectangular" component="div"
-        animation="wave" sx={{ margin: 1 }} />
+export const RoomWidgetSkeleton = () =>(
+    <Skeleton 
+        variant="rectangular"
+        width={140} height={244}
+        animation="wave" 
+        sx={{ margin: 1 }} 
+    />
 );
 
-export default RoomView;
+export default RoomWidget;

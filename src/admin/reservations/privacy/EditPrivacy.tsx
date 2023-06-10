@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import { Box, Button, List, ListItem, TextField, Typography } from "@mui/material";
 import { paths as api_paths } from "utils/api";
@@ -8,18 +8,16 @@ import { useSnackbar } from "providers/SnackbarProvider";
 
 function EditPrivacy() {
     const [privacy, setPrivacy] = React.useState<Record<string, any>|null>(null);
-    const [searchParams] = useSearchParams();
+    const params = useParams();
     const {showSnackbar} = useSnackbar();
 
-    let id = searchParams.get('privacy');
-
     React.useEffect(() => {
-        fetch(api_paths.admin.resv_privacy + `?privacy=${id}`)
+        fetch(api_paths.admin.resv_privacy + `?privacy=${params.privacy}`)
             .then(res => res.json())
             .then(res => {
                 setPrivacy(res[0]);
             });
-    }, [id]);
+    }, [params.privacy]);
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -62,11 +60,13 @@ function EditPrivacy() {
     };
 
     return (<>{privacy &&
-        <Box component="form" onSubmit={handleSubmit}>
-            <Typography variant="h5" component="h2" gutterBottom>
-                编辑预约隐私设置
-            </Typography>
-            <List sx={{ ml: 4 }} dense>
+        <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 700, margin: "auto" }} >
+            <List dense>
+                <ListItem divider sx={{ mb: 2 }}>
+                    <Typography variant="h5" component="h2" gutterBottom>
+                        编辑预约隐私
+                    </Typography>
+                </ListItem>
                 <ListItem>
                     <TextField disabled variant="standard" type="number"
                         name="privacy" label="隐私" defaultValue={privacy.privacy} />

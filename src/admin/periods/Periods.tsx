@@ -133,17 +133,19 @@ function Periods() {
 
     return (
         <Box component="form" onSubmit={handleSubmit}>
-            <ListItemText primary={
-                <Typography variant="h5" component="h2" gutterBottom>
-                    时段
-                </Typography>} 
-                secondary="用户只能选择一个或多个连续时段预约。时段不能重叠。"
-            />
-            <PeriodTable periods={edited} setPeriods={setEdited} setDel={setDel} />
-            <Button fullWidth type="submit" variant="contained" sx={{ mt: 2 }}>
-                保存
-            </Button>
-            <DeleteDialog del={del} setDel={setDel} setPeriods={setPeriods} />
+            <Box sx={{ p: 3, maxWidth: 700, margin: "auto" }} >
+                <ListItemText primary={
+                    <Typography variant="h5" component="h2" gutterBottom>
+                        时段
+                    </Typography>} 
+                    secondary="用户只能选择一个或多个连续时段预约。时段不能重叠。"
+                />
+                <PeriodTable periods={edited} setPeriods={setEdited} setDel={setDel} />
+                <Button fullWidth type="submit" variant="contained" sx={{ mt: 2 }}>
+                    保存
+                </Button>
+                <DeleteDialog del={del} setDel={setDel} setPeriods={setPeriods} />
+            </Box>
         </Box>
     );
 }

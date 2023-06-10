@@ -9,17 +9,18 @@ import DialogTitle from '@mui/material/DialogTitle';
 import { useSnackbar } from "providers/SnackbarProvider";
 import { resv_status } from "utils/api";
 import { Action } from "./SlotTable";
+import { paths as api_paths } from "utils/api";
 
 
-interface CancelResvDialogProps {
-    url: string;
+interface ActionDialogProps {
     resv_id: number|string;
-    slot_id?: number|string;
+    username: string;
+    slot_ids: (number|string)[];
     action?: Action;
     onClose: (confirmed: boolean) => void;
 }
 
-const ResvActionDialog = ({ url, resv_id, slot_id, action, onClose }: CancelResvDialogProps) => {
+const ActionDialog = ({ resv_id, username, slot_ids, action, onClose }: ActionDialogProps) => {
     const { showSnackbar } = useSnackbar();
 
     const strings = {
@@ -49,24 +50,36 @@ const ResvActionDialog = ({ url, resv_id, slot_id, action, onClose }: CancelResv
             return;
         }
 
-        let _url = url + `/${resv_id}` + (slot_id !== undefined ? `/${slot_id}` : "");
-        let status: number = resv_status.pending;
+        if (slot_ids.length === 0) {
+            showSnackbar({ message: "没有可操作的预约", severity: "error" });
+            onClose(false);
+            return;
+        }
+
+        let status: number;
         if (action === "cancel") {
             status = resv_status.cancelled;
         } else if (action === "accept") {
             status = resv_status.confirmed;
         } else if (action === "reject") {
             status = resv_status.rejected;
+        } else {
+            status = resv_status.pending;
         }
 
-        fetch(_url, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({status: status}),
-        }).then(res => {
-            if (res.ok) {
+        let patch = async (slot_id: number|string) => {
+            return await fetch(api_paths.admin.reservations + `/${resv_id}/${username}/${slot_id}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ status }),
+            });
+        };
+
+        let promises = slot_ids.map(slot_id => patch(slot_id));
+        Promise.all(promises).then(res => {
+            if (res.every(r => r.ok)) {
                 showSnackbar({ message: strings[action]?.success, severity: "success", duration: 2000 });
                 onClose(true);
             } else {
@@ -76,7 +89,7 @@ const ResvActionDialog = ({ url, resv_id, slot_id, action, onClose }: CancelResv
             showSnackbar({ message: strings[action]?.fail, severity: "error"});
             onClose(false);
         });
-    }
+    };
 
     return (<>{action !== undefined &&
         <Dialog open>
@@ -94,4 +107,4 @@ const ResvActionDialog = ({ url, resv_id, slot_id, action, onClose }: CancelResv
     </>);
 }
 
-export default ResvActionDialog;
+export default ActionDialog;

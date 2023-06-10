@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import { useSnackbar } from "providers/SnackbarProvider";
 import AddEditType from "./AddEditType";
@@ -7,17 +7,15 @@ import { paths as api_paths } from "utils/api";
 
 function EditType() {
     const [type, setType] = React.useState<Record<string, any>|null>(null);
-    const [searchParams] = useSearchParams();
+    const params = useParams();
     const {showSnackbar} = useSnackbar();
 
-    let id = searchParams.get('type');
-
     React.useEffect(() => {
-        let url = api_paths.admin.room_types + `?type=${id}`;
+        let url = api_paths.admin.room_types + `?type=${params.type}`;
         fetch(url).then(res => res.json()).then(res => {
             setType(res[0]);
         });
-    }, [id]);
+    }, [params.type]);
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();

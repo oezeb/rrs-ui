@@ -84,17 +84,14 @@ function ResvDetail({ resv_id }: { resv_id: string|number }) {
                 预约详情
             </Typography>
             <ResvTable resv={resv} />
-            <ListItemText secondary={<ActionHelper only={["cancel"]} />}>
+            <ListItemText secondary={<ActionHelper />}>
                 <Typography variant="h6" component="h2" gutterBottom sx={{ mt: 2 }}>
                     预约时间
                 </Typography>
             </ListItemText>
             <SlotTable 
-                resv_status_url={api_paths.resv_status}
-                action_url={api_paths.user_resv}
                 resv={resv} 
                 setResv={setResv} 
-                allowedActions={["cancel"]}
             />
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
                 {resv ?

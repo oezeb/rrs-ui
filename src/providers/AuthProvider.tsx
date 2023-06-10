@@ -2,6 +2,7 @@ import * as React from "react";
 import { Navigate } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";
 import BackDrop from "utils/BackDrop";
+import Forbidden from "utils/Forbidden";
 
 export interface AuthContextProps {
     user: Record<string, any>|null|undefined;
@@ -100,13 +101,5 @@ export function RequireAuth({ children, role }: { children: React.ReactNode, rol
         return <>{children}</>;
     }
 }
-
-
-const Forbidden = () => (
-    <div>
-        <h1>403 Forbidden</h1>
-        <p>You do not have access to this page.</p>
-    </div>
-);
 
 export default AuthProvider;

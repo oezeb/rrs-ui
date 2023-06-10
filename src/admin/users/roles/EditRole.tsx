@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 
 import {
@@ -16,18 +16,18 @@ import { descriptionFieldParams, labelFieldParams } from "utils/util";
 
 function EditRole() {
     const [role, setRole] = React.useState<Record<string, any>|null>(null);
-    const [searchParams] = useSearchParams();
+    const params = useParams();
     const {showSnackbar} = useSnackbar();
 
-    let id = searchParams.get('role');
-
     React.useEffect(() => {
-        fetch(api_paths.admin.user_roles + `?role=${id}`)
+        if (!params.role) return;
+        
+        fetch(api_paths.admin.user_roles + `?role=${params.role}`)
             .then(res => res.json())
             .then(res => {
                 setRole(res[0]);
             });
-    }, [id]);
+    }, [params.role]);
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -70,11 +70,13 @@ function EditRole() {
     }
 
     return (<>{role &&
-        <Box component="form" onSubmit={handleSubmit}>
-            <Typography variant="h5" component="h2" gutterBottom>
-                编辑角色
-            </Typography>
-            <List sx={{ ml: 4 }} dense>
+        <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 700, margin: "auto" }} >
+            <List dense>
+                <ListItem divider sx={{ mb: 2 }}>
+                    <Typography variant="h5" component="h2" gutterBottom>
+                        编辑角色
+                    </Typography>
+                </ListItem>
                 <ListItem>
                     <TextField disabled variant="standard" type="number"
                         label="角色" defaultValue={role.role} />

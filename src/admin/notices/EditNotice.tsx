@@ -1,17 +1,15 @@
-import { useSnackbar } from "providers/SnackbarProvider";
 import * as React from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+
+import { useSnackbar } from "providers/SnackbarProvider";
 import { paths as api_paths } from "utils/api";
 import AddEditNotice from "./AddEditNotice";
 
 function EditNotice() {
     const [notice, setNotice] = React.useState<Record<string, any>|null>(null);
     const [user, setUser] = React.useState<Record<string, any>|null>(null);
-    const [searchParams] = useSearchParams();
+    const { notice_id, username } = useParams();
     const {showSnackbar} = useSnackbar();
-
-    let notice_id = searchParams.get('notice_id');
-    let username = searchParams.get('username');
 
     React.useEffect(() => {
         fetch(api_paths.admin.notices + `?notice_id=${notice_id}&username=${username}`)

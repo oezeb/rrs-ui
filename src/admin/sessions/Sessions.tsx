@@ -11,7 +11,7 @@ import {
 import Switch from '@mui/material/Switch';
 import * as React from "react";
 
-import Table, { TableSkeleton } from "admin/Table";
+import Table, { TableSkeleton } from "utils/Table";
 import dayjs from "dayjs";
 import { useSnackbar } from "providers/SnackbarProvider";
 import BinaryDialog from "utils/BinaryDialog";
@@ -94,6 +94,48 @@ function Sessions() {
         { field: 'actions', label: '操作', noSort: true },
     ];
     
+    const renderValue = (row: Record<string, any>, field: string) => {
+        switch (field) {
+            case "name":
+                return(
+                    <Typography noWrap style={{maxWidth: "130px"}}>
+                        {row[field]}
+                    </Typography>
+                );
+            case "start_time":
+            case "end_time":
+                return row[field].format("YYYY-MM-DD HH:mm");
+            case "is_current":
+                return row[field] ? "是" : "否";
+            case "actions":
+                return (<>
+                    <Tooltip title="编辑">
+                        <IconButton size="small"
+                            component={Link} to={`/admin/sessions/edit/${row.session_id}`}
+                        >
+                            <EditIcon fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="删除">
+                        <IconButton size="small"
+                            onClick={() => { setDel(row); }}>
+                            <DeleteIcon fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title={row.is_current ? "取消当前会话" : "设为当前会话"}>
+                        <IconButton size="small">
+                            <Switch size="small"
+                                checked={row.is_current}
+                                onChange={() => { toggleCurrent(row); }}
+                            />
+                        </IconButton>
+                    </Tooltip>
+                </>);
+            default:
+                return row[field];
+        }
+    };
+    
     return (
         <Box>
             <Typography variant="h5" component="h2" gutterBottom>
@@ -106,46 +148,8 @@ function Sessions() {
                 compare={comparator}
                 height="70vh"
                 minWidth="730px"
-                getValueLabel={(row, field) => {
-                    if (field === "name") {
-                        return(
-                            <Typography variant="inherit" noWrap style={{maxWidth: "130px"}}>
-                                {row[field]}
-                            </Typography>
-                        );
-                    } else if (field === "start_time" || field === "end_time") {
-                        return row[field].format("YYYY-MM-DD HH:mm");
-                    } else if (field === "is_current") {
-                        return row[field] ? "是" : "否";
-                    } else if (field === "actions") {
-                        return (<>
-                            <Tooltip title="编辑">
-                                <IconButton size="small"
-                                    component={Link} to={`/admin/sessions/edit?session_id=${row.session_id}`}>
-                                    <EditIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title="删除">
-                                <IconButton size="small"
-                                    onClick={() => { setDel(row); }}>
-                                    <DeleteIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title={row.is_current ? "取消当前会话" : "设为当前会话"}>
-                                <IconButton size="small">
-                                    <Switch size="small"
-                                        checked={row.is_current}
-                                        onChange={() => { toggleCurrent(row); }}
-                                    />
-                                </IconButton>
-                            </Tooltip>
-                        </>);
-                    } else {
-                        return row[field];
-                    }
-                }}
-            />
-            }
+                getValueLabel={renderValue}
+            />}
             {sessions === undefined &&
             <TableSkeleton
                 rowCount={13}

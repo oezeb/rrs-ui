@@ -1,39 +1,38 @@
-import { useState, useEffect } from "react";
-import {
-    Box,
-    Typography,
-    ListItemText,
-    Table,
-    TableHead,
-    TableRow,
-    TableCell,
-    TableBody,
-    List,
-    Collapse,
-    ListItemIcon,
-    ListItemButton,
-    IconButton,
-} from "@mui/material";
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
-import DeleteIcon from '@mui/icons-material/Delete';
-
-import { paths as api_paths } from "utils/api";
-import { resvStatusColors } from 'utils/util';
+import {
+    Box,
+    Collapse,
+    List,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableRow,
+    Typography,
+} from "@mui/material";
+import { useEffect, useState } from "react";
+import { paths as api_paths} from 'utils/api';
+import { resvStatusColors as statusColors } from 'utils/util';
 
 interface SlotTableProps {
-    title?: string;
+    title: string;
     slots: Record<string, any>[];
+
+    action?: (slot: Record<string, any>, index: number) => React.ReactNode;
 }
 
-const SlotTable = ({ title, slots }: SlotTableProps) => {
-    const [status, setStatus] = useState<Record<string, any>>({});
+const SlotTable = ({ title, slots, action }: SlotTableProps) => {
+    const [resvStatus, setResvStatus] = useState<Record<string, any>>({});
     const [open, setOpen] = useState(true);
 
     useEffect(() => {
-        fetch(api_paths.resv_status)
+        fetch(api_paths.admin.resv_status)
             .then(res => res.json())
-            .then(data => setStatus(data.reduce((acc: Record<string, any>, cur: Record<string, any>) => {
+            .then(data => setResvStatus(data.reduce((acc: Record<string, any>, cur: Record<string, any>) => {
                 acc[cur.status] = cur;
                 return acc;
             }, {})));
@@ -42,7 +41,7 @@ const SlotTable = ({ title, slots }: SlotTableProps) => {
     return (
         <List>
             <ListItemButton divider={!open} onClick={() => setOpen(!open)}>
-                <ListItemText primary={title || "已选时段"} />
+                <ListItemText primary={title} />
                 <ListItemIcon>
                     {open ? <ExpandLess /> : <ExpandMore />}
                 </ListItemIcon>
@@ -54,8 +53,8 @@ const SlotTable = ({ title, slots }: SlotTableProps) => {
                             <TableCell>编号</TableCell>
                             <TableCell>开始时间</TableCell>
                             <TableCell>结束时间</TableCell>
-                            <TableCell>状态</TableCell>
-                            <TableCell>操作</TableCell>
+                            <TableCell>预订状态</TableCell>
+                            {action && <TableCell>操作</TableCell>}
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -65,23 +64,20 @@ const SlotTable = ({ title, slots }: SlotTableProps) => {
                                 <TableCell>{slot.start_time.format("YYYY-MM-DD HH:mm")}</TableCell>
                                 <TableCell>{slot.end_time.format("YYYY-MM-DD HH:mm")}</TableCell>
                                 <TableCell>
-                                    <Box display="inline"
-                                        borderBottom={3}
-                                        borderColor={resvStatusColors[slot.status]}
+                                    {slot.status !== undefined &&
+                                    <Box component="span" 
+                                        borderBottom={3} 
+                                        borderColor={statusColors[slot.status]}
                                     >
-                                        {status[slot.status]?.label}
-                                    </Box>
+                                        {resvStatus[slot.status]?.label}
+                                    </Box>}
                                 </TableCell>
-                                <TableCell>
-                                    <IconButton size="small">
-                                        <DeleteIcon fontSize="small"/>
-                                    </IconButton>
-                                </TableCell>
+                                {action && <TableCell>{action(slot, index)}</TableCell>}
                             </TableRow>
                         ))}
                         {slots.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={5}>
+                                <TableCell colSpan={4}>
                                     <Typography variant="body2" color="text.secondary" align="center">
                                         无
                                     </Typography>

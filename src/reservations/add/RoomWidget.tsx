@@ -9,16 +9,16 @@ import { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
-import HomeRoomView, { RoomSkeleton } from "home/RoomView";
+import HomeRoomWidget, { RoomWidgetSkeleton } from 'home/room-widget/RoomWidget';
 import { useNavigate } from "utils/Navigate";
 import { paths as api_paths, room_status } from "utils/api";
 
-interface RoomViewProps {
+interface RoomWidgetProps {
     room_id: string|number;
     date: Dayjs;
 }
 
-function RoomView(props: RoomViewProps) {
+function RoomWidget(props: RoomWidgetProps) {
     const { room_id, date } = props;
     const [room, setRoom] = useState<Record<string, any> | null>(null);
     let navigate = useNavigate();
@@ -44,7 +44,7 @@ function RoomView(props: RoomViewProps) {
 
     if (room) {
         return (<>
-            <HomeRoomView date={date} room={room} show_pending={true} />
+            <HomeRoomWidget date={date} room={room} show_pending={true} />
             <Dialog open={room !== undefined && room.status === room_status.unavailable}>
                 <DialogTitle component={Box} sx={{ display: 'flex', alignItems: 'center' }} >
                     <ErrorIcon color="error" sx={{ mr: 1 }} />
@@ -63,8 +63,8 @@ function RoomView(props: RoomViewProps) {
             </Dialog>
         </>);
     } else {
-        return <RoomSkeleton />;
+        return <RoomWidgetSkeleton />;
     }
 }
 
-export default RoomView;
+export default RoomWidget;

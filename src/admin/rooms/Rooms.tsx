@@ -16,7 +16,7 @@ import { roomStatusColors as statusColors } from 'utils/util';
 import BinaryDialog from "utils/BinaryDialog";
 import { Link } from "utils/Navigate";
 import { paths as api_paths } from "utils/api";
-import Table, { TableSkeleton } from "admin/Table";
+import Table, { TableSkeleton } from "utils/Table";
 import Status from "./status/Status";
 import Types from "./types/Types";
 
@@ -63,8 +63,61 @@ function Rooms() {
         { field: 'status', label: '状态' },
         { field: 'type', label: '类型' },
         { field: 'image', label: '图片', noSort: true },
-        { field: 'action', label: '操作', noSort: true },
+        { field: 'actions', label: '操作', noSort: true },
     ];
+
+    const renderValue = (row: Record<string, any>, field: string) => {
+        switch (field) {
+            case "name":
+                return (
+                    <Typography noWrap sx={{ maxWidth: "100px" }}>
+                        {row[field]}
+                    </Typography>
+                );
+            case "status":
+            case "type":
+                return (
+                    <Typography noWrap sx={{ maxWidth: "70px" }}>
+                        {field === "status" ? (
+                        <Box component="span" 
+                            borderBottom={3} 
+                            borderColor={statusColors[row[field]]}
+                        >
+                            {roomStatus[row[field]]?.label}
+                        </Box>
+                        ) : roomTypes[row[field]]?.label}
+                    </Typography>
+                );
+            case "image":
+                return (
+                    <Box display="flex">
+                        <Box component="img" 
+                            src={`data:image/png;base64,${row.image}`} 
+                            maxWidth={50}
+                        />
+                        {row.image? null : <FormHelperText>无图片</FormHelperText>}
+                    </Box>
+                );
+            case "actions":
+                return (<>
+                    <Tooltip title="删除">
+                        <IconButton size="small"
+                            onClick={() => setDel(row)}>
+                            <DeleteIcon fontSize="inherit" />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="编辑">
+                        <IconButton size="small"
+                            component={Link} to={`/admin/rooms/edit/${row.room_id}`}
+                        >
+                            <EditIcon fontSize="inherit" />
+                        </IconButton>
+                    </Tooltip>
+                </>);
+            default:
+                return row[field];
+        }
+    };
 
     return(
         <Box>
@@ -77,56 +130,7 @@ function Rooms() {
                 rows={rooms}
                 height="70vh"
                 minWidth="700px"
-                getValueLabel={(row, field) => {
-                    if (field === "name") {
-                        return (
-                            <Typography variant="inherit" noWrap sx={{ maxWidth: "100px" }}>
-                                {row[field]}
-                            </Typography>
-                        );
-                    } else if (field === "status" || field === "type") {
-                        return (
-                            <Typography variant="inherit" noWrap sx={{ maxWidth: "70px" }}>
-                                {field === "status" ? (
-                                <Box component="span" 
-                                    borderBottom={3} 
-                                    borderColor={statusColors[row[field]]}
-                                >
-                                    {roomStatus[row[field]]?.label}
-                                </Box>
-                                ) : roomTypes[row[field]]?.label}
-                            </Typography>
-                        );
-                    } else if (field === "image") {
-                        return (
-                            
-                            <Box display="flex">
-                                <Box component="img" 
-                                    src={`data:image/png;base64,${row.image}`} 
-                                    maxWidth={50}
-                                />
-                                {row.image? null : <FormHelperText>无图片</FormHelperText>}
-                            </Box>
-                        );
-                    } else if (field === "action") {
-                        return (<>
-                            <Tooltip title="删除">
-                                <IconButton size="small"
-                                    onClick={() => setDel(row)}>
-                                    <DeleteIcon fontSize="inherit" />
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title="编辑">
-                                <IconButton size="small"
-                                    component={Link} to={`/admin/rooms/edit?room_id=${row.room_id}`}>
-                                    <EditIcon fontSize="inherit" />
-                                </IconButton>
-                            </Tooltip>
-                        </>);
-                    } else {
-                        return row[field];
-                    }
-                }}
+                getValueLabel={renderValue}
             />}
             {rooms === undefined &&
             <TableSkeleton

@@ -22,11 +22,13 @@ export const AddEditType = (props: AddEditTypeProps) => {
     const { title, type, label, description, handleSubmit, _type } = props;
 
     return (
-        <Box component="form" onSubmit={handleSubmit}>
-            <Typography variant="h5" component="h2" gutterBottom>
-                {title}
-            </Typography>
-            <List sx={{ ml: 4 }} dense>
+        <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 700, margin: "auto" }} >
+            <List dense>
+                <ListItem divider sx={{ mb: 2 }}>
+                    <Typography variant="h5" component="h2" gutterBottom>
+                        {title}
+                    </Typography>
+                </ListItem>
                 <ListItem>
                     <TextField size="small" variant="standard" type="number" fullWidth
                         name="type" label="类型" defaultValue={type}

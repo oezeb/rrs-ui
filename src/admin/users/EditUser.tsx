@@ -1,5 +1,6 @@
 import * as React from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { Box } from "@mui/material";
 
 import { useSnackbar } from "providers/SnackbarProvider";
 import { paths as api_paths } from "utils/api";
@@ -8,10 +9,8 @@ import AddEditUser from "./AddEditUser";
 function EditUser() {
     const [user, setUser] = React.useState<Record<string, any>|null|undefined>(undefined);
     const [reload, setReload] = React.useState(true);
-    const [searchParams] = useSearchParams();
+    const { username } = useParams();
     const {showSnackbar} = useSnackbar();
-
-    let username = searchParams.get('username');
 
     React.useEffect(() => {
         if (reload) {
@@ -76,17 +75,20 @@ function EditUser() {
         }
     };
 
-    return (<>{user &&
-        <AddEditUser
-            title="编辑用户"
-            username={user.username}
-            name={user.name}
-            email={user.email}
-            role={user.role}
-            handleSubmit={handleSubmit}
-            type="edit"
-        />
-    }</>);
+    return (
+        <Box sx={{ maxWidth: 700, margin: "auto" }} >
+            {user &&
+            <AddEditUser
+                title="编辑用户"
+                username={user.username}
+                name={user.name}
+                email={user.email}
+                role={user.role}
+                handleSubmit={handleSubmit}
+                type="edit"
+            />}
+        </Box>
+    );
 }
 
 export default EditUser;
