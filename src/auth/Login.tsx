@@ -19,7 +19,8 @@ function Login() {
     const auth = useAuth();
     let { showSnackbar } = useSnackbar();
   
-    let from = location.state?.from || "";
+    let from = location.state?.from || "/";
+    console.log(from);
 
     React.useEffect(() => {
         if (auth.user) {

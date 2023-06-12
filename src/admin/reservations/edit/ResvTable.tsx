@@ -11,7 +11,7 @@ import Table, { TableSkeleton } from "utils/Table";
 import { paths as api_paths } from "utils/api";
 
 function ResvTable({ resv } : { resv: Record<string, any>|undefined }) {
-    const [room, setRoom] = React.useState<Record<string, any>|undefined>(undefined);
+    const [room, setRoom] = React.useState<Record<string, any>|null|undefined>(undefined);
     const [privacy, setPrivacy] = React.useState<Record<number, any>[]|undefined>(undefined);
     const [users, setUsers] = React.useState<Record<string, any>>({});
     const [sessions, setSessions] = React.useState<Record<string, any>>({});
@@ -21,30 +21,32 @@ function ResvTable({ resv } : { resv: Record<string, any>|undefined }) {
             setRoom(undefined);
         } else {
             fetch(api_paths.admin.rooms + `?room_id=${resv.room_id}`)
-                .then(res => res.json())
-                .then(data => {
-                    setRoom(data[0]);
-                })
-                .catch(err => console.error(err));
+                .then(res => res.ok ? res.json() : Promise.reject(res))
+                .then(data => setRoom(data[0]))
+                .catch(err => {
+                    console.error(err);
+                    setRoom(null);
+                });
         }
     }, [resv]);
 
     React.useEffect(() => {
         fetch(api_paths.admin.resv_privacy)
-            .then(res => res.json())
-            .then(data => {
-                setPrivacy(data);
-            })
-            .catch(err => console.error(err));
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setPrivacy(data))
+            .catch(err => {
+                console.error(err);
+                setPrivacy([]);
+            });
         fetch(api_paths.admin.users)
-            .then(res => res.json())
+            .then(res => res.ok ? res.json() : Promise.reject(res))
             .then(data => setUsers(data.reduce((acc: Record<string, any>, item: Record<string, any>) => {
                 acc[item.username] = item;
                 return acc;
             }, {})))
             .catch(err => console.error(err));
         fetch(api_paths.admin.sessions)
-            .then(res => res.json())
+            .then(res => res.ok ? res.json() : Promise.reject(res))
             .then(data => setSessions(data.reduce((acc: Record<string, any>, item: Record<string, any>) => {
                 acc[item.session_id] = item;
                 return acc;

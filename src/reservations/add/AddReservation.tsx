@@ -60,16 +60,12 @@ function AddReservationForm({ room_id }: { room_id: string|number }) {
                 start_time, end_time,
             }),
         })
-            .then((res) => {
-                if (res.ok) {
-                    showSnackbar({ message: '预约成功', severity: 'success', duration: 2000 });
-                    res.json().then((data) => {
-                        navigate(`/reservations/${data.resv_id}`);
-                    });
-                } else {
-                    throw new Error("预约失败")
-                }
-            }).catch((err) => {
+            .then((res) => res.ok ? res.json() : Promise.reject(res))
+            .then((data) => {
+                showSnackbar({ message: '预约成功', severity: 'success', duration: 2000 });
+                navigate(`/reservations/${data.resv_id}`);
+            })
+            .catch((err) => {
                 console.error(err);
                 showSnackbar({ message: '预约失败', severity: 'error' });
             });
@@ -114,19 +110,18 @@ export function MaxDailyDialog() {
 
     useEffect(() => {
         fetch(api_paths.settings + `?id=${setting.maxDaily}`)
-            .then((res) => res.json())
-            .then((data) => {
-                setMaxDaily(Number(data[0].value));
-            })
+            .then((res) => res.ok ? res.json() : Promise.reject(res))
+            .then((data) => setMaxDaily(Number(data[0].value)))
             .catch((err) => {
                 console.log(err);
+                setMaxDaily(0);
             });
     }, []);
 
     useEffect(() => {
         let today = dayjs().format('YYYY-MM-DD');
         fetch(api_paths.user_resv + `?create_date=${today}`)
-            .then((res) => res.json())
+            .then((res) => res.ok ? res.json() : Promise.reject(res))
             .then((data) => {
                 let set = new Set();
                 for (let resv of data) {
@@ -136,6 +131,7 @@ export function MaxDailyDialog() {
             })
             .catch((err) => {
                 console.log(err);
+                setTodayCount(0);
             });
     }, []);
 

@@ -35,7 +35,7 @@ function SelectDateTime(props: SelectDateTimeProps) {
 
     useEffect(() => {
         fetch(api_paths.settings + `?id=${setting.timeWindow}`)
-            .then((res) => res.json())
+            .then((res) => res.ok ? res.json() : Promise.reject(res))
             .then((data) => {
                 let s = data[0].value.split(':');
                 setWindow(old => {
@@ -52,10 +52,11 @@ function SelectDateTime(props: SelectDateTimeProps) {
 
     useEffect(() => {
         fetch(api_paths.settings + `?id=${setting.timeLimit}`)
-        .then((res) => res.json())
+        .then((res) => res.ok ? res.json() : Promise.reject(res))
         .then((data) => setMaxTime(TimeDelta.from(data[0].value).totalSeconds))
         .catch((err) => {
             console.error(err);
+            setMaxTime(0);
         });
     }, []);
 

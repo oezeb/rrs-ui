@@ -12,17 +12,13 @@ function NoticeDetails({ notice_id }: { notice_id: string|number }) {
 
     useEffect(() => {
         let url = api_paths.notices + `?notice_id=${notice_id}`;
-        fetch(url).then((res) => res.json())
-            .then((data) => {
-                setNotice({
-                    ...data[0],
-                    create_time: dayjs(data[0].create_time),
-                    update_time: data[0].update_time ? dayjs(data[0].update_time) : null,
-                });
-            })
-            .catch((err) => {
-                console.log(err);
-            });
+        fetch(url).then((res) => res.ok ? res.json() : Promise.reject(res))
+            .then((data) => setNotice({
+                ...data[0],
+                create_time: dayjs(data[0].create_time),
+                update_time: data[0].update_time ? dayjs(data[0].update_time) : null,
+            }))
+            .catch((err) => console.log(err));
     }, [notice_id]);
 
     return (

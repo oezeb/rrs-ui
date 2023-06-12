@@ -30,13 +30,13 @@ export const AddEditUser = (props: AddEditUserProps) => {
 
     React.useEffect(() => {
         fetch(api_paths.admin.user_roles)
-            .then(res => res.json())
-            .then(data => {
-                setRoles(data.reduce((acc: Record<string, any>, cur: Record<string, any>) => {
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setRoles(data
+                .reduce((acc: Record<string, any>, cur: Record<string, any>) => {
                     acc[cur.role] = cur;
                     return acc;
-                }, {}));
-            })
+                }, {})
+            ))
             .catch(err => {
                 console.log(err);
                 setRoles({});

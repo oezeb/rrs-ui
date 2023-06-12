@@ -15,7 +15,7 @@ import { hms } from "./TimeView";
 import TimeWindow from "./TimeWindow";
 
 function Settings() {
-    const [settings, setSettings] = React.useState<Record<string, any>[]|null|undefined>(undefined);
+    const [settings, setSettings] = React.useState<Record<string, any>[]|undefined>(undefined);
     const [timeWindow, setTimeWindow] = React.useState<Record<string, any>|null|undefined>(undefined); // seconds
     const [timeLimit, setTimeLimit] = React.useState<Record<string, any>|null|undefined>(undefined); // seconds
     const [maxDaily, setMaxDaily] = React.useState<Record<string, any>|null|undefined>(undefined); // seconds
@@ -31,57 +31,49 @@ function Settings() {
     React.useEffect(() => {
         if (settings !== undefined) return;
         fetch(api_paths.admin.settings)
-            .then(res => res.json())
-            .then(data => {
-                setSettings(data);
-            })
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setSettings(data))
             .catch(err => {
                 console.error(err);
-                setSettings(null);
+                setSettings([]);
             });
     }, [settings]);
 
     React.useEffect(() => {
         if (settings === undefined) return;
-        if (settings === null) {
-            setTimeWindow(null);
-            setTimeLimit(null);
-            setMaxDaily(null);
-        } else {
-            let _timeWindow: Record<string, any>|null = null;
-            let _timeLimit: Record<string, any>|null = null;
-            let _maxDaily: Record<string, any>|null = null;
-            for (let item of settings) {
-                switch (item.id) {
-                    case setting.timeWindow:
-                        _timeWindow = {
-                            ...item,
-                            value: TimeDelta.from(item.value).totalSeconds
-                        };
-                        break;
-                    case setting.timeLimit:
-                        _timeLimit = {
-                            ...item,
-                            value: TimeDelta.from(item.value).totalSeconds
-                        };
-                        break;
-                    case setting.maxDaily:
-                        _maxDaily = item;
-                        break;
-                    default:
-                        break;
-                }
+        let _timeWindow: Record<string, any>|null = null;
+        let _timeLimit: Record<string, any>|null = null;
+        let _maxDaily: Record<string, any>|null = null;
+        for (let item of settings) {
+            switch (item.id) {
+                case setting.timeWindow:
+                    _timeWindow = {
+                        ...item,
+                        value: TimeDelta.from(item.value).totalSeconds
+                    };
+                    break;
+                case setting.timeLimit:
+                    _timeLimit = {
+                        ...item,
+                        value: TimeDelta.from(item.value).totalSeconds
+                    };
+                    break;
+                case setting.maxDaily:
+                    _maxDaily = item;
+                    break;
+                default:
+                    break;
             }
-            
-            if (timeWindow === undefined) {
-                setTimeWindow(_timeWindow);
-            }
-            if (timeLimit === undefined) {
-                setTimeLimit(_timeLimit);
-            }
-            if (maxDaily === undefined) {
-                setMaxDaily(_maxDaily);
-            }
+        }
+        
+        if (timeWindow === undefined) {
+            setTimeWindow(_timeWindow);
+        }
+        if (timeLimit === undefined) {
+            setTimeLimit(_timeLimit);
+        }
+        if (maxDaily === undefined) {
+            setMaxDaily(_maxDaily);
         }
     }, [settings, timeWindow, timeLimit, maxDaily]);
 

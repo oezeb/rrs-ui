@@ -28,26 +28,26 @@ export const AddEditRoom = (props: AddEditRoomProps) => {
 
     React.useEffect(() => {
         fetch(api_paths.admin.room_types)
-            .then(res => res.json())
-            .then(data => {
-                setRoomTypes(data.reduce((acc: Record<string, any>, cur: Record<string, any>) => {
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setRoomTypes(data
+                .reduce((acc: Record<string, any>, cur: Record<string, any>) => {
                     acc[cur.type] = cur;
                     return acc;
-                }, {}));
-            })
+                }, {})
+            ))
             .catch(err => {
                 console.log(err);
                 setRoomTypes({});
             });
 
         fetch(api_paths.admin.room_status)
-            .then(res => res.json())
-            .then(data => {
-                setRoomStatus(data.reduce((acc: Record<string, any>, cur: Record<string, any>) => {
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setRoomStatus(data
+                .reduce((acc: Record<string, any>, cur: Record<string, any>) => {
                     acc[cur.status] = cur;
                     return acc;
-                }, {}));
-            })
+                }, {})
+            ))
             .catch(err => {
                 console.log(err);
                 setRoomStatus({});

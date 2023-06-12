@@ -35,6 +35,7 @@ function SelectInfo(props: SelectInfoProps) {
         const get = async (path: string, setter: (data: any) => void) => {
             try {
                 let res = await fetch(path);
+                if (!res.ok) throw new Error(res.statusText);
                 let data = await res.json();
                 setter(data);
             } catch (err) {

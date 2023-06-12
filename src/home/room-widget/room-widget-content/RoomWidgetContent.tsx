@@ -1,15 +1,40 @@
-import { Box } from '@mui/material';
-import { Dayjs } from 'dayjs';
+import React from 'react';
+import { Box, Skeleton } from '@mui/material';
+import dayjs, { Dayjs } from 'dayjs';
 import PeriodList from './PeriodList';
 import ReservationList from './ReservationList';
+import { usePeriods } from 'providers/PeriodsProvider';
 
 interface RoomWidgetContentProps {
-    periods: Record<string, any>[];
-    reservations: Record<string, any>[];
+    // periods: Record<string, any>[];
+    date: Dayjs;
+    reservations?: Record<string, any>[];
 };
 
 const RoomWidgetContent = (props: RoomWidgetContentProps) => {
-    const { periods, reservations } = props;
+    const { date, reservations } = props;
+    const [periods, setPeriods] = React.useState<Record<string, any>[]|undefined>(undefined);
+
+    const _periods = usePeriods().periods;
+
+    React.useEffect(() => {
+        let _date = date.format('YYYY-MM-DD');
+        setPeriods(undefined);
+        setPeriods(_periods.map((p: Record<string, any>) => ({
+            ...p,
+            start_time: dayjs(`${_date} ${p.start_time.format()}`),
+            end_time: dayjs(`${_date} ${p.end_time.format()}`),
+        })));
+    }, [date, _periods]);
+
+    if (periods === undefined || reservations === undefined) return (
+        <Skeleton
+            variant="rectangular"
+            width="100%"
+            height="100%"
+            animation="wave"
+        />
+    );
 
     // start and end time of the periods and reservations
     let start: Dayjs|null=null, end: Dayjs|null=null;
@@ -31,7 +56,7 @@ const RoomWidgetContent = (props: RoomWidgetContentProps) => {
         start = reservations[0].start_time;
         end = reservations[reservations.length - 1].end_time;
     } else {
-        return <></>;
+        return <>无</>;
     }
     
     return (

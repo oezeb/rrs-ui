@@ -27,13 +27,17 @@ function Sessions() {
 
     React.useEffect(() => {
         fetch(api_paths.admin.sessions)
-            .then(res => res.json())
-            .then(data => {
-                setSessions(data.map((session: Record<string, any>) => ({
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setSessions(data
+                .map((session: Record<string, any>) => ({
                     ...session,
                     start_time: dayjs(session.start_time),
                     end_time: dayjs(session.end_time),
-                })));
+                }))
+            ))
+            .catch(err => {
+                console.error(err);
+                setSessions([]);
             });
     }, []);
 
@@ -152,7 +156,7 @@ function Sessions() {
             />}
             {sessions === undefined &&
             <TableSkeleton
-                rowCount={13}
+                rowCount={14}
                 columns={columns.map(c => c.label)}
                 height="70vh"
                 minWidth="730px"

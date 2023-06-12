@@ -16,10 +16,12 @@ function Status() {
 
     React.useEffect(() => {
         fetch(api_paths.admin.resv_status)
-            .then(res => res.json())
-            .then(data => {
-                setResvStatus(data);
-            });
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setResvStatus(data))
+            .catch(err => {
+                console.error(err);
+                setResvStatus([]);
+            })
     }, []);
 
     const columns = [
@@ -54,25 +56,33 @@ function Status() {
                 return row[field];
         }
     };
+
+    const Title = () => (
+        <Typography variant="h5" component="h2" gutterBottom>
+            预订状态
+        </Typography>
+    );
+
+    if (resvStatus === undefined) return (
+        <Box>
+            <Title />
+            <TableSkeleton
+                rowCount={4}
+                columns={columns.map(column => column.label)}
+                minWidth="300px"
+            />
+        </Box>
+    );
     
     return (
         <Box>
-            <Typography variant="h5" component="h2" gutterBottom>
-                预订状态
-            </Typography>
-            {resvStatus !== undefined && 
+            <Title />
             <Table
                 columns={columns}
                 rows={resvStatus}
                 minWidth='300px'
                 getValueLabel={renderValue}
-            />}
-            {resvStatus === undefined && 
-            <TableSkeleton
-                rowCount={4}
-                columns={columns.map(column => column.label)}
-                minWidth="300px"
-            />}
+            />
         </Box>
     );
 }

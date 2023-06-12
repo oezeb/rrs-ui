@@ -10,6 +10,7 @@ import EventSeatIcon from '@mui/icons-material/EventSeat';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Link } from "utils/Navigate";
 import { paths as api_paths, room_status } from "utils/api";
+import NoContent from "utils/NoContent";
 
 interface RoomListProps {
     title: string;
@@ -18,24 +19,36 @@ interface RoomListProps {
 
 export function RoomList(props: RoomListProps) {
     const { title, link } = props;
-    const [types, setTypes] = React.useState<Record<string, any>[]>([]);
+    const [types, setTypes] = React.useState<Record<string, any>[]|undefined>(undefined);
 
     React.useEffect(() => {
         fetch(api_paths.room_types)
-            .then((res) => res.json())
-            .then((data) => {
-                setTypes(data);
-            })
+            .then((res) => res.ok ? res.json() : Promise.reject(res))
+            .then((data) => setTypes(data))
             .catch((err) => {
+                setTypes([]);
                 console.log(err);
             });
     }, []);
 
+    const Title = () => <Typography variant="h5" component="h2" gutterBottom>{title}</Typography>;
+
+    if (types === undefined) return (
+        <Box>
+            <Title />
+            {Array(2).fill(0).map((_, i) => (
+                <RoomListByTypeSkeleton key={i} />
+            ))}
+        </Box>
+    );
+
+    if (types.length === 0) return (
+        <Box><Title /><NoContent /></Box>
+    );
+
     return (
         <Box>
-            <Typography variant="h5" component="h2" gutterBottom>
-                {title}
-            </Typography>
+            <Title />
             {types && types.map((type) => (
                 <RoomListByType 
                     key={type.type} 
@@ -56,19 +69,22 @@ interface RoomListByTypeProps {
 };
 
 function RoomListByType({ type, link, onClick, disabled }: RoomListByTypeProps) {
-    const [rooms, setRooms] = useState<Record<string, any>[] | null>(null);
+    const [rooms, setRooms] = useState<Record<string, any>[]|undefined>(undefined);
 
     useEffect(() => {
         let url = api_paths.rooms;
         url += type ? `?type=${type.type}` : '';
-        fetch(url).then((res) => res.json())
-            .then((data) => {
-                setRooms(data);
-            })
+        fetch(url).then((res) => res.ok ? res.json() : Promise.reject(res))
+            .then((data) => setRooms(data))
             .catch((err) => {
                 console.log(err);
+                setRooms([]);
             });
     }, [type]);
+
+    if (rooms === undefined) return (
+        <RoomListByTypeSkeleton type={type} />
+    );
 
     return (
         <Box>
@@ -76,7 +92,7 @@ function RoomListByType({ type, link, onClick, disabled }: RoomListByTypeProps) 
                 {type.label}
             </Typography>
             <List>
-                {rooms && rooms.map((room) => (
+                {rooms.map((room) => (
                     <ListItem key={room.room_id} divider dense>
                         <ListItemButton
                             component={link ? Link : 'div'}
@@ -94,17 +110,26 @@ function RoomListByType({ type, link, onClick, disabled }: RoomListByTypeProps) 
                         </ListItemButton>
                     </ListItem>
                 ))}
-                
-                {!rooms && Array.from({length: 3}, (_, i) => (
-                    <ListItem key={i} divider dense>
-                        <ListItemText>
-                                <Skeleton />
-                        </ListItemText>
-                    </ListItem>
-                ))}
             </List>
         </Box>
     );
 }
+
+const RoomListByTypeSkeleton = ({ type }: { type?: Record<string, any> }) => (
+    <Box>
+        <Typography variant="h5" sx={{ m: 2 }} >
+            {type?.label || <Skeleton />}
+        </Typography>
+        <List>
+            {Array.from({length: 3}, (_, i) => (
+                <ListItem key={i} divider dense>
+                    <ListItemText>
+                            <Skeleton />
+                    </ListItemText>
+                </ListItem>
+            ))}
+        </List>
+    </Box>
+);
 
 export default RoomList;

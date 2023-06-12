@@ -15,10 +15,8 @@ function EditUser() {
     React.useEffect(() => {
         if (reload) {
             fetch(api_paths.admin.users + `?username=${username}`)
-                .then(res => res.json())
-                .then(data => {
-                    setUser(data[0]);
-                })
+                .then(res => res.ok ? res.json() : Promise.reject(res))
+                .then(data => setUser(data[0]))
                 .catch(err => {
                     console.log(err);
                     setUser(null);

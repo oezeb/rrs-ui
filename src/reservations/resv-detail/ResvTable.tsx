@@ -17,11 +17,12 @@ function ResvTable({ resv } : { resv: Record<string, any>|undefined }) {
             setRoom(undefined);
         } else {
             fetch(api_paths.rooms + `?room_id=${resv.room_id}`)
-                .then(res => res.json())
-                .then(data => {
-                    setRoom(data[0]);
-                })
-                .catch(err => console.error(err));
+                .then(res => res.ok ? res.json() : Promise.reject(res))
+                .then(data => setRoom(data[0]))
+                .catch(err => {
+                    console.error(err);
+                    setRoom({});
+                });
         }
     }, [resv, user]);
 
@@ -29,7 +30,7 @@ function ResvTable({ resv } : { resv: Record<string, any>|undefined }) {
         { field: "resv_id", label: "编号", noSort: true },
         { field: "room_id", label: "房间", noSort: true },
         { field: "create_time", label: "创建时间", noSort: true },
-        { field: "update_time", label: "更新时间", noSort: true },
+        // { field: "update_time", label: "更新时间", noSort: true },
     ];
 
     const renderValue = (row: Record<string, any>, field: string) => {
@@ -41,7 +42,7 @@ function ResvTable({ resv } : { resv: Record<string, any>|undefined }) {
                     </Link>
                 ) : <Skeleton />;
             case "create_time":
-            case "update_time":
+            // case "update_time":
                 return row[field]?.format("YYYY-MM-DD HH:mm");
             default:
                 return row[field];

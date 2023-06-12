@@ -23,14 +23,14 @@ function Periods() {
         if (periods !== undefined) return;
         setEdited(undefined);
         fetch(api_paths.admin.periods)
-            .then(res => res.json())
-            .then(data => {
-                setPeriods(data.map((p: Record<string, any>) => ({
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setPeriods(data
+                .map((p: Record<string, any>) => ({
                     ...p,
                     start_time: TimeDelta.from(p.start_time),
                     end_time: TimeDelta.from(p.end_time)
-                })));
-            })
+                }))
+            ))
             .catch(err => {
                 console.error(err);
                 setPeriods([]);
@@ -121,7 +121,7 @@ function Periods() {
                         showSnackbar({ message: "保存成功", severity: "success", duration: 2000 });
                         setPeriods(undefined);
                     } else {
-                        throw new Error();
+                        throw new Error(res.map(r => r.statusText).join(", "));
                     }
                 })
                 .catch(err => {

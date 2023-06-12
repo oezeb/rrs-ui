@@ -46,7 +46,7 @@ function SelectTime(props: SelectTimeProps) {
         if (room_id === undefined) return;
         let _date = date.format('YYYY-MM-DD');
         fetch(api_paths.admin.reservations + `?room_id=${room_id}&start_date=${_date}`)
-            .then((res) => res.json())
+            .then((res) => res.ok ? res.json() : Promise.reject(res))
             .then((data) => setReservations(data
                 .filter((r: Record<string, any>) => (
                     r.status === resv_status.pending || r.status === resv_status.confirmed

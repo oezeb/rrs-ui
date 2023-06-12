@@ -27,19 +27,16 @@ function AddType() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(data)
-        }).then(res => {
-            if (res.ok) {
-                return res.json();
-            } else {
-                throw new Error("添加失败");
-            }
-        }).then(data => {
-            showSnackbar({message: "添加成功", severity: "success", duration: 2000});
-            navigate(`/admin/rooms/types/edit/${data.type}`);
-        }).catch(err => {
-            console.log(err);
-            showSnackbar({message: "添加失败", severity: "error"});
-        });
+        })
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => {
+                showSnackbar({message: "添加成功", severity: "success", duration: 2000});
+                navigate(`/admin/rooms/types/edit/${data.type}`);
+            })
+            .catch(err => {
+                console.log(err);
+                showSnackbar({message: "添加失败", severity: "error"});
+            });
     };
 
     return (

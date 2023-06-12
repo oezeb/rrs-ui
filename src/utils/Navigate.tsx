@@ -21,7 +21,7 @@ function Navigate(props: NavigateProps) {
 
     const data = {
         ...props,
-        state: { ...props.state, from: location.pathname }
+        state: { ...props.state, from: props.replace ? undefined : location.pathname }
     };
 
   return <ReactRouterNavigate {...data} />;
@@ -32,7 +32,7 @@ const Link = React.forwardRef<HTMLAnchorElement, LinkProps>((props, ref) => {
 
     const data = {
         ...props,
-        state: { ...props.state, from: location.pathname }
+        state: { ...props.state, from: props.replace ? undefined : location.pathname }
     };
 
     return <ReactRouterLink {...data} ref={ref} />;
@@ -45,7 +45,7 @@ function useNavigate() {
     return (to: To, options?: NavigateOptions | undefined) => (
         navigate(to, {
             ...options,
-            state: { ...options?.state, from: location.pathname }
+            state: { ...options?.state, from: options?.replace ? undefined : location.pathname }
         })
     );
 }

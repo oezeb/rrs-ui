@@ -18,13 +18,9 @@ function EditRoom() {
 
     React.useEffect(() => {
         fetch(api_paths.admin.rooms + `?room_id=${room_id}`)
-            .then(res => res.json())
-            .then(data => {
-                setRoom(data[0]);
-            })
-            .catch(err => {
-                console.log(err);
-            });
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setRoom(data[0]))
+            .catch(err => console.log(err));
     }, [room_id]);
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {

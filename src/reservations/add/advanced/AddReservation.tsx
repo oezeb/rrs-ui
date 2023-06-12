@@ -14,12 +14,13 @@ import { useParams } from "react-router-dom";
 import BackDrop from "utils/BackDrop";
 import { useSnackbar } from "providers/SnackbarProvider";
 import { useNavigate } from "utils/Navigate";
-import { paths as api_paths } from "utils/api";
+import { paths as api_paths, user_role } from "utils/api";
 import { descriptionFieldParams, labelFieldParams } from "utils/util";
 import RoomList from 'rooms/RoomList';
 import RoomWidget from 'reservations/add/RoomWidget';
 import Forbidden from 'utils/Forbidden';
 import SelectTimeSlots from './SelectTimeSlots';
+import { useAuth } from 'providers/AuthProvider';
 
 function AddReservation() {
     const { room_id } = useParams();
@@ -36,6 +37,7 @@ function AddReservation() {
 function AddReservationForm({ room_id }: { room_id: string|number }) {
     const [session, setSession] = useState<Record<string, any>|null|undefined>(undefined);
     const [slots, setSlots] = useState<Record<string, any>[]>([]);
+    const { user } = useAuth();
     
     const [date, setDate] = useState(dayjs());
 
@@ -44,12 +46,12 @@ function AddReservationForm({ room_id }: { room_id: string|number }) {
 
     useEffect(() => {
         fetch(api_paths.sessions + `?is_current=true`)
-            .then((res) => res.json())
+            .then((res) => res.ok ? res.json() : Promise.reject(res))
             .then((data) => {
-                if (data.length === 0) throw new Error();
+                if (data.length === 0) throw new Error("当前没有可用的会话");
 
                 let end_time = dayjs(data[0].end_time);
-                if (dayjs().isAfter(end_time)) throw new Error();
+                if (dayjs().isAfter(end_time)) throw new Error("当前会话已结束");
 
                 let start_time = dayjs(data[0].start_time);
                 setSession({ ...data[0], start_time, end_time });
@@ -107,7 +109,8 @@ function AddReservationForm({ room_id }: { room_id: string|number }) {
     };
 
     if (session === null) {
-        return <Forbidden text="当前无可预约" />;
+        let text = user?.role < user_role.admin ? "当前无可预约" : "当前无可预约，请先在管理页面添加会话并设为当前会话";
+        return <Forbidden text={text} />;
     }
 
     return (

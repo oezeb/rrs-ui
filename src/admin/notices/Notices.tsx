@@ -7,6 +7,7 @@ import {
     IconButton,
     Tooltip,
     Typography,
+    Skeleton,
 } from "@mui/material";
 import Table, { TableSkeleton } from "utils/Table";
 import dayjs from "dayjs";
@@ -25,23 +26,28 @@ function Notices() {
 
     React.useEffect(() => {
         fetch(api_paths.admin.notices)
-            .then(res => res.json())
-            .then(data => {
-                setNotices(data.map((notice: Record<string, any>) => ({
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setNotices(data
+                .map((notice: Record<string, any>) => ({
                     ...notice,
                     create_time: dayjs(notice.create_time),
                     update_time: notice.update_time ? dayjs(notice.update_time) : null,
-                })));
+                }))
+            ))
+            .catch(err => {
+                console.error(err);
+                setNotices([]);
             });
 
         fetch(api_paths.admin.users)
-            .then(res => res.json())
+            .then(res => res.ok ? res.json() : Promise.reject(res))
             .then(data => {
                 setUsers(data.reduce((acc: Record<string, any>, cur: Record<string, any>) => {
                     acc[cur.username] = cur;
                     return acc;
                 }, {}));
-            });
+            })
+            .catch(err => console.log(err));
     }, []);
 
     const comparator = (
@@ -80,7 +86,7 @@ function Notices() {
             case "username":
                 return (
                 <Typography noWrap sx={{ maxWidth: 70 }}>
-                    {users[row[field]]?.name}
+                    {users[row[field]]?.name??<Skeleton />}
                 </Typography>
                 );
             case "title":
@@ -130,7 +136,7 @@ function Notices() {
             />}
             {notices === undefined && 
             <TableSkeleton
-                rowCount={15} 
+                rowCount={14} 
                 columns={columns.map(column => column.label)} 
                 minWidth='800px'
                 height='70vh'

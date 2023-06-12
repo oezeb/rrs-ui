@@ -17,19 +17,17 @@ function RoomListByType(props: RoomListByTypeProps) {
 
     React.useEffect(() => {
         let url = api_paths.rooms + `?type=${type.type}`;
-        fetch(url).then((res) => res.json())
-            .then((data) => {
-                setRooms(data);
-            })
+        fetch(url).then((res) => res.ok ? res.json() : Promise.reject(res))
+            .then((data) => setRooms(data))
             .catch((err) => {
                 console.error(err);
                 setRooms([]);
             });
     }, [type.type]);
 
-    if (rooms === undefined) {
-        return <RoomListByTypeSkeleton type={type} />;
-    }
+    if (rooms === undefined) return (
+        <RoomListByTypeSkeleton type={type} />
+    );
 
     return (
         <Box>
@@ -49,7 +47,7 @@ function RoomListByType(props: RoomListByTypeProps) {
 export const RoomListByTypeSkeleton = ({ type }: { type?: Record<string, any> }) => (
     <Box>
         <Typography>
-            {type?.label??<Skeleton />}
+            {type?.label || <Skeleton />}
         </Typography>
         <Box display="flex" flexWrap="wrap">
             {Array(4).fill(0).map((_, i) => (

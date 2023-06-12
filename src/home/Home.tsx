@@ -10,11 +10,10 @@ import RoomListByType, { RoomListByTypeSkeleton } from './RoomListByType';
 function Home() {
     const [roomTypes, setRoomTypes] = React.useState<Record<string, any>[]|undefined>(undefined);
     const [date, setDate] = React.useState<Dayjs>(dayjs());
-    const [prevDate, setPrevDate] = React.useState<Dayjs>(date);
 
     React.useEffect(() => {
         fetch(api_paths.room_types)
-            .then((res) => res.json())
+            .then((res) => res.ok ? res.json() : Promise.reject(res))
             .then((data) => setRoomTypes(data))
             .catch((err) => {
                 console.error(err);
@@ -22,29 +21,9 @@ function Home() {
             });
     }, []);
 
-    const DateSelect = () => (
-        <Box display="flex" justifyContent="flex-end">
-            <Typography 
-                variant="h6" component="h2"
-                margin="auto"
-                marginRight={1}
-            >日期：</Typography>
-            <TextField
-                size='small' 
-                variant='outlined'
-                type='date'
-                value={date.format('YYYY-MM-DD')}
-                onChange={(e) => {
-                    setDate(dayjs(e.target.value));
-                    setPrevDate(dayjs(e.target.value));
-                }}
-            />
-        </Box>
-    );
-
     if (roomTypes === undefined) return (
         <Box>
-            <DateSelect />
+        <DateSelect date={date} setDate={setDate} />
             {Array(2).fill(0).map((_, i) => (
                 <RoomListByTypeSkeleton key={i} />
             ))}
@@ -53,23 +32,47 @@ function Home() {
 
     if (roomTypes.length === 0) return (
         <Box>
-            <DateSelect />
+        <DateSelect date={date} setDate={setDate} />
             <NoContent />
         </Box>
     );
 
     return (
         <Box>
-            <DateSelect />
+            <DateSelect date={date} setDate={setDate} />
             {roomTypes.map((type) => (
                 <RoomListByType
                     key={type.type}
                     type={type}
-                    date={prevDate}
+                    date={date}
                 />
             ))}
         </Box>
     );
 }
+
+interface DateSelectProps {
+    date: Dayjs;
+    setDate: React.Dispatch<React.SetStateAction<Dayjs>>;
+}
+
+const DateSelect = ({ date, setDate }: DateSelectProps) => (
+    <Box display="flex" justifyContent="flex-end">
+        <Typography 
+            variant="h6" component="h2"
+            margin="auto"
+            marginRight={1}
+        >日期：</Typography>
+        <TextField
+            size='small' 
+            variant='outlined'
+            type='date'
+            value={date.format('YYYY-MM-DD')}
+            onChange={(e) => {
+                setDate(dayjs(e.target.value));
+            }}
+        />
+    </Box>
+);
 
 export default Home;

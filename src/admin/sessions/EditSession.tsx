@@ -13,17 +13,13 @@ function EditSession() {
 
     React.useEffect(() => {
         fetch(api_paths.admin.sessions + `?session_id=${session_id}`)
-            .then(res => res.json())
-            .then(data => {
-                setSession({
-                    ...data[0],
-                    start_time: dayjs(data[0].start_time).format('YYYY-MM-DDTHH:mm'),
-                    end_time: dayjs(data[0].end_time).format('YYYY-MM-DDTHH:mm'),
-                });
-            })
-            .catch(err => {
-                console.log(err);
-            });
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setSession({
+                ...data[0],
+                start_time: dayjs(data[0].start_time).format('YYYY-MM-DDTHH:mm'),
+                end_time: dayjs(data[0].end_time).format('YYYY-MM-DDTHH:mm'),
+            }))
+            .catch(err => console.log(err));
     }, [session_id]);
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {

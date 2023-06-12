@@ -6,6 +6,7 @@ import {
     Button,
     FormHelperText,
     IconButton,
+    Skeleton,
     Tooltip,
     Typography,
 } from "@mui/material";
@@ -28,32 +29,36 @@ function Rooms() {
 
     React.useEffect(() => {
         fetch(api_paths.admin.rooms)
-            .then(res => res.json())
-            .then(data => {
-                setRooms(data);
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setRooms(data))
+            .catch(err => {
+                console.error(err);
+                setRooms([]);
             });
     }, []);
 
     React.useEffect(() => {
         fetch(api_paths.admin.room_types)
-            .then(res => res.json())
-            .then(data => {
-                setRoomTypes(data.reduce((acc: Record<string, any>, cur: Record<string, any>) => {
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setRoomTypes(data
+                .reduce((acc: Record<string, any>, cur: Record<string, any>) => {
                     acc[cur.type] = cur;
                     return acc;
-                }, {}));
-            });
+                }, {})
+            ))
+            .catch(err => console.error(err));
     }, []);
 
     React.useEffect(() => {
         fetch(api_paths.admin.room_status)
-            .then(res => res.json())
-            .then(data => {
-                setRoomStatus(data.reduce((acc: Record<string, any>, cur: Record<string, any>) => {
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setRoomStatus(data
+                .reduce((acc: Record<string, any>, cur: Record<string, any>) => {
                     acc[cur.status] = cur;
                     return acc;
-                }, {}));
-            });
+                }, {})
+            ))
+            .catch(err => console.error(err));
     }, []);
 
     const columns = [
@@ -75,17 +80,20 @@ function Rooms() {
                     </Typography>
                 );
             case "status":
-            case "type":
                 return (
                     <Typography noWrap sx={{ maxWidth: "70px" }}>
-                        {field === "status" ? (
                         <Box component="span" 
                             borderBottom={3} 
                             borderColor={statusColors[row[field]]}
                         >
-                            {roomStatus[row[field]]?.label}
+                            {roomStatus[row[field]]?.label??<Skeleton />}
                         </Box>
-                        ) : roomTypes[row[field]]?.label}
+                    </Typography>
+                );
+            case "type":
+                return (
+                    <Typography noWrap sx={{ maxWidth: "70px" }}>
+                        {roomTypes[row[field]]?.label??<Skeleton />}
                     </Typography>
                 );
             case "image":
@@ -134,7 +142,7 @@ function Rooms() {
             />}
             {rooms === undefined &&
             <TableSkeleton
-                rowCount={12}
+                rowCount={14}
                 columns={columns.map(column => column.label)}
                 height="70vh"
                 minWidth="750px"

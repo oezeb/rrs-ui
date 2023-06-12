@@ -5,6 +5,7 @@ import {
     IconButton,
     Tooltip,
     Typography,
+    Skeleton,
 } from "@mui/material";
 import * as React from "react";
 
@@ -42,12 +43,17 @@ function Reservations() {
             setter: React.Dispatch<React.SetStateAction<Record<string, any>>>,
             key: string,
         ) => {
-            let res = await fetch(url);
-            let data = await res.json();
-            setter(data.reduce((acc: Record<string, any>, cur: Record<string, any>) => {
-                acc[cur[key]] = cur;
-                return acc;
-            }, {}));
+            try {
+                let res = await fetch(url);
+                if (!res.ok) throw new Error(res.statusText);
+                let data = await res.json();
+                setter(data.reduce((acc: Record<string, any>, cur: Record<string, any>) => {
+                    acc[cur[key]] = cur;
+                    return acc;
+                }, {}));
+            } catch (err) {
+                console.error(err);
+            }
         };
         promises.push(_fetch(api_paths.admin.resv_status, setResvStatus, 'status'));
         promises.push(_fetch(api_paths.admin.resv_privacy, setResvPrivacy, 'privacy'));
@@ -93,7 +99,7 @@ function Reservations() {
 
         switch (field) {
             case 'username':
-                return <Text text={users[row[field]]?.name} maxWidth="70px" />;
+                return <Text text={users[row[field]]?.name??<Skeleton />} maxWidth="70px" />;
             case 'title':
                 return <Text text={row[field]} maxWidth="130px" />;
             case 'status':
@@ -103,16 +109,16 @@ function Reservations() {
                             borderBottom={3} 
                             borderColor={statusColors[row.status]}
                         >
-                            {resvStatus[row.status]?.label}
+                            {resvStatus[row.status]?.label??<Skeleton />}
                         </Box>
                     </Typography>
                 );
             case 'privacy':
-                return <Text text={resvPrivacy[row.privacy]?.label} maxWidth="70px" />;
+                return <Text text={resvPrivacy[row.privacy]?.label??<Skeleton />} maxWidth="70px" />;
             case 'room_id':
-                return <Text text={rooms[row.room_id]?.name} maxWidth="100px" />;
+                return <Text text={rooms[row.room_id]?.name??<Skeleton />} maxWidth="100px" />;
             case 'session_id':
-                return <Text text={sessions[row.session_id]?.name} maxWidth="130px" />;
+                return <Text text={row.session_id !== null ? sessions[row.session_id]?.name??<Skeleton />:""} maxWidth="130px" />;
             case 'time_slots':
                 return <TimeView resv={row} timeFilter={timeFilter} />;
             case 'actions':
@@ -157,9 +163,9 @@ function Reservations() {
             />}
             {reservations === undefined &&
             <TableSkeleton
-                rowCount={12}
+                rowCount={13}
                 columns={columns.map(col => col.label)}
-                height='70vh'
+                height='65vh'
                 minWidth='1200px'
             />}
             <Button fullWidth startIcon={<AddIcon />}

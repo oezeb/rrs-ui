@@ -22,9 +22,11 @@ function Types() {
 
     React.useEffect(() => {
         fetch(api_paths.admin.room_types)
-            .then(res => res.json())
-            .then(data => {
-                setRoomTypes(data);
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setRoomTypes(data))
+            .catch(err => {
+                console.error(err);
+                setRoomTypes([]);
             });
     }, []);
 
@@ -77,7 +79,7 @@ function Types() {
             />}
             {roomTypes === undefined &&
             <TableSkeleton
-                rowCount={13}
+                rowCount={14}
                 columns={columns.map(column => column.label)}
                 height="70vh"
                 minWidth="300px"

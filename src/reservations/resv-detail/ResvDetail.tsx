@@ -24,25 +24,24 @@ function ResvDetail({ resv_id }: { resv_id: string|number }) {
     React.useEffect(() => {
         if (!user || resv !== undefined) return;
         fetch(api_paths.user_resv + `?resv_id=${resv_id}&username=${user.username}`)
-            .then((res) => res.json())
-            .then((data) => {
-                setResv({
-                    ...data[0],
-                    create_time: dayjs(data[0].create_time),
-                    slot_id: undefined,
-                    start_time: undefined,
-                    end_time: undefined,
-                    status: undefined,
-                    time_slots: data.map((item: any) => ({
-                        slot_id: item.slot_id,
-                        start_time: dayjs(item.start_time),
-                        end_time: dayjs(item.end_time),
-                        status: item.status,
-                    })),
-                });
-            })
+            .then((res) => res.ok ? res.json() : Promise.reject(res))
+            .then((data) => setResv({
+                ...data[0],
+                create_time: dayjs(data[0].create_time),
+                slot_id: undefined,
+                start_time: undefined,
+                end_time: undefined,
+                status: undefined,
+                time_slots: data.map((item: any) => ({
+                    slot_id: item.slot_id,
+                    start_time: dayjs(item.start_time),
+                    end_time: dayjs(item.end_time),
+                    status: item.status,
+                })),
+            }))
             .catch((err) => {
                 console.log(err);
+                setResv({});
             });
     }, [resv_id, resv, user]);
 

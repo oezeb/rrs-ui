@@ -37,11 +37,14 @@ function SlotTable(props : SlotTableProps) {
 
     React.useEffect(() => {
         fetch(api_paths.admin.resv_status)
-            .then(res => res.json())
-            .then(data => setStatus(data.reduce((acc: Record<string, any>, item: Record<string, any>) => {
-                acc[item.status] = item;
-                return acc;
-            }, {})));
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setStatus(data
+                .reduce((acc: Record<string, any>, item: Record<string, any>) => {
+                    acc[item.status] = item;
+                    return acc;
+                }, {})
+            ))
+            .catch(err => console.log(err));
     }, []);
 
     const handleCancel = (slot_id?: number) => {

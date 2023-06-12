@@ -13,21 +13,15 @@ function EditNotice() {
 
     React.useEffect(() => {
         fetch(api_paths.admin.notices + `?notice_id=${notice_id}&username=${username}`)
-            .then(res => res.json())
-            .then(data => {
-                setNotice({
-                    ...data[0],
-                });
-            })
-            .catch(err => {
-                console.log(err);
-            });
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setNotice(data[0]))
+            .catch(err => console.log(err));
     }, [notice_id, username]);
 
     React.useEffect(() => {
         if (!notice) return;
         fetch(api_paths.admin.users + `?username=${notice.username}`)
-            .then(res => res.json())
+            .then(res => res.ok ? res.json() : Promise.reject(res))
             .then(data => setUser(data[0]))
             .catch(err => console.log(err));
     }, [notice]);

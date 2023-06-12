@@ -31,7 +31,7 @@ const FilterWidget = (props: FilterViewProps) => {
     React.useEffect(() => {
         let now = dayjs();
         fetch(api_paths.user_resv + (status === null ? "" : `?status=${status.status}`))
-            .then(res => res.json())
+            .then(res => res.ok ? res.json() : Promise.reject(res))
             .then(data => setReservations(Object.values(data
                 .reduce((acc: Record<string, any>, resv: any) => {
                     let slot = {
@@ -71,6 +71,7 @@ const FilterWidget = (props: FilterViewProps) => {
             ))
             .catch(err => {
                 console.log(err);
+                setReservations([]);
             });
     }, [status, time, setReservations]);
 

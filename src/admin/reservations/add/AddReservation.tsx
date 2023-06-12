@@ -53,6 +53,8 @@ function AddResvervation() {
         let resv = {
             room_id: room?.room_id,
             session_id: session?.session_id,
+            privacy: privacy?.privacy,
+            username: user?.username,
             title: data.get('title'),
             note: data.get('note'),
             time_slots: slots.map(slot => ({
@@ -69,15 +71,7 @@ function AddResvervation() {
             },
             body: JSON.stringify(resv),
         })
-            .then((res) => {
-                if (res.ok) {
-                    return res.json();
-                } else {
-                    res.text().then((text) => {
-                        throw new Error(text);
-                    });
-                }
-            })
+            .then((res) => res.ok ? res.json() : Promise.reject(res))
             .then((data) => {
                 showSnackbar({ message: '预约成功', severity: 'success', duration: 2000 });
                 navigate(`/admin/reservations/edit/${data.resv_id}/${data.username}`);

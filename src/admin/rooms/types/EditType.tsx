@@ -11,10 +11,10 @@ function EditType() {
     const {showSnackbar} = useSnackbar();
 
     React.useEffect(() => {
-        let url = api_paths.admin.room_types + `?type=${params.type}`;
-        fetch(url).then(res => res.json()).then(res => {
-            setType(res[0]);
-        });
+        fetch(api_paths.admin.room_types + `?type=${params.type}`)
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(res => setType(res[0]))
+            .catch(err => console.log(err));
     }, [params.type]);
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {

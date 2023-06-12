@@ -6,10 +6,9 @@ import dayjs, { Dayjs } from 'dayjs';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 import { useAuth } from 'providers/AuthProvider';
-import { usePeriods } from 'providers/PeriodsProvider';
 import { Link } from 'utils/Navigate';
 import { paths as api_paths, resv_status, room_status } from "utils/api";
-import RoomWidgetContent from './RoomWidgetContent';
+import RoomWidgetContent from './room-widget-content/RoomWidgetContent';
 
 interface RoomWidgetProps {
     date: Dayjs;
@@ -20,35 +19,24 @@ interface RoomWidgetProps {
 
 function RoomWidget(props: RoomWidgetProps) {
     const { date, room, show_pending, resv_button } = props;
-    const [periods, setPeriods] = useState<Record<string, any>[]|undefined>(undefined); 
     const [reservations, setReservations] = useState<Record<string, any>[]|undefined>(undefined);
     const { user } = useAuth();
-    
-    const _periods = usePeriods().periods;
-
-    useEffect(() => {
-        let _date = date.format('YYYY-MM-DD');
-        setPeriods(undefined);
-        setPeriods(_periods.map((p: Record<string, any>) => ({
-            ...p,
-            start_time: dayjs(`${_date} ${p.start_time.format()}`),
-            end_time: dayjs(`${_date} ${p.end_time.format()}`),
-        })));
-    }, [date, _periods]);
 
     useEffect(() => {
         let _date = date.format('YYYY-MM-DD');
         setReservations(undefined);
         fetch(api_paths.reservations + `?room_id=${room.room_id}&start_date=${_date}`)
-            .then((res) => res.json())
-            .then((data) => {
-                setReservations(data.filter((r: Record<string, any>) => (
+            .then((res) => res.ok ? res.json() : Promise.reject(res))
+            .then((data) => setReservations(data
+                .filter((r: Record<string, any>) => (
                     (show_pending && r.status === resv_status.pending) || r.status === resv_status.confirmed
-                )).map((resv: Record<string, any>) => ({
+                ))
+                .map((resv: Record<string, any>) => ({
                     ...resv,
                     start_time: dayjs(resv.start_time),
                     end_time: dayjs(resv.end_time),
-                })).sort((a: Record<string, any>, b: Record<string, any>) => {
+                }))
+                .sort((a: Record<string, any>, b: Record<string, any>) => {
                     if (a.start_time.isBefore(b.start_time)) {
                         return -1;
                     } else if (a.start_time.isAfter(b.start_time)) {
@@ -60,17 +48,13 @@ function RoomWidget(props: RoomWidgetProps) {
                     } else {
                         return 0;
                     }
-                }))
-            })
+                })
+            ))
             .catch((err) => {
                 console.error(err);
                 setReservations([]);
             });
     }, [room.room_id, date, show_pending]);
-
-    if (periods === undefined || reservations === undefined) {
-        return <RoomWidgetSkeleton />;
-    }
 
     return (
         <Box width={140}  margin={1} >
@@ -84,7 +68,7 @@ function RoomWidget(props: RoomWidgetProps) {
                     <EventSeatIcon fontSize='inherit' />{room.capacity}
                 </Typography>
                 <Box height={200} position="relative" bgcolor={'#f5f5f5'}>
-                    <RoomWidgetContent periods={periods} reservations={reservations} />
+                    <RoomWidgetContent date={date} reservations={reservations} />
                 </Box>
             </Box>
             {user && resv_button && (

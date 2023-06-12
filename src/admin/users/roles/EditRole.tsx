@@ -23,10 +23,9 @@ function EditRole() {
         if (!params.role) return;
         
         fetch(api_paths.admin.user_roles + `?role=${params.role}`)
-            .then(res => res.json())
-            .then(res => {
-                setRole(res[0]);
-            });
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(res => setRole(res[0]))
+            .catch(err => console.log(err));
     }, [params.role]);
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {

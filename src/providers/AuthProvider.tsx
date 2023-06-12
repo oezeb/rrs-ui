@@ -19,12 +19,9 @@ function AuthProvider(props: React.PropsWithChildren<{}>) {
     const update = async (callback?: (res: Response) => void) => {
         try {
             let res = await fetch(api_paths.user);
-            if (res.ok) {
-                let user = await res.json();
-                setUser(user);
-            } else {
-                setUser(null);
-            }
+            if (!res.ok) throw new Error(res.statusText);
+            let user = await res.json();
+            setUser(user);
 
             if (callback) {
                 callback(res);
@@ -94,7 +91,7 @@ export function RequireAuth({ children, role }: { children: React.ReactNode, rol
     if (user === undefined) {
         return <BackDrop open />;
     } else if (user === null) {
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/login" />;
     } else if (role !== undefined && user.role < role) {
         return <Forbidden />;
     } else {

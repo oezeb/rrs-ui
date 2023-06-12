@@ -54,7 +54,7 @@ function Register() {
             }
         })
         .catch((err) => {
-            setError({ register: "注册失败" });
+            showSnackbar({ message: "注册失败", severity: "error" });
         });
     };
 

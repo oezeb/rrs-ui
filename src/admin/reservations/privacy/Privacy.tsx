@@ -15,9 +15,11 @@ function Privacy() {
 
     React.useEffect(() => {
         fetch(api_paths.admin.resv_privacy)
-            .then(res => res.json())
-            .then(data => {
-                setResvPrivacy(data);
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setResvPrivacy(data))
+            .catch(err => {
+                console.error(err);
+                setResvPrivacy([]);
             });
     }, []);
 

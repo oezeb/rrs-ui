@@ -37,13 +37,7 @@ function AddSession() {
             },
             body: JSON.stringify(data)
         })
-            .then(res => {
-                if (res.ok) {
-                    return res.json();
-                } else {
-                    throw new Error("添加失败");
-                }
-            })
+            .then(res => res.ok ? res.json() : Promise.reject(res))
             .then(data => {
                 showSnackbar({message: "添加成功", severity: "success", duration: 2000});
                 navigate(`/admin/sessions/edit/${data.session_id}`);

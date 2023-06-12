@@ -35,6 +35,7 @@ function ResvList() {
             key: string,
         ) => {
             let res = await fetch(url);
+            if (!res.ok) return new Error(res.statusText);
             let data = await res.json();
             setter(data.reduce((acc: Record<string, any>, cur: Record<string, any>) => {
                 acc[cur[key]] = cur;

@@ -59,7 +59,7 @@ const FilterWidget = (props: FilterWidgetProps) => {
 
         let now = dayjs();
         fetch(api_paths.admin.reservations + (args.length ? `?${args.join('&')}` : ''))
-            .then(res => res.json())
+            .then(res => res.ok ? res.json() : Promise.reject(res))
             .then(data => setReservations(Object.values(data
                 .reduce((acc: Record<string, any>, resv: any) => {
                     let slot = {
@@ -98,7 +98,8 @@ const FilterWidget = (props: FilterWidgetProps) => {
                 })
             ))
             .catch(err => {
-                console.log(err)
+                console.log(err);
+                setReservations([]);
             });
     }, [username, roomId, sessionId, status, privacy, time, setReservations]);
 

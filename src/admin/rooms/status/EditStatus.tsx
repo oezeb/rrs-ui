@@ -14,10 +14,9 @@ function EditStatus() {
     
     React.useEffect(() => {
         fetch(api_paths.admin.room_status + `?status=${params.status}`)
-            .then(res => res.json())
-            .then(res => {
-                setStatus(res[0]);
-            });
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(res => setStatus(res[0]))
+            .catch(err => console.log(err));
     }, [params.status]);
     
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {

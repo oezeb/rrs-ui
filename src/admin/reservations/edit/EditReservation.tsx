@@ -16,6 +16,7 @@ import { paths as api_paths } from "utils/api";
 import { descriptionFieldParams, labelFieldParams } from "utils/util";
 import ResvTable from "./ResvTable";
 import SlotTable, { ActionHelper } from "./SlotTable";
+import NoContent from "utils/NoContent";
 
 function EditReservation() {
     const {resv_id, username } = useParams();
@@ -26,13 +27,13 @@ function EditReservation() {
 }
 
 function ResvDetails({ resv_id, username }: { resv_id: string|number, username: string }) {
-    const [resv, setResv] = React.useState<Record<string, any> | undefined>(undefined);
+    const [resv, setResv] = React.useState<Record<string, any>|null|undefined>(undefined);
     const { showSnackbar } = useSnackbar();
 
     React.useEffect(() => {
         if (resv !== undefined) return;
         fetch(api_paths.admin.reservations + `?resv_id=${resv_id}&username=${username}`)
-            .then(res => res.json())
+            .then(res => res.ok ? res.json() : Promise.reject(res))
             .then(data => setResv({
                 ...data[0],
                 create_time: dayjs(data[0].create_time),
@@ -50,13 +51,14 @@ function ResvDetails({ resv_id, username }: { resv_id: string|number, username: 
             }))
             .catch(err => {
                 console.log(err);
+                setResv(null);
             });
     }, [resv_id, username, resv]);
         
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         let data = new FormData(event.currentTarget);
-        if (resv === undefined) return;
+        if (!resv) return;
         
         let title = (data.get("title") as string).trim();
         let note = (data.get("note") as string).trim();
@@ -84,6 +86,8 @@ function ResvDetails({ resv_id, username }: { resv_id: string|number, username: 
             showSnackbar({ message: "修改失败", severity: "error" });
         });
     };
+
+    if (resv === null) return <NoContent text="预约不存在" />;
 
     return (
         <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 700, margin: "auto" }} >

@@ -40,13 +40,11 @@ function AddRoom() {
                     body: JSON.stringify(data)
                 });
 
-                if (res.ok) {
-                    let json = await res.json();
-                    showSnackbar({message: "添加成功", severity: "success", duration: 2000});
-                    navigate(`/admin/rooms/edit/${json.room_id}`);
-                } else {
-                    throw new Error("添加失败");
-                }
+                if (!res.ok) throw new Error(res.statusText);
+
+                let json = await res.json();
+                showSnackbar({message: "添加成功", severity: "success", duration: 2000});
+                navigate(`/admin/rooms/edit/${json.room_id}`);
             } catch (err) {
                 console.log(err);
                 showSnackbar({message: "添加失败", severity: "error"});

@@ -15,10 +15,8 @@ function Roles() {
 
     React.useEffect(() => {
         fetch(api_paths.admin.user_roles)
-            .then(res => res.json())
-            .then(data => {
-                setUserRoles(data);
-            })
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setUserRoles(data))
             .catch(err => {
                 console.error(err);
                 setUserRoles([]);

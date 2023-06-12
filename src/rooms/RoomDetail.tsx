@@ -13,30 +13,30 @@ function RoomDetail({ room_id }: { room_id: string|number }) {
 
     React.useEffect(() => {
         fetch(api_paths.rooms + `?room_id=${room_id}`)
-            .then(res => res.json())
-            .then(data => {
-                setRoom(data[0]);
-            });
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setRoom(data[0]))
+            .catch(err => console.error(err));
         }, [room_id]);
         
     React.useEffect(() => {
         fetch(api_paths.room_status)
-            .then(res => res.json())
-            .then(data => {
-                setRoomStatus(data.reduce((acc: Record<number, any>, item: any) => {
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setRoomStatus(data
+                .reduce((acc: Record<number, any>, item: any) => {
                     acc[item.status] = item;
                     return acc;
-                }, {}));
-            });
-
+                }, {})
+            ))
+            .catch(err => console.error(err));
         fetch(api_paths.room_types)
-            .then(res => res.json())
-            .then(data => {
-                setRoomTypes(data.reduce((acc: Record<number, any>, item: any) => {
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setRoomTypes(data
+                .reduce((acc: Record<number, any>, item: any) => {
                     acc[item.type] = item;
                     return acc;
-                }, {}));
-            });
+                }, {})
+            ))
+            .catch(err => console.error(err));
     }, []);
 
     const ListItemView = (props: { label: string, value: JSX.Element | string }) => (

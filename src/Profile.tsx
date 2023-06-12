@@ -64,16 +64,14 @@ function Profile() {
 
     React.useEffect(() => {
         fetch(api_paths.user_roles)
-            .then((res) => res.json())
-            .then((data) => {
-                setRoles(data.reduce((obj: Record<string, any>, item: Record<string, any>) => {
+            .then((res) => res.ok ? res.json() : Promise.reject(res))
+            .then((data) => setRoles(data
+                .reduce((obj: Record<string, any>, item: Record<string, any>) => {
                     obj[item.role] = item;
                     return obj;
-                }, {}));
-            })
-            .catch((err) => {
-                console.log(err);
-            });
+                }, {})
+            ))
+            .catch((err) => console.log(err));
     }, []);
 
 

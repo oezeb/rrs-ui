@@ -15,18 +15,9 @@ function RoomWidget(props: RoomWidgetProps) {
 
     useEffect(() => {
         let url = api_paths.admin.rooms + `?room_id=${room_id}`;
-        fetch(url).then((res) => res.json())
-            .then((data) => {
-                if (data && data.length > 0) {
-                    setRoom(data[0]);
-                } else {
-                    setRoom(null);
-                }
-            })
-            .catch((err) => {
-                console.error(err);
-                setRoom(null);
-            });
+        fetch(url).then((res) => res.ok ? res.json() : Promise.reject(res))
+            .then((data) => setRoom(data[0]))
+            .catch((err) => console.error(err));
     }, [room_id]);
 
     if (room) {

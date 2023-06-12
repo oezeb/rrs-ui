@@ -17,8 +17,12 @@ function Status() {
 
     React.useEffect(() => {
         fetch(api_paths.admin.room_status)
-            .then(res => res.json())
-            .then(data => setRoomStatus(data));
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => setRoomStatus(data))
+            .catch(err => {
+                console.error(err);
+                setRoomStatus([]);
+            });
     }, []);
 
     const columns = [

@@ -85,6 +85,7 @@ export const hasConflict = async (slot: Record<string, any>, room_id: string|num
         let url = api_paths.reservations + `?room_id=${room_id}&start_date=${date.format('YYYY-MM-DD')}`;
         try {
             let res = await fetch(url);
+            if (!res.ok) throw new Error(res.statusText);
             let data = await res.json();
             let no_conflict = data
                 .map((r: Record<string, any>) => ({
