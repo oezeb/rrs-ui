@@ -11,6 +11,7 @@ This project relies on the Room Reservation System API to retrieve and manipulat
 - Node.js
 - npm
 - Room Reservation System API
+- Docker (optional)
 
 ### Setup
 
@@ -33,3 +34,12 @@ $ npm run build
 ```
 
 Then, deploy the build directory to a web server. ensure that the web server is configured to reverse proxy `/api` requests to the Room Reservation System API.
+
+The project can also be built using Docker:
+
+```bash
+$ docker build -t rrs-ui .
+$ id=$(docker create rrs-ui)
+$ docker cp $id:/rrs-ui/build .
+$ docker rm -v $id
+```
